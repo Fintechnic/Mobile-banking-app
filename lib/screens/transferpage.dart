@@ -59,7 +59,7 @@ class TransferScreen extends StatelessWidget {
 
       
             SingleChildScrollView(
-              scrollDirection: Axis.horizontal,A
+              scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
                   CircleAvatar(backgroundColor: Colors.blue.withOpacity(0.2), radius: 30, child: Icon(Icons.add, color: Colors.blue)),
