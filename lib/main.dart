@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 import 'screens/homepage.dart';
 import 'screens/login_screen.dart';
+import './pages/transferpage.dart';
+import './pages/qr_page.dart';     //Import QRpage
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,7 +35,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(primarySwatch: Colors.blue),
       home: Consumer<AuthProvider>(
         builder: (context, authProvider, child) {
-          return authProvider.isAuthenticated ? const Homepage() : const LoginScreen();
+          return authProvider.isAuthenticated ? const HomePage() : const LoginScreen();
         },
       ),
     );
