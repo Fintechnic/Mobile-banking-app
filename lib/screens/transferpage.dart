@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'qr_page.dart'; 
+import 'qr_scan_screen.dart'; 
 
 class TransferScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[200],
+      backgroundColor: Colors.grey[200], // Màu nền cho toàn bộ màn hình
       appBar: AppBar(
-        title: Text("Transfer"),
-        backgroundColor: Colors.blue,
+        title: Text("Transfer"), // Tiêu đề của AppBar
+        backgroundColor: Colors.blue, // Màu nền của AppBar
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: Icon(Icons.arrow_back), // Nút quay lại
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -19,7 +19,7 @@ class TransferScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Account select
+            // Chọn tài khoản hoặc thẻ để chuyển tiền
             Container(
               padding: EdgeInsets.symmetric(horizontal: 16.0),
               decoration: BoxDecoration(
@@ -35,42 +35,48 @@ class TransferScreen extends StatelessWidget {
               ),
             ),
             SizedBox(height: 20),
-
-            // Choose beneficiary and Scan QR button
+            // Chọn người thụ hưởng và nút quét mã QR
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text("Choose beneficiary", style: TextStyle(fontWeight: FontWeight.bold)),
-                TextButton(
-                  onPressed: () async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => QRScannerScreen()),
-                    );
-                    if (result != null) {
-                      // Handle QR scan result
-                    }
-                  },
-                  child: Text("Scan QR", style: TextStyle(color: Colors.blue)),
+                IconButton(
+                  icon: Icon(Icons.qr_code_scanner, color: Colors.blue), // Nút quét mã QR
+                  onPressed: () {},
                 ),
               ],
             ),
             SizedBox(height: 10),
-
-      
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
+            // Danh sách người thụ hưởng 
+            Container(
+              height: 100,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
                 children: [
-                  CircleAvatar(backgroundColor: Colors.blue.withOpacity(0.2), radius: 30, child: Icon(Icons.add, color: Colors.blue)),
-                  SizedBox(width: 10),
-                  ...List.generate(3, (index) => Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 5),
+                  Container(
+                    margin: EdgeInsets.symmetric(horizontal: 5),
                     child: Column(
                       children: [
-                        CircleAvatar(backgroundImage: AssetImage('assets/avatar.png'), radius: 30),
+                        CircleAvatar(
+                          backgroundColor: Colors.blue.withOpacity(0.2),
+                          radius: 30,
+                          child: Icon(Icons.add, color: Colors.blue), // Nút thêm người thụ hưởng
+                        ),
                         SizedBox(height: 5),
-                        Text("Amanda", style: TextStyle(fontSize: 12)),
+                        Text("Add", style: TextStyle(fontSize: 12)),
+                      ],
+                    ),
+                  ),
+                  ...List.generate(3, (index) => Container(
+                    margin: EdgeInsets.symmetric(horizontal: 5),
+                    child: Column(
+                      children: [
+                        CircleAvatar(
+                          backgroundImage: AssetImage('assets/avatar.png'),
+                          radius: 30,
+                        ),
+                        SizedBox(height: 5),
+                        Text("Users", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
                       ],
                     ),
                   )),
@@ -78,8 +84,7 @@ class TransferScreen extends StatelessWidget {
               ),
             ),
             SizedBox(height: 20),
-
-            // Transfer form
+            // Form nhập thông tin chuyển khoản
             Container(
               padding: EdgeInsets.all(16.0),
               decoration: BoxDecoration(
@@ -88,25 +93,22 @@ class TransferScreen extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  buildTextField("Bank"),
-                  buildTextField("Card number"),
-                  buildTextField("Name"),
-                  buildTextField("Amount"),
-                  buildTextField("Content"),
-
-
+                  buildTextField("Bank"), // nhập ngân hàng
+                  buildTextField("Card number"), // nhập số thẻ
+                  buildTextField("Name"), // nhập tên chủ thẻ
+                  buildTextField("Amount"), //nhập số tiền chuyển
+                  buildTextField("Content"), //nhập nội dung chuyển khoản
                   Row(
                     children: [
                       Checkbox(value: false, onChanged: (value) {}),
-                      Text("Save to directory of beneficiary"),
+                      Text("Save to directory of beneficiary"), // Tuỳ chọn lưu người thụ hưởng vào danh bạ
                     ],
                   ),
                 ],
               ),
             ),
             SizedBox(height: 20),
-
-            // Confirm button
+            // Nút xác nhận giao dịch
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -124,12 +126,13 @@ class TransferScreen extends StatelessWidget {
     );
   }
 
+  // Hàm tạo một trường nhập liệu có nhãn
   Widget buildTextField(String label) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5.0),
       child: TextField(
         decoration: InputDecoration(
-          labelText: label,
+          labelText: label, // Nhãn của trường nhập liệu
           border: OutlineInputBorder(),
         ),
       ),
