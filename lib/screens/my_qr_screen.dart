@@ -1,80 +1,61 @@
 import 'package:flutter/material.dart';
-import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
-class QRScannerScreen extends StatefulWidget {
-  @override
-  _QRScannerScreenState createState() => _QRScannerScreenState();
-}
-
-class _QRScannerScreenState extends State<QRScannerScreen> {
-  final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
-  QRViewController? controller;
-  String? qrText;
-
-  @override
-  void dispose() {
-    controller?.dispose();
-    super.dispose();
-  }
-
-  void _onQRViewCreated(QRViewController controller) {
-    this.controller = controller;
-    controller.scannedDataStream.listen((scanData) {
-      setState(() {
-        qrText = scanData.code;
-      });
-    });
-  }
+class QRCodeScreen extends StatelessWidget {
+  final String qrData = "https://example.com/payment"; // Dữ liệu QR để hiển thị
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          QRView(
-            key: qrKey,
-            onQRViewCreated: _onQRViewCreated,
-            overlay: QrScannerOverlayShape(
-              borderColor: Colors.white,
-              borderRadius: 10,
-              borderLength: 30,
-              borderWidth: 5,
-              cutOutSize: MediaQuery.of(context).size.width * 0.7,
+      backgroundColor: Colors.black, // Đặt màu nền của màn hình là đen
+      appBar: AppBar(
+        title: Text("My QR code", style: TextStyle(color: Colors.white)), // Tiêu đề của AppBar
+        backgroundColor: Colors.black, // Đặt màu nền của AppBar là đen
+        elevation: 0, // Loại bỏ bóng của AppBar
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white), // Nút quay lại
+          onPressed: () => Navigator.pop(context), // Quay lại màn hình trước đó
+        ),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center, // Canh giữa các phần tử trong cột
+          children: [
+            Text(
+              "Scan the code to transfer money to\nMr.A", 
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.white, fontSize: 16), // Định dạng chữ trắng, cỡ 16
             ),
-          ),
-          Positioned(
-            top: 50,
-            left: 20,
-            child: IconButton(
-              icon: Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: () => Navigator.pop(context),
+            SizedBox(height: 20), // Khoảng cách giữa văn bản và mã QR
+            Container(
+              padding: EdgeInsets.all(16), // Khoảng cách bên trong container
+              decoration: BoxDecoration(
+                color: Colors.white, // Màu nền trắng cho container chứa mã QR
+                borderRadius: BorderRadius.circular(16), // Bo tròn góc
+              ),
+              child: QrImageView(
+                data: qrData, // Dữ liệu QR để tạo mã
+                version: QrVersions.auto, // Tự động chọn phiên bản QR phù hợp
+                size: 200, // Kích thước mã QR
+              ),
             ),
-          ),
-          Positioned(
-            bottom: 80,
-            left: 0,
-            right: 0,
-            child: Column(
+            SizedBox(height: 20), // Khoảng cách giữa mã QR và hàng nút bấm
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center, // Canh giữa các nút
               children: [
-                Text(
-                  "Move the camera to the QR code to scan or",
-                  style: TextStyle(color: Colors.white, fontSize: 16),
-                  textAlign: TextAlign.center,
+                IconButton(
+                  icon: Icon(Icons.share, color: Colors.white, size: 30), // Nút chia sẻ
+                  onPressed: () {}, // Hành động khi bấm vào nút chia sẻ (chưa xử lý)
                 ),
-                TextButton.icon(
-                  onPressed: () {
-                    // Implement photo library selection here
-                  },
-                  icon: Icon(Icons.photo_library, color: Colors.white),
-                  label: Text(
-                    "select from photo library",
-                    style: TextStyle(color: Colors.white),
-                  ),
+                SizedBox(width: 40), // Khoảng cách giữa hai nút
+                IconButton(
+                  icon: Icon(Icons.download, color: Colors.white, size: 30), // Nút tải xuống
+                  onPressed: () {}, // Hành động khi bấm vào nút tải xuống (chưa xử lý)
                 ),
               ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
