@@ -12,6 +12,7 @@ import 'screens/profile_screen.dart'; // Import Profile screen
 import 'screens/sign_up_screen.dart'; // Import sign_up screen
 import 'screens/bank_slip_screen.dart'; //Import bank slip screen
 import 'screens/my_qr_screen.dart'; // Import my qr screen
+import 'screens/loans_screen.dart';// Import my Loans screen
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
