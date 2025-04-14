@@ -1,279 +1,263 @@
 import 'package:flutter/material.dart';
 
-
-// Lớp MyApp - Khởi tạo ứng dụng Flutter
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Loan App',
-      debugShowCheckedModeBanner: false, // Tắt banner "Debug"
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
+        scaffoldBackgroundColor: Colors.white,
       ),
-      home: const LoanScreen(), // Màn hình khởi đầu là LoanScreen
+      home: LoanScreen(),
     );
   }
 }
 
-// Lớp LoanScreen - Màn hình chính hiển thị thông tin vay
 class LoanScreen extends StatelessWidget {
-  const LoanScreen({Key? key}) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        color: Colors.white,
-        child: SafeArea( // SafeArea giúp tránh bị cắt bởi notch, camera trước hoặc thanh điều hướng
-          child: Stack( // Stack cho phép xếp chồng các widget lên nhau
-            children: [
-              // nền có đường cong
-              Column(
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Background color
+            Container(
+              height: MediaQuery.of(context).size.height * 0.18,
+              decoration: BoxDecoration(
+                color: Color(0xFF8FC5FF),
+              ),
+              padding: const EdgeInsets.only(left: 10.0, right: 16.0, top: 5.0, bottom: 8.0),
+              child: Column(
                 children: [
-                  // Phần nền xanh dương phía trên có đường cong
-                  Container(
-                    height: MediaQuery.of(context).size.height * 0.25,
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient( // Gradient màu từ xanh nhạt đến xanh đậm hơn
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [Color(0xFF64B5F6), Color(0xFF42A5F5)],
+                  // Header row
+                  Row(
+                    children: [
+                      // Back button
+                      Icon(Icons.arrow_back_ios, color: Colors.white, size: 18),
+                      SizedBox(width: 6),
+                      // Title
+                      Text(
+                        'Loans',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                      borderRadius: BorderRadius.only( // Bo tròn phần dưới
-                        bottomLeft: Radius.circular(30),
-                        bottomRight: Radius.circular(30),
+                      Spacer(),
+                      // Document icon
+                      Container(
+                        width: 30,
+                        height: 30,
+                        decoration: BoxDecoration(
+                          color: Colors.white24,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: Icon(Icons.description_outlined, color: Colors.white, size: 16),
+                        ),
                       ),
-                    ),
-                  ),
-                  const Spacer(), // Khoảng trống giữa phần trên và dưới
-                  // Phần nền xanh đậm phía dưới có đường cong
-                  Container(
-                    height: 60,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF0D47A1), // Màu xanh dương đậm
-                      borderRadius: BorderRadius.only( // Bo tròn phần trên
-                        topLeft: Radius.circular(30),
-                        topRight: Radius.circular(30),
+                      SizedBox(width: 10),
+                      // Phone icon
+                      Container(
+                        width: 30,
+                        height: 30,
+                        decoration: BoxDecoration(
+                          color: Colors.white24,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: Icon(Icons.phone, color: Colors.white, size: 16),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ],
               ),
-              
-              // Phần chính
-              Column(
-                children: [
-                  // Thanh tiêu đề
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                    child: Row(
-                      children: [
-                        IconButton( // nút back
-                          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-                          onPressed: () {},
-                        ),
-                        const Text( // Tiêu đề loans
-                          'Loans',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w500,
+            ),
+            
+            // Search bar - positioned over the blue background
+            Transform.translate(
+              offset: Offset(0, -20),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Container(
+                  height: 40,
+                  padding: EdgeInsets.symmetric(horizontal: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 2,
+                        offset: Offset(0, 1),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.search, color: Colors.grey.shade400, size: 18),
+                      SizedBox(width: 6),
+                      Expanded(
+                        child: TextField(
+                          decoration: InputDecoration(
+                            hintText: 'PTF, SHB, JACCS, ACS...',
+                            hintStyle: TextStyle(
+                              color: Colors.grey.shade400,
+                              fontSize: 14,
+                            ),
+                            isDense: true,
+                            contentPadding: EdgeInsets.symmetric(vertical: 8),
+                            border: InputBorder.none,
                           ),
                         ),
-                        const Spacer(), // Đẩy các nút bên phải ra xa
-                        IconButton( // Nút sao chép
-                          icon: const Icon(Icons.copy_all_rounded, color: Colors.white),
-                          onPressed: () {},
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            
+            // Main content title
+            Padding(
+              padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 4.0),
+              child: Text(
+                'Select payment partner',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF2F80ED),
+                ),
+              ),
+            ),
+            SizedBox(height: 16),
+            
+            // Partners grid - custom layout with controlled spacing
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Column(
+                children: [
+                  // First row of partners
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: List.generate(4, (index) => _buildPartnerItem()),
+                  ),
+                  SizedBox(height: 25), // Specific spacing between rows
+                  // Second row of partners
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: List.generate(4, (index) => _buildPartnerItem()),
+                  ),
+                ],
+              ),
+            ),
+            
+            // Instruction section - with proper spacing
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 32.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Instruction manual',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF2F80ED),
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    // Balanced instruction items
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _buildInstructionItem(
+                          icon: Icons.menu_book_outlined,
+                          title: 'Financial\nliteracy',
+                          color: Color(0xFF2F80ED),
                         ),
-                        IconButton( // Nút điện thoại
-                          icon: const Icon(Icons.phone, color: Colors.white),
-                          onPressed: () {},
+                        _buildInstructionItem(
+                          icon: Icons.attach_money,
+                          title: 'Payment\nguide',
+                          color: Color(0xFF2F80ED),
+                        ),
+                        _buildInstructionItem(
+                          icon: Icons.question_answer_outlined,
+                          title: 'FAQ',
+                          color: Color(0xFF2F80ED),
+                        ),
+                        _buildInstructionItem(
+                          icon: Icons.message_outlined,
+                          title: 'Feedback',
+                          color: Color(0xFF2F80ED),
                         ),
                       ],
                     ),
-                  ),
-                  
-                  // Thanh tìm kiếm 
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                    child: Container(
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8), // Bo tròn góc
-                      ),
-                      child: TextField(
-                        decoration: InputDecoration(
-                          hintText: 'PTF, SHB, JACCS, ACS...', // Gợi ý tìm kiếm
-                          hintStyle: TextStyle(color: Colors.grey.shade500, fontSize: 14),
-                          prefixIcon: const Icon(Icons.search, color: Colors.grey, size: 20), // Biểu tượng kính lúp
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide.none, // Không có viền
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(vertical: 0),
-                          isDense: true, // Làm cho thanh tìm kiếm gọn hơn
-                        ),
-                      ),
-                    ),
-                  ),
-                  
-                  // Phần nội dụng có thể cuộn xuống
-                  Expanded(
-                    child: SingleChildScrollView( // Cho phép cuộn nếu nội dung quá dài
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 20),
-                            
-                            // Mục các đối tác thanh toán 
-                            const Text(
-                              'Select payment partner',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF1976D2),
-                              ),
-                            ),
-                            
-                            const SizedBox(height: 16),
-                            
-                            // lưới các đối tác thanh toán 
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(8),
-                                boxShadow: [ 
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.05),
-                                    blurRadius: 4,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: GridView.builder(
-                                shrinkWrap: true, // Giúp view thu gọn theo nội dung
-                                physics: const NeverScrollableScrollPhysics(), // Không cho phép cuộn trong grid
-                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 4, // 4 cột
-                                  childAspectRatio: 0.8, // Tỷ lệ chiều cao/rộng
-                                  crossAxisSpacing: 8, // Khoảng cách ngang
-                                  mainAxisSpacing: 16, // Khoảng cách dọc
-                                ),
-                                itemCount: 8, // 8 đối tác 
-                                itemBuilder: (context, index) {
-                                  return Column(
-                                    children: [
-                                      Container( // Hình tròn đại diện cho đối tác
-                                        width: 50,
-                                        height: 50,
-                                        decoration: BoxDecoration(
-                                          color: Colors.grey.shade200,
-                                          shape: BoxShape.circle,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      const Text( // Tên đối tác
-                                        'NAME',
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              ),
-                            ),
-                            
-                            const SizedBox(height: 24),
-                            
-                            // Mục tiêu đề hướng dẫn
-                            const Text(
-                              'Instruction manual',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF1976D2),
-                              ),
-                            ),
-                            
-                            const SizedBox(height: 16),
-                            
-                            // các hướng dẫn
-                            Container(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(8),
-                                boxShadow: [ 
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.05),
-                                    blurRadius: 4,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly, // Căn đều các mục
-                                children: [
-                                  _buildInstructionItem( // Mục kiến thức tài chính
-                                    icon: Icons.menu_book_outlined,
-                                    label: 'Financial\nliteracy',
-                                  ),
-                                  _buildInstructionItem( // Mục hướng dẫn thanh toán
-                                    icon: Icons.monetization_on_outlined,
-                                    label: 'Payment\nguide',
-                                  ),
-                                  _buildInstructionItem( // Mục câu hỏi thường gặp
-                                    icon: Icons.person_outline,
-                                    label: 'FAQs',
-                                  ),
-                                  _buildInstructionItem( // Mục phản hồi
-                                    icon: Icons.email_outlined,
-                                    label: 'Feedback',
-                                  ),
-                                ],
-                              ),
-                            ),
-                            
-                            const SizedBox(height: 40), // Khoảng trống dưới cùng
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
-  
-  // Hàm tạo mục hướng dẫn với biểu tượng và nhãn
+
+  Widget _buildPartnerItem() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 70,
+          height: 70,
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            shape: BoxShape.circle,
+          ),
+        ),
+        SizedBox(height: 8),
+        Text(
+          'NAME',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildInstructionItem({
     required IconData icon,
-    required String label,
+    required String title,
+    required Color color,
   }) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, color: const Color(0xFF1976D2), size: 24), // icons
-        Text( // Nhãn
-          label,
-          style: const TextStyle(
-            fontSize: 12,
-            color: Color(0xFF1976D2),
+        Container(
+          width: 55,
+          height: 55,
+          decoration: BoxDecoration(
+            border: Border.all(color: color, width: 1.5),
+            borderRadius: BorderRadius.circular(10),
           ),
+          child: Center(
+            child: Icon(icon, color: color, size: 24),
+          ),
+        ),
+        SizedBox(height: 8),
+        Text(
+          title,
           textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ],
     );
