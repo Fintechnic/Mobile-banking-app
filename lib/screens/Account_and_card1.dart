@@ -12,14 +12,14 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         fontFamily: 'SF Pro Display', // Font chữ được sử dụng
       ),
-      home: const AccountCardsScreen(), // Màn hình chính của ứng dụng
+      home: const AccountCardsScreen1(), // Màn hình chính của ứng dụng
     );
   }
 }
 
 // Màn hình hiển thị tài khoản và thẻ
-class AccountCardsScreen extends StatelessWidget {
-  const AccountCardsScreen({Key? key}) : super(key: key);
+class AccountCardsScreen1 extends StatelessWidget {
+  const AccountCardsScreen1({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
