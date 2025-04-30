@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
 
-// Lớp chính của ứng dụng
+
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false, // Ẩn banner debug ở góc phải
+      debugShowCheckedModeBanner: false, 
       theme: ThemeData(
         primarySwatch: Colors.blue,
-        fontFamily: 'SF Pro Display', // Cài đặt font chữ mặc định
+        fontFamily: 'SF Pro Display', 
       ),
       home: const AccountCardScreen(), // Màn hình chính của ứng dụng
     );
   }
 }
 
-// Màn hình hiển thị thông tin tài khoản và thẻ
+
 class AccountCardScreen extends StatelessWidget {
   const AccountCardScreen({Key? key}) : super(key: key);
 
