@@ -2,21 +2,19 @@ import 'dart:ui'; // 🛠 Import dart:ui để sử dụng PlatformDispatcher
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
+
+// Import các screen cần thiết
 import 'screens/homepage_screen.dart';
-import 'screens/login_screen.dart';
-import 'screens/transferpage.dart';
-import 'screens/qr_scan_screen.dart';     //Import QR screen
-import 'screens/Account_and_card2.dart';
-import 'screens/account_and_card1.dart'; //Import Account_and_card screen
-import 'screens/pay_bill.dart'; //Import pay bill screen
-import 'screens/profile_screen.dart'; // Import Profile screen
-import 'screens/sign_up_screen.dart'; // Import sign_up screen
-import 'screens/bank_slip_screen.dart'; //Import bank slip screen
-import 'screens/my_qr_screen.dart'; // Import my qr screen
-import 'screens/loans_screen.dart';// Import my Loans screen
-import 'screens/transaction_management.dart'; //Import transaction management screen
-import 'screens/user_management.dart'; // Import user management screen
-import "screens/Details.dart"; // Import detail screen
+import 'screens/qr_scan_screen.dart';     
+import 'screens/account_and_card2.dart';
+import 'screens/account_and_card1.dart'; 
+import 'screens/transaction_management.dart';
+import 'screens/user_management.dart';
+import 'screens/Details.dart';
+import 'screens/login_screen.dart'; 
+import 'screens/app_information.dart';
+import 'screens/change_password.dart';
+import 'screens/qr_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -42,13 +40,30 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Flutter Auth App',
       theme: ThemeData(primarySwatch: Colors.blue),
       home: Consumer<AuthProvider>(
         builder: (context, authProvider, child) {
-          return authProvider.isAuthenticated ? const HomePageScreen() : const LoginScreen();
+          return authProvider.isAuthenticated
+              ? const HomeScreen()
+              : const LoginScreen(); 
         },
       ),
+      routes: {
+        '/home': (context) => const HomeScreen(),
+        '/login': (context) => const LoginScreen(),
+        '/qr-scan': (context) => const QRScannerScreen(cameras: [],),
+        '/qr-show': (context) => const QRCodeScreen(),
+        '/account-card1': (context) => const AccountCardsScreen1(),
+        '/account-card2': (context) => const AccountCardScreen(),
+        '/transaction-management': (context) => const TransactionManagementScreen(),
+        '/user-management': (context) => const UserProfilePage(),
+        '/details': (context) => const TransactionDashboard(),
+        '/information': (context) => const InformationScreen(),
+        '/change-password': (context) => const ChangePasswordScreen(),
+      },
     );
   }
 }
+
