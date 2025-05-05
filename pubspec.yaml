@@ -11,7 +11,6 @@ dependencies:
     sdk: flutter
   fl_chart: ^0.55.0
   cupertino_icons: ^1.0.2
-  qr_code_scanner: ^1.0.1
   qr_flutter: ^4.0.0
   dio: ^5.8.0+1
   http: ^0.15.0
