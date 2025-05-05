@@ -1,5 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
+import 'package:shimmer/shimmer.dart';
 import '../providers/auth_provider.dart';
 import 'login_screen.dart';
 
@@ -8,7 +11,7 @@ void main() {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
-    
+        ChangeNotifierProvider(create: (_) => BankingDataProvider()),
       ],
       child: const MyApp(),
     ),
@@ -26,9 +29,99 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
         fontFamily: 'Roboto',
+        pageTransitionsTheme: const PageTransitionsTheme(
+          builders: {
+            TargetPlatform.android: ZoomPageTransitionsBuilder(),
+            TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          },
+        ),
       ),
       home: const HomeScreen(),
     );
+  }
+}
+
+// Provider to manage banking data
+class BankingDataProvider extends ChangeNotifier {
+  String _balance = '0';
+  String _paylaterAmount = '0';
+  List<QuickAccessItem> _quickAccessItems = [];
+  List<PromoItem> _promos = [];
+  bool _isLoading = true;
+  bool _hasError = false;
+  String _errorMessage = '';
+
+  String get balance => _balance;
+  String get paylaterAmount => _paylaterAmount;
+  List<QuickAccessItem> get quickAccessItems => _quickAccessItems;
+  List<PromoItem> get promos => _promos;
+  bool get isLoading => _isLoading;
+  bool get hasError => _hasError;
+  String get errorMessage => _errorMessage;
+
+  Future<void> fetchData() async {
+    _isLoading = true;
+    _hasError = false;
+    notifyListeners();
+
+    try {
+      // Simulate API call with delay
+      await Future.delayed(const Duration(seconds: 2));
+      
+      // In a real app, you would fetch data from your API
+      // final response = await http.get(Uri.parse('https://your-api.com/banking-data'));
+      // if (response.statusCode == 200) {
+      //   final data = json.decode(response.body);
+      //   _balance = data['balance'];
+      //   _paylaterAmount = data['paylater'];
+      // } else {
+      //   throw Exception('Failed to load data');
+      // }
+      
+      // Mock data for demonstration
+      _balance = '1.000.000 VND';
+      _paylaterAmount = '500.000 VND';
+      _initializeQuickAccessItems();
+      _initializePromos();
+      
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _isLoading = false;
+      _hasError = true;
+      _errorMessage = e.toString();
+      notifyListeners();
+    }
+  }
+
+  void _initializeQuickAccessItems() {
+    _quickAccessItems = [
+      QuickAccessItem(type: "chat", label: "Top-up", isMultiLine: false),
+      QuickAccessItem(type: "transfer", label: "Transfer", isMultiLine: false),
+      QuickAccessItem(type: "ticket", label: "Ticket", isMultiLine: false),
+      QuickAccessItem(type: "piggy", label: "Saving\nWallet", isMultiLine: true),
+      QuickAccessItem(type: "data", label: "Datapack", isMultiLine: false),
+      QuickAccessItem(type: "wallet", label: "Paylater", isMultiLine: false),
+      QuickAccessItem(type: "bill", label: "Bill\nPayment", isMultiLine: true),
+      QuickAccessItem(type: "loan", label: "Loan\nPayment", isMultiLine: true),
+    ];
+  }
+
+  void _initializePromos() {
+    _promos = [
+      PromoItem(
+        title: 'Giảm 50% phí chuyển tiền',
+        description: 'Áp dụng cho tất cả các giao dịch chuyển tiền đến hết 30/04/2025',
+        expiry: '30/04/2025',
+        backgroundColor: Colors.blue.shade50,
+      ),
+      PromoItem(
+        title: 'Hoàn tiền 10%',
+        description: 'Cho các giao dịch thanh toán hóa đơn lần đầu',
+        expiry: '15/05/2025',
+        backgroundColor: Colors.green.shade50,
+      ),
+    ];
   }
 }
 
@@ -39,108 +132,164 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  bool _isLoading = true;
-  String _balance = '0';
-  String _paylaterAmount = '0';
-  List<QuickAccessItem> _quickAccessItems = [];
+class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    _loadData();
+    
+    // Setup animations
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+    
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeIn,
+      ),
+    );
+    
+    _animationController.forward();
+    
+    // Load data
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final bankingDataProvider = Provider.of<BankingDataProvider>(context, listen: false);
+      
+      if (authProvider.userData == null) {
+        authProvider.getUserData();
+      }
+      
+      bankingDataProvider.fetchData();
+    });
   }
 
-  Future<void> _loadData() async {
+  @override
+  void dispose() {
+    _animationController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _refreshData() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final bankingDataProvider = Provider.of<BankingDataProvider>(context, listen: false);
     
-    try {
-      // Giả định rằng AuthProvider có phương thức để lấy dữ liệu tài khoản
-      final userData = await authProvider.getUserData();
-      
-      // Cập nhật state với dữ liệu từ API
-      setState(() {
-        _balance = userData['balance'] ?? '1.000.000 VND';
-        _paylaterAmount = userData['paylater'] ?? '500.000 VND';
-        _isLoading = false;
-        
-        // Khởi tạo danh sách các mục Quick Access
-        _quickAccessItems = [
-          QuickAccessItem(type: "chat", label: "Top-up", isMultiLine: false),
-          QuickAccessItem(type: "transfer", label: "Transfer", isMultiLine: false),
-          QuickAccessItem(type: "ticket", label: "Ticket", isMultiLine: false),
-          QuickAccessItem(type: "piggy", label: "Saving\nWallet", isMultiLine: true),
-          QuickAccessItem(type: "data", label: "Datapack", isMultiLine: false),
-          QuickAccessItem(type: "wallet", label: "Paylater", isMultiLine: false),
-          QuickAccessItem(type: "bill", label: "Bill\nPayment", isMultiLine: true),
-          QuickAccessItem(type: "loan", label: "Loan\nPayment", isMultiLine: true),
-        ];
-      });
-    } catch (e) {
-      // Nếu có lỗi khi call API, hiển thị dữ liệu mẫu
-      setState(() {
-        _balance = '1.000.000 VND';
-        _paylaterAmount = '500.000 VND';
-        _isLoading = false;
-        
-        // Khởi tạo danh sách các mục Quick Access
-        _quickAccessItems = [
-          QuickAccessItem(type: "chat", label: "Top-up", isMultiLine: false),
-          QuickAccessItem(type: "transfer", label: "Transfer", isMultiLine: false),
-          QuickAccessItem(type: "ticket", label: "Ticket", isMultiLine: false),
-          QuickAccessItem(type: "piggy", label: "Saving\nWallet", isMultiLine: true),
-          QuickAccessItem(type: "data", label: "Datapack", isMultiLine: false),
-          QuickAccessItem(type: "wallet", label: "Paylater", isMultiLine: false),
-          QuickAccessItem(type: "bill", label: "Bill\nPayment", isMultiLine: true),
-          QuickAccessItem(type: "loan", label: "Loan\nPayment", isMultiLine: true),
-        ];
-      });
-    }
+    await Future.wait([
+      authProvider.getUserData(),
+      bankingDataProvider.fetchData(),
+    ]);
   }
 
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
-    
-    if (_isLoading) {
+    final bankingDataProvider = Provider.of<BankingDataProvider>(context);
+
+    if (authProvider.userId == null) {
       return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
+        body: Center(child: CircularProgressIndicator()),
       );
     }
-    
+
     return Scaffold(
-      body: Column(
+      body: RefreshIndicator(
+        onRefresh: _refreshData,
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: Column(
+            children: [
+              _buildHeader(authProvider, bankingDataProvider),
+              Expanded(
+                child: bankingDataProvider.hasError
+                ? _buildErrorView(bankingDataProvider.errorMessage)
+                : SingleChildScrollView(
+                    controller: _scrollController,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: Column(
+                      children: [
+                        _buildQuickAccess(bankingDataProvider),
+                        _buildInfoPromo(bankingDataProvider),
+                      ],
+                    ),
+                  ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: _buildBottomNavBar(),
+    );
+  }
+
+  Widget _buildErrorView(String errorMessage) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _buildHeader(authProvider),
-          _buildQuickAccess(),
-          _buildServiceGrid(),
-          _buildInfoPromo(),
-          const Spacer(),
-          _buildBottomNavBar(),
+          const Icon(
+            Icons.error_outline,
+            color: Colors.red,
+            size: 60,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Đã xảy ra lỗi',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.red.shade700,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            errorMessage,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.grey),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton.icon(
+            onPressed: () {
+              final bankingDataProvider = Provider.of<BankingDataProvider>(context, listen: false);
+              bankingDataProvider.fetchData();
+            },
+            icon: const Icon(Icons.refresh),
+            label: const Text('Thử lại'),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildHeader(AuthProvider authProvider) {
-    // Lấy tên người dùng từ AuthProvider
+  Widget _buildHeader(AuthProvider authProvider, BankingDataProvider bankingDataProvider) {
+    // Get username from AuthProvider
     final username = authProvider.userData?['username'] ?? 'Mr.A';
     
     return Container(
       padding: const EdgeInsets.only(top: 40, left: 20, right: 20, bottom: 20),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          stops: [0.0, 0.4, 0.7],
+          stops: const [0.0, 0.4, 0.7],
           colors: [
-            Color(0xFFB0D1F5), // Light blue at top
-            Color(0xFF8BB8EE), // Medium blue in middle
-            Color(0xFF1A5FA3), // Dark blue at bottom
+            const Color(0xFFB0D1F5), // Light blue at top
+            const Color(0xFF8BB8EE), // Medium blue in middle
+            const Color(0xFF1A5FA3), // Dark blue at bottom
           ],
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -150,43 +299,53 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Row(
                 children: [
-                  GestureDetector(
-                    onTap: () {
-                      // Hiển thị hộp thoại xác nhận đăng xuất
-                      showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text('Đăng xuất'),
-                          content: const Text('Bạn có chắc chắn muốn đăng xuất?'),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: const Text('Hủy'),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                                authProvider.logout();
-                                Navigator.pushReplacement(
-                                  context, 
-                                  MaterialPageRoute(builder: (_) => const LoginScreen())
-                                );
-                              },
-                              child: const Text('Đăng xuất'),
+                  Hero(
+                    tag: 'profile_avatar',
+                    child: GestureDetector(
+                      onTap: () {
+                        // Show logout confirmation dialog
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Đăng xuất'),
+                            content: const Text('Bạn có chắc chắn muốn đăng xuất?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('Hủy'),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  authProvider.logout();
+                                  Navigator.pushReplacement(
+                                    context, 
+                                    MaterialPageRoute(builder: (_) => const LoginScreen())
+                                  );
+                                },
+                                child: const Text('Đăng xuất'),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
                             ),
                           ],
                         ),
-                      );
-                    },
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Center(
-                        child: Icon(Icons.person, color: Colors.grey),
+                        child: const Center(
+                          child: Icon(Icons.person, color: Colors.grey),
+                        ),
                       ),
                     ),
                   ),
@@ -215,106 +374,167 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               GestureDetector(
                 onTap: () {
-                  // Xử lý khi nhấn vào biểu tượng thông báo
+                  // Handle notification icon tap with animation
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Không có thông báo mới')),
                   );
                 },
-                child: const Icon(
-                  Icons.notifications_none,
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Container(
-            padding: const EdgeInsets.all(15),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(15),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 5,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                // MY BALANCE Section
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween<double>(begin: 0.0, end: 1.0),
+                  duration: const Duration(milliseconds: 500),
+                  builder: (context, value, child) {
+                    return Transform.scale(
+                      scale: value,
+                      child: child,
+                    );
+                  },
+                  child: Stack(
                     children: [
-                      const Text(
-                        'MY BALANCE',
-                        style: TextStyle(
-                          color: Colors.grey,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
+                      const Icon(
+                        Icons.notifications_none,
+                        color: Colors.white,
+                        size: 28,
                       ),
-                      const SizedBox(height: 5),
-                      Text(
-                        _balance,
-                        style: const TextStyle(
-                          color: Colors.black,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          constraints: const BoxConstraints(
+                            minWidth: 12,
+                            minHeight: 12,
+                          ),
+                          child: const Text(
+                            '2',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 8,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
-                // Vertical Divider
-                Container(
-                  height: 40,
-                  width: 1,
-                  color: Colors.grey.withOpacity(0.3),
-                  margin: const EdgeInsets.symmetric(horizontal: 10),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 500),
+            child: bankingDataProvider.isLoading
+                ? _buildBalanceShimmer()
+                : _buildBalanceCard(bankingDataProvider),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBalanceShimmer() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: Container(
+        height: 80,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(15),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBalanceCard(BankingDataProvider bankingDataProvider) {
+    return Container(
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // MY BALANCE Section
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'MY BALANCE',
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-                // PAYLATER Section
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(2),
-                            decoration: BoxDecoration(
-                              color: Colors.blue,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: const Icon(
-                              Icons.account_balance_wallet,
-                              size: 10,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(width: 5),
-                          const Text(
-                            'PAYLATER',
-                            style: TextStyle(
-                              color: Colors.grey,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
+                const SizedBox(height: 5),
+                Text(
+                  bankingDataProvider.balance,
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Vertical Divider
+          Container(
+            height: 40,
+            width: 1,
+            color: Colors.grey.withOpacity(0.3),
+            margin: const EdgeInsets.symmetric(horizontal: 10),
+          ),
+          // PAYLATER Section
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Colors.blue,
+                        borderRadius: BorderRadius.circular(4),
                       ),
-                      const SizedBox(height: 5),
-                      Text(
-                        _paylaterAmount,
-                        style: const TextStyle(
-                          color: Colors.black,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      child: const Icon(
+                        Icons.account_balance_wallet,
+                        size: 10,
+                        color: Colors.white,
                       ),
-                    ],
+                    ),
+                    const SizedBox(width: 5),
+                    const Text(
+                      'PAYLATER',
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  bankingDataProvider.paylaterAmount,
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ],
@@ -325,7 +545,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildQuickAccess() {
+  Widget _buildQuickAccess(BankingDataProvider bankingDataProvider) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
       decoration: const BoxDecoration(
@@ -345,46 +565,116 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: Colors.blue.shade700,
                 ),
               ),
-              GestureDetector(
+              InkWell(
                 onTap: () {
-                  // Xử lý khi nhấn vào nút "xem thêm"
+                  // Handle "see more" button tap with animation
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Đang tải thêm dịch vụ...')),
                   );
                 },
-                child: Icon(
-                  Icons.chevron_right,
-                  color: Colors.blue.shade700,
+                borderRadius: BorderRadius.circular(20),
+                child: Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: Row(
+                    children: [
+                      Text(
+                        'Xem thêm',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.blue.shade700,
+                        ),
+                      ),
+                      Icon(
+                        Icons.chevron_right,
+                        color: Colors.blue.shade700,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 15),
-          // First row of quick access items
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: _quickAccessItems.sublist(0, 4).map((item) => 
-              _buildQuickAccessItem(
-                _buildCustomIcon(item.type, Icons.help_outline),
-                item.label,
-                item.isMultiLine,
-              )
-            ).toList(),
-          ),
-          const SizedBox(height: 20),
-          // Second row of quick access items
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: _quickAccessItems.sublist(4, 8).map((item) => 
-              _buildQuickAccessItem(
-                _buildCustomIcon(item.type, Icons.help_outline),
-                item.label,
-                item.isMultiLine,
-              )
-            ).toList(),
+          // Quick access items with loading state
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 500),
+            child: bankingDataProvider.isLoading
+                ? _buildQuickAccessShimmer()
+                : _buildQuickAccessItems(bankingDataProvider),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildQuickAccessShimmer() {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: List.generate(4, (index) => _buildQuickAccessItemShimmer()),
+        ),
+        const SizedBox(height: 20),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: List.generate(4, (index) => _buildQuickAccessItemShimmer()),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildQuickAccessItemShimmer() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: Column(
+        children: [
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          const SizedBox(height: 5),
+          Container(
+            width: 40,
+            height: 10,
+            color: Colors.white,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickAccessItems(BankingDataProvider bankingDataProvider) {
+    return Column(
+      children: [
+        // First row of quick access items
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: bankingDataProvider.quickAccessItems.sublist(0, 4).map((item) => 
+            _buildQuickAccessItem(
+              _buildCustomIcon(item.type, Icons.help_outline),
+              item.label,
+              item.isMultiLine,
+            )
+          ).toList(),
+        ),
+        const SizedBox(height: 20),
+        // Second row of quick access items
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: bankingDataProvider.quickAccessItems.sublist(4, 8).map((item) => 
+            _buildQuickAccessItem(
+              _buildCustomIcon(item.type, Icons.help_outline),
+              item.label,
+              item.isMultiLine,
+            )
+          ).toList(),
+        ),
+      ],
     );
   }
 
@@ -468,54 +758,63 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildQuickAccessItem(Widget icon, String label, bool isMultiLine) {
-    return GestureDetector(
-      onTap: () {
-        // Xử lý khi nhấn vào các mục Quick Access
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Bạn đã chọn: $label')),
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 0.8, end: 1.0),
+      duration: const Duration(milliseconds: 300),
+      builder: (context, value, child) {
+        return Transform.scale(
+          scale: value,
+          child: child,
         );
       },
-      child: SizedBox(
-        width: 70, // Fixed width for all items
-        child: Column(
-          children: [
-            Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                color: Colors.blue.shade100,
-                borderRadius: BorderRadius.circular(10),
+      child: GestureDetector(
+        onTap: () {
+          // Handle Quick Access item tap with animation
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Bạn đã chọn: $label')),
+          );
+        },
+        child: SizedBox(
+          width: 70, // Fixed width for all items
+          child: Column(
+            children: [
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade100,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.blue.withOpacity(0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Center(child: icon),
               ),
-              child: Center(child: icon),
-            ),
-            const SizedBox(height: 5),
-            Container(
-              height: isMultiLine ? 32 : 16, // Fixed height based on number of lines
-              alignment: Alignment.center,
-              child: Text(
-                label,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.blue.shade700,
+              const SizedBox(height: 5),
+              Container(
+                height: isMultiLine ? 32 : 16, // Fixed height based on number of lines
+                alignment: Alignment.center,
+                child: Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.blue.shade700,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildServiceGrid() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      color: Colors.white,
-      child: const SizedBox.shrink(), // Removed as we merged with Quick Access
-    );
-  }
-
-  Widget _buildInfoPromo() {
+  Widget _buildInfoPromo(BankingDataProvider bankingDataProvider) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
       color: Colors.white,
@@ -533,54 +832,226 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: Colors.blue.shade700,
                 ),
               ),
-              Icon(
-                Icons.chevron_right,
-                color: Colors.blue,
+              InkWell(
+                onTap: () {
+                  // Handle "see more" button tap
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Xem tất cả khuyến mãi')),
+                  );
+                },
+                borderRadius: BorderRadius.circular(20),
+                child: Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: Row(
+                    children: [
+                      Text(
+                        'Xem tất cả',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.blue.shade700,
+                        ),
+                      ),
+                      Icon(
+                        Icons.chevron_right,
+                        color: Colors.blue.shade700,
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),
           const SizedBox(height: 15),
-          // Thêm FutureBuilder để hiển thị thông tin khuyến mãi từ API
-          FutureBuilder(
-            future: _fetchPromos(), // Giả sử có hàm fetch promos từ API
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasError) {
-                return const Center(child: Text('Không thể tải thông tin khuyến mãi'));
-              } else if (!snapshot.hasData || (snapshot.data as List).isEmpty) {
-                return Container(
-                  padding: const EdgeInsets.all(15),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Text('Không có khuyến mãi hiện tại'),
-                );
-              } else {
-                // Hiển thị thông tin khuyến mãi nếu có
-                return Container(
-                  padding: const EdgeInsets.all(15),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Text('Giảm 50% phí chuyển tiền đến hết 30/04/2025'),
-                );
-              }
-            },
+          // Promo items with loading state
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 500),
+            child: bankingDataProvider.isLoading
+                ? _buildPromoShimmer()
+                : _buildPromoItems(bankingDataProvider),
           ),
         ],
       ),
     );
   }
 
+  Widget _buildPromoShimmer() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: Column(
+        children: [
+          Container(
+            height: 80,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Container(
+            height: 80,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-  Future<List<Map<String, dynamic>>> _fetchPromos() async {
-    await Future.delayed(const Duration(seconds: 1));
-    return [
-      {'title': 'Giảm 50% phí chuyển tiền', 'expiry': '30/04/2025'},
-    ];
+  Widget _buildPromoItems(BankingDataProvider bankingDataProvider) {
+    if (bankingDataProvider.promos.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(15),
+        decoration: BoxDecoration(
+          color: Colors.blue.shade50,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: const Text('Không có khuyến mãi hiện tại'),
+      );
+    }
+    
+    return Column(
+      children: bankingDataProvider.promos.map((promo) => 
+        Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: _buildPromoCard(promo),
+        )
+      ).toList(),
+    );
+  }
+
+  Widget _buildPromoCard(PromoItem promo) {
+    return InkWell(
+      onTap: () {
+        // Show promo details
+        showModalBottomSheet(
+          context: context,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          builder: (context) => _buildPromoDetails(promo),
+        );
+      },
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.all(15),
+        decoration: BoxDecoration(
+          color: promo.backgroundColor,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    promo.title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Hết hạn: ${promo.expiry}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios,
+              size: 16,
+              color: Colors.blue.shade700,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPromoDetails(PromoItem promo) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 5,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            promo.title,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            promo.description,
+            style: const TextStyle(
+              fontSize: 14,
+              color: Colors.grey,
+            ),
+          ),
+          const SizedBox(height: 15),
+          Row(
+            children: [
+              const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
+              const SizedBox(width: 5),
+              Text(
+                'Hết hạn: ${promo.expiry}',
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Đã áp dụng khuyến mãi: ${promo.title}')),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: const Text('Áp dụng ngay'),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildBottomNavBar() {
@@ -610,9 +1081,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildNavItem(IconData icon, String label, bool isActive) {
-    return GestureDetector(
+    return InkWell(
       onTap: () {
         if (!isActive) {
+          // Simulate page navigation with animation
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Chuyển đến màn hình: $label')),
           );
@@ -640,24 +1112,92 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildCircleNavItem(IconData icon, String label) {
     return GestureDetector(
       onTap: () {
-        // Xử lý khi nhấn vào QR code button
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Mở máy quét QR')),
+        // Handle QR code button tap with animation
+        showModalBottomSheet(
+          context: context,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          builder: (context) => Container(
+            height: 300,
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                const Text(
+                  'Quét mã QR',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Center(
+                      child: Icon(
+                        Icons.qr_code_scanner,
+                        size: 100,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: const Text('Đóng'),
+                  ),
+                ),
+              ],
+            ),
+          ),
         );
       },
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: Colors.blue,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Icon(
-              Icons.qr_code_scanner,
-              color: Colors.white,
+          TweenAnimationBuilder<double>(
+            tween: Tween<double>(begin: 1.0, end: 1.1),
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeInOut,
+            builder: (context, value, child) {
+              return Transform.scale(
+                scale: value,
+                child: child,
+              );
+            },
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.blue,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.blue.withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.qr_code_scanner,
+                color: Colors.white,
+              ),
             ),
           ),
           const Text(
@@ -673,7 +1213,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-
 class QuickAccessItem {
   final String type;
   final String label;
@@ -686,6 +1225,19 @@ class QuickAccessItem {
   });
 }
 
+class PromoItem {
+  final String title;
+  final String description;
+  final String expiry;
+  final Color backgroundColor;
+
+  PromoItem({
+    required this.title,
+    required this.description,
+    required this.expiry,
+    required this.backgroundColor,
+  });
+}
 
 class TicketPainter extends CustomPainter {
   final Color color;
@@ -705,7 +1257,6 @@ class TicketPainter extends CustomPainter {
     path.lineTo(2, 19);
     path.close();
 
-
     path.moveTo(2, 13);
     path.lineTo(22, 13);
 
@@ -715,7 +1266,6 @@ class TicketPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
-
 
 class DatapackPainter extends CustomPainter {
   final Color color;
@@ -728,7 +1278,6 @@ class DatapackPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
 
-   
     final path = Path();
     path.moveTo(4, 6);
     path.lineTo(20, 6);
@@ -742,7 +1291,6 @@ class DatapackPainter extends CustomPainter {
     path.lineTo(16, 16);
 
     canvas.drawPath(path, paint);
-
 
     final screenPaint = Paint()
       ..color = color
@@ -759,7 +1307,6 @@ class DatapackPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
-
 
 class CoinStackPainter extends CustomPainter {
   final Color color;
