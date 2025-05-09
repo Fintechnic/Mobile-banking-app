@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'dart:math' as math;
+// import 'dart:math' as math;
 import 'package:shimmer/shimmer.dart';
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +45,7 @@ class BankCard {
 }
 
 class AccountCardScreen extends StatefulWidget {
-  const AccountCardScreen({Key? key}) : super(key: key);
+  const AccountCardScreen({super.key});
 
   @override
   State<AccountCardScreen> createState() => _AccountCardScreenState();

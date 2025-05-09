@@ -7,7 +7,7 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +54,7 @@ class DailyData {
 }
 
 class TransactionManagementScreen extends StatefulWidget {
-  const TransactionManagementScreen({Key? key}) : super(key: key);
+  const TransactionManagementScreen({super.key});
 
   @override
   State<TransactionManagementScreen> createState() => _TransactionManagementScreenState();
@@ -66,7 +66,7 @@ class _TransactionManagementScreenState extends State<TransactionManagementScree
   String _errorMessage = '';
   int _selectedYear = 2025;
   String _selectedPeriod = 'Week';
-  List<String> _periods = ['Day', 'Week', 'Month', 'Year'];
+  final List<String> _periods = ['Day', 'Week', 'Month', 'Year'];
   
   // Data
   int _totalUsers = 0;
@@ -132,7 +132,7 @@ class _TransactionManagementScreenState extends State<TransactionManagementScree
       await Future.delayed(const Duration(seconds: 2));
       
       // Generate random data
-      final random = math.Random();
+      // final random = math.Random();
       
       // Total users
       _totalUsers = 162387;
@@ -271,12 +271,12 @@ class _TransactionManagementScreenState extends State<TransactionManagementScree
   @override
   Widget build(BuildContext context) {
     if (_isLoading && _categories.isEmpty) {
-      return Scaffold(
+      return const Scaffold(
         body: SafeArea(
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
+              children: [
                 CircularProgressIndicator(),
                 SizedBox(height: 16),
                 Text('Loading data...'),
@@ -512,8 +512,8 @@ class _TransactionManagementScreenState extends State<TransactionManagementScree
                 builder: (context, child) {
                   return Opacity(
                     opacity: _fadeAnimation.value,
-                    child: Row(
-                      children: const [
+                    child: const Row(
+                      children: [
                         CircleAvatar(
                           radius: 5,
                           backgroundColor: Colors.amber,
@@ -577,12 +577,12 @@ class CategoryItem extends StatelessWidget {
   final int delay;
   
   const CategoryItem({
-    Key? key,
+    super.key,
     required this.color,
     required this.title,
     required this.value,
     this.delay = 0,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -702,10 +702,10 @@ class CustomBarChart extends StatelessWidget {
   final double maxValue = 20;
 
   const CustomBarChart({
-    Key? key,
+    super.key,
     required this.dailyData,
     required this.animationValue,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -716,12 +716,12 @@ class CustomBarChart extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Y-axis labels
-              SizedBox(
+              const SizedBox(
                 width: 30,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.end,
-                  children: const [
+                  children: [
                     Text('20k', style: TextStyle(fontSize: 10, color: Colors.black54)),
                     Text('15k', style: TextStyle(fontSize: 10, color: Colors.black54)),
                     Text('10k', style: TextStyle(fontSize: 10, color: Colors.black54)),

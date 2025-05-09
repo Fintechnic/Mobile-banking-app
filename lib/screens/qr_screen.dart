@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class QRCodeScreen extends StatelessWidget {
-  const QRCodeScreen({Key? key}) : super(key: key);
+  const QRCodeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -20,11 +20,11 @@ class QRCodeScreen extends StatelessWidget {
                     onTap: () {
                       Navigator.pop(context); // Go back to previous screen
                     },
-                    child: Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+                    child: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
                   ),
                   const SizedBox(width: 16),
                   // Tiêu đề của thanh điều hướng.
-                  Text(
+                  const Text(
                     'My QR code',
                     style: TextStyle(
                       color: Colors.white,
@@ -37,8 +37,8 @@ class QRCodeScreen extends StatelessWidget {
             ),
             
             // Thêm text hướng dẫn bên ngoài card
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Column(
                 children: [
                   Text(
@@ -48,7 +48,7 @@ class QRCodeScreen extends StatelessWidget {
                       color: Colors.black87,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4),
                   Text(
                     'Mr.A',
                     style: TextStyle(
@@ -79,7 +79,7 @@ class QRCodeScreen extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           // Hiển thị hình ảnh mã QR
-                          Container(
+                          SizedBox(
                             width: 200,
                             height: 200,
                             child: Center(
@@ -89,7 +89,7 @@ class QRCodeScreen extends StatelessWidget {
                                 decoration: BoxDecoration(
                                   border: Border.all(color: Colors.black, width: 1),
                                 ),
-                                child: Center(
+                                child: const Center(
                                   child: Text(
                                     'QR Code Placeholder',
                                     textAlign: TextAlign.center,
@@ -102,7 +102,7 @@ class QRCodeScreen extends StatelessWidget {
                           const SizedBox(height: 16),
                           
                           
-                          Row(
+                          const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               // VieTQR logo
@@ -126,7 +126,7 @@ class QRCodeScreen extends StatelessWidget {
                                   ),
                                 ],
                               ),
-                              const SizedBox(width: 8),
+                              SizedBox(width: 8),
                               // napas247 logo
                               Row(
                                 children: [
@@ -151,7 +151,7 @@ class QRCodeScreen extends StatelessWidget {
                             ],
                           ),
                          
-                          SizedBox(height: 60),
+                          const SizedBox(height: 60),
                         ],
                       ),
                     ),
@@ -161,7 +161,7 @@ class QRCodeScreen extends StatelessWidget {
                       bottom: 0,
                       left: 0,
                       right: 0,
-                      child: Container(
+                      child: SizedBox(
                         height: 100,
                         child: Stack(
                           children: [
@@ -170,7 +170,7 @@ class QRCodeScreen extends StatelessWidget {
                               clipper: BottomWaveClipper(),
                               child: Container(
                                 height: 100,
-                                decoration: BoxDecoration(
+                                decoration: const BoxDecoration(
                                   color: Color(0xFF00509E), // Màu xanh đậm cho phần dưới
                                   borderRadius: BorderRadius.only(
                                     bottomLeft: Radius.circular(12),
@@ -190,7 +190,7 @@ class QRCodeScreen extends StatelessWidget {
                                 children: [
                            
                                   IconButton(
-                                    icon: Icon(Icons.file_download_outlined, color: Colors.white),
+                                    icon: const Icon(Icons.file_download_outlined, color: Colors.white),
                                     onPressed: () {
                                      
                                     },
@@ -198,7 +198,7 @@ class QRCodeScreen extends StatelessWidget {
                                   const SizedBox(width: 32),
                               
                                   IconButton(
-                                    icon: Icon(Icons.copy_outlined, color: Colors.white),
+                                    icon: const Icon(Icons.copy_outlined, color: Colors.white),
                                     onPressed: () {
                                       
                                     },

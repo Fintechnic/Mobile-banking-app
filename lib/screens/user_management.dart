@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'dart:async';
-import 'dart:math' as math;
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +78,7 @@ class User {
 }
 
 class UserProfilePage extends StatefulWidget {
-  const UserProfilePage({Key? key}) : super(key: key);
+  const UserProfilePage({super.key});
 
   @override
   State<UserProfilePage> createState() => _UserProfilePageState();
@@ -352,9 +351,9 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Search'),
-        content: TextField(
+        content: const TextField(
           autofocus: true,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             hintText: 'Search users, posts, etc.',
             prefixIcon: Icon(Icons.search),
           ),
@@ -442,11 +441,11 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
   @override
   Widget build(BuildContext context) {
     if (_isLoading && _user == null) {
-      return Scaffold(
+      return const Scaffold(
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
+            children: [
               CircularProgressIndicator(),
               SizedBox(height: 16),
               Text('Loading profile...'),

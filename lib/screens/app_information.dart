@@ -15,7 +15,7 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
 }
 
 class InformationScreen extends StatefulWidget {
-  const InformationScreen({Key? key}) : super(key: key);
+  const InformationScreen({super.key});
 
   @override
   State<InformationScreen> createState() => _InformationScreenState();
@@ -375,7 +375,7 @@ class _InformationScreenState extends State<InformationScreen> with SingleTicker
                               ),
                             ),
                             const SizedBox(height: 8),
-                            Text(
+                            const Text(
                               'A leading financial technology company providing innovative solutions since 2010.',
                               textAlign: TextAlign.center,
                               style: TextStyle(
@@ -487,7 +487,7 @@ class _InformationScreenState extends State<InformationScreen> with SingleTicker
   
   // Show rating dialog
   void _showRatingDialog() {
-    int _rating = 0;
+    int rating = 0;
     
     showDialog(
       context: context,
@@ -506,13 +506,13 @@ class _InformationScreenState extends State<InformationScreen> with SingleTicker
                     5,
                     (index) => IconButton(
                       icon: Icon(
-                        index < _rating ? Icons.star : Icons.star_border,
+                        index < rating ? Icons.star : Icons.star_border,
                         color: Colors.amber,
                         size: 30,
                       ),
                       onPressed: () {
                         setState(() {
-                          _rating = index + 1;
+                          rating = index + 1;
                         });
                       },
                     ),
@@ -528,9 +528,9 @@ class _InformationScreenState extends State<InformationScreen> with SingleTicker
               TextButton(
                 onPressed: () {
                   Navigator.pop(context);
-                  if (_rating > 0) {
+                  if (rating > 0) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Thank you for your $_rating-star rating!')),
+                      SnackBar(content: Text('Thank you for your $rating-star rating!')),
                     );
                   }
                 },

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+// import 'dart:convert';
+// import 'package:http/http.dart' as http;
 import 'package:shimmer/shimmer.dart';
 
 // Main app class
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -213,7 +213,7 @@ class BankingService {
 
 // Main screen for accounts and cards
 class AccountCardsScreen1 extends StatefulWidget {
-  const AccountCardsScreen1({Key? key}) : super(key: key);
+  const AccountCardsScreen1({super.key});
 
   @override
   State<AccountCardsScreen1> createState() => _AccountCardsScreen1State();
@@ -618,14 +618,14 @@ class AccountCard extends StatelessWidget {
   final VoidCallback? onTap;
 
   const AccountCard({
-    Key? key,
+    super.key,
     required this.accountName,
     required this.accountNumber,
     required this.balance,
     required this.branch,
     this.isPrimary = false,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -748,10 +748,10 @@ class CardItem extends StatelessWidget {
   final VoidCallback? onTap;
 
   const CardItem({
-    Key? key,
+    super.key,
     required this.card,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

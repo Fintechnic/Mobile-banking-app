@@ -14,7 +14,7 @@ void main() async {
 
 class QRScannerApp extends StatelessWidget {
   final CameraDescription camera;
-  const QRScannerApp({Key? key, required this.camera}) : super(key: key);
+  const QRScannerApp({super.key, required this.camera});
   @override
   Widget build(BuildContext context) {
     // Cài đặt chế độ toàn màn hình và chiều dọc
@@ -32,7 +32,7 @@ class QRScannerApp extends StatelessWidget {
 
 class QRScannerScreen extends StatefulWidget {
   final CameraDescription camera;
-  const QRScannerScreen({Key? key, required this.camera}) : super(key: key);
+  const QRScannerScreen({super.key, required this.camera});
   @override
   _QRScannerScreenState createState() => _QRScannerScreenState();
 }

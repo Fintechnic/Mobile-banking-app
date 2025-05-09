@@ -2,6 +2,8 @@ import 'dart:ui'; // 🛠 Import dart:ui để sử dụng PlatformDispatcher
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
+import 'package:camera/camera.dart';
+
 
 // Import các screen cần thiết
 import 'screens/homepage_screen.dart';
@@ -53,7 +55,6 @@ class MyApp extends StatelessWidget {
       routes: {
         '/home': (context) => const HomeScreen(),
         '/login': (context) => const LoginScreen(),
-        '/qr-scan': (context) => const QRScannerScreen(cameras: [],),
         '/qr-show': (context) => const QRCodeScreen(),
         '/account-card1': (context) => const AccountCardsScreen1(),
         '/account-card2': (context) => const AccountCardScreen(),
@@ -62,6 +63,15 @@ class MyApp extends StatelessWidget {
         '/details': (context) => const TransactionDashboard(),
         '/information': (context) => const InformationScreen(),
         '/change-password': (context) => const ChangePasswordScreen(),
+      },
+      onGenerateRoute: (settings) {
+        if (settings.name == '/qr-scan') {
+          final camera = settings.arguments as CameraDescription;
+          return MaterialPageRoute(
+            builder: (context) => QRScannerScreen(camera: camera),
+          );
+        }
+        return null;
       },
     );
   }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 
 class ProfileScreen extends StatelessWidget {
+  const ProfileScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -10,7 +12,7 @@ class ProfileScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        title: Text(
+        title: const Text(
           'Profile',
           style: TextStyle(
             color: Colors.black,
@@ -31,14 +33,14 @@ class ProfileScreen extends StatelessWidget {
       body: Column(
         children: [
           // Avatar & Tên Người Dùng
-          SizedBox(height: 24),
+          const SizedBox(height: 24),
           CircleAvatar(
             radius: 55,
             backgroundColor: Colors.blue.shade100,
             child: Icon(Icons.person, size: 60, color: Colors.blue.shade700),
           ),
-          SizedBox(height: 12),
-          Text(
+          const SizedBox(height: 12),
+          const Text(
             'Mr. A',
             style: TextStyle(
               fontSize: 22,
@@ -46,7 +48,7 @@ class ProfileScreen extends StatelessWidget {
               color: Colors.black87,
             ),
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
 
           // Danh sách các mục
           Expanded(
@@ -96,12 +98,12 @@ class ProfileScreen extends StatelessWidget {
       splashColor: Colors.blue.shade100, // Hiệu ứng chạm
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-        padding: EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          boxShadow: [
+          boxShadow: const [
             BoxShadow(
               color: Colors.black12,
               blurRadius: 4,
@@ -112,18 +114,18 @@ class ProfileScreen extends StatelessWidget {
         child: Row(
           children: [
             Icon(icon, color: Colors.blue.shade700, size: 26),
-            SizedBox(width: 16),
+            const SizedBox(width: 16),
             Expanded(
               child: Text(
                 title,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                   color: Colors.black87,
                 ),
               ),
             ),
-            Icon(Icons.arrow_forward_ios, size: 18, color: Colors.grey),
+            const Icon(Icons.arrow_forward_ios, size: 18, color: Colors.grey),
           ],
         ),
       ),

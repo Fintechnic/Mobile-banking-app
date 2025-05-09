@@ -1,7 +1,7 @@
-import 'dart:convert';
+// import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:http/http.dart' as http;
+// import 'package:http/http.dart' as http;
 import 'package:shimmer/shimmer.dart';
 import '../providers/auth_provider.dart';
 import 'login_screen.dart';
@@ -19,7 +19,7 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -126,7 +126,7 @@ class BankingDataProvider extends ChangeNotifier {
 }
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -273,14 +273,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     return Container(
       padding: const EdgeInsets.only(top: 40, left: 20, right: 20, bottom: 20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          stops: const [0.0, 0.4, 0.7],
+          stops: [0.0, 0.4, 0.7],
           colors: [
-            const Color(0xFFB0D1F5), // Light blue at top
-            const Color(0xFF8BB8EE), // Medium blue in middle
-            const Color(0xFF1A5FA3), // Dark blue at bottom
+            Color(0xFFB0D1F5), // Light blue at top
+            Color(0xFF8BB8EE), // Medium blue in middle
+            Color(0xFF1A5FA3), // Dark blue at bottom
           ],
         ),
         boxShadow: [
@@ -1298,8 +1298,8 @@ class DatapackPainter extends CustomPainter {
       ..strokeWidth = 1;
 
     canvas.drawLine(
-      Offset(8, 10),
-      Offset(16, 10),
+      const Offset(8, 10),
+      const Offset(16, 10),
       screenPaint,
     );
   }
@@ -1320,17 +1320,17 @@ class CoinStackPainter extends CustomPainter {
       ..strokeWidth = 2;
 
     canvas.drawOval(
-      Rect.fromCenter(center: Offset(12, 8), width: 16, height: 6),
+      Rect.fromCenter(center: const Offset(12, 8), width: 16, height: 6),
       paint,
     );
     
     canvas.drawOval(
-      Rect.fromCenter(center: Offset(12, 12), width: 16, height: 6),
+      Rect.fromCenter(center: const Offset(12, 12), width: 16, height: 6),
       paint,
     );
     
     canvas.drawOval(
-      Rect.fromCenter(center: Offset(12, 16), width: 16, height: 6),
+      Rect.fromCenter(center: const Offset(12, 16), width: 16, height: 6),
       paint,
     );
   }

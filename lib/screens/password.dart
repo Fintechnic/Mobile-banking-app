@@ -7,7 +7,7 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
 }
 
 class PasswordManagerScreen extends StatefulWidget {
-  const PasswordManagerScreen({Key? key}) : super(key: key);
+  const PasswordManagerScreen({super.key});
 
   @override
   State<PasswordManagerScreen> createState() => _PasswordManagerScreenState();
@@ -32,7 +32,7 @@ class PasswordManagerScreen extends StatefulWidget {
 class _PasswordManagerScreenState extends State<PasswordManagerScreen> with SingleTickerProviderStateMixin {
   bool _isLoading = true;
   int _securityScore = 0;
-  int _maxScore = 5;
+  final int _maxScore = 5;
   late AnimationController _animationController;
   late Animation<double> _progressAnimation;
   
@@ -240,7 +240,7 @@ class _PasswordManagerScreenState extends State<PasswordManagerScreen> with Sing
                             AnimatedBuilder(
                               animation: _progressAnimation,
                               builder: (context, child) {
-                                return Container(
+                                return SizedBox(
                                   height: 120,
                                   width: 240,
                                   child: Stack(

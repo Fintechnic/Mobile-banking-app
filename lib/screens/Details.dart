@@ -7,7 +7,7 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
 }
 
 class TransactionDashboard extends StatefulWidget {
-  const TransactionDashboard({Key? key}) : super(key: key);
+  const TransactionDashboard({super.key});
 
   @override
   State<TransactionDashboard> createState() => _TransactionDashboardState();
@@ -68,12 +68,12 @@ class _TransactionDashboardState extends State<TransactionDashboard> with Single
             color: Colors.grey[200],
             borderRadius: BorderRadius.circular(20),
           ),
-          child: TextField(
+          child: const TextField(
             decoration: InputDecoration(
               hintText: 'Search',
-              prefixIcon: const Icon(Icons.search, color: Colors.grey),
+              prefixIcon: Icon(Icons.search, color: Colors.grey),
               border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(vertical: 10),
+              contentPadding: EdgeInsets.symmetric(vertical: 10),
             ),
           ),
         ),
@@ -138,7 +138,7 @@ class _TransactionDashboardState extends State<TransactionDashboard> with Single
                 shrinkWrap: true,
                 childAspectRatio: 1.6,
                 physics: const NeverScrollableScrollPhysics(),
-                children: [
+                children: const [
                   StatCard(
                     title: 'New Top-up',
                     value: '560',
@@ -170,11 +170,11 @@ class _TransactionDashboardState extends State<TransactionDashboard> with Single
             const SizedBox(height: 20),
 
             // Transactions list
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
+                children: [
                   Text(
                     'Recent Transactions',
                     style: TextStyle(
@@ -393,12 +393,12 @@ class StatCard extends StatelessWidget {
   final bool isPositive;
 
   const StatCard({
-    Key? key,
+    super.key,
     required this.title,
     required this.value,
     required this.change,
     required this.isPositive,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -459,12 +459,12 @@ class FinancialCard extends StatelessWidget {
   final bool isPositive;
 
   const FinancialCard({
-    Key? key,
+    super.key,
     required this.title,
     required this.value,
     required this.change,
     required this.isPositive,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -528,6 +528,8 @@ class FinancialCard extends StatelessWidget {
 }
 
 class BarChartWidget extends StatelessWidget {
+  const BarChartWidget({super.key});
+
   @override
   Widget build(BuildContext context) {
     final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
@@ -542,17 +544,17 @@ class BarChartWidget extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text('600', style: TextStyle(fontSize: 10, color: Colors.grey[600])),
-                SizedBox(height: 30),
+                const SizedBox(height: 30),
                 Text('500', style: TextStyle(fontSize: 10, color: Colors.grey[600])),
-                SizedBox(height: 30),
+                const SizedBox(height: 30),
                 Text('400', style: TextStyle(fontSize: 10, color: Colors.grey[600])),
-                SizedBox(height: 30),
+                const SizedBox(height: 30),
                 Text('200', style: TextStyle(fontSize: 10, color: Colors.grey[600])),
-                SizedBox(height: 30),
+                const SizedBox(height: 30),
                 Text('0', style: TextStyle(fontSize: 10, color: Colors.grey[600])),
               ],
             ),
-            SizedBox(width: 10),
+            const SizedBox(width: 10),
             // Bar chart
             Expanded(
               child: Row(
@@ -596,7 +598,7 @@ class BarChartWidget extends StatelessWidget {
 }
 
 class TransactionsList extends StatelessWidget {
-  const TransactionsList({Key? key}) : super(key: key);
+  const TransactionsList({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -661,9 +663,9 @@ class TransactionItem extends StatelessWidget {
   final Transaction transaction;
 
   const TransactionItem({
-    Key? key,
+    super.key,
     required this.transaction,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
