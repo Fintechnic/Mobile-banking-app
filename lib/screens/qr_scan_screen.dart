@@ -4,29 +4,24 @@ import 'package:flutter/services.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
   // Lấy danh sách camera có sẵn trên thiết bị
   final cameras = await availableCameras();
   // Sử dụng camera sau mặc định
   final firstCamera = cameras.first;
-  
+
   runApp(QRScannerApp(camera: firstCamera));
 }
 
 class QRScannerApp extends StatelessWidget {
   final CameraDescription camera;
-  
-  const QRScannerApp({Key? key, required this.camera}) : super(key: key);
-  
+  const QRScannerApp({super.key, required this.camera});
   @override
   Widget build(BuildContext context) {
     // Cài đặt chế độ toàn màn hình và chiều dọc
     SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-      ),
+      const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
     );
-    
+
     return MaterialApp(
       theme: ThemeData.dark(),
       home: QRScannerScreen(camera: camera),
@@ -37,9 +32,7 @@ class QRScannerApp extends StatelessWidget {
 
 class QRScannerScreen extends StatefulWidget {
   final CameraDescription camera;
-  
-  const QRScannerScreen({Key? key, required this.camera}) : super(key: key);
-  
+  const QRScannerScreen({super.key, required this.camera});
   @override
   _QRScannerScreenState createState() => _QRScannerScreenState();
 }
@@ -47,27 +40,24 @@ class QRScannerScreen extends StatefulWidget {
 class _QRScannerScreenState extends State<QRScannerScreen> {
   late CameraController _controller;
   late Future<void> _initializeControllerFuture;
-  
+
   @override
-  void initState(dynamic ResolutionPreset) {
+  void initState() {
     super.initState();
     // Khởi tạo bộ điều khiển camera
-    _controller = CameraController(
-      widget.camera,
-      ResolutionPreset.medium,
-    );
-    
+    _controller = CameraController(widget.camera, ResolutionPreset.medium);
+
     // Khởi tạo controller camera
     _initializeControllerFuture = _controller.initialize();
   }
-  
+
   @override
   void dispose() {
     // Giải phóng tài nguyên camera khi không sử dụng
     _controller.dispose();
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -84,7 +74,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                   height: double.infinity,
                   child: CameraPreview(_controller),
                 ),
-                
+
                 // Top bar with back button - Thanh trên cùng với nút quay lại
                 SafeArea(
                   child: Padding(
@@ -114,7 +104,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                     ),
                   ),
                 ),
-                
+
                 // Main QR frame - Khung quét QR chính
                 Center(
                   child: Column(
@@ -125,7 +115,10 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                         width: 250,
                         height: 250,
                         decoration: BoxDecoration(
-                          border: Border.all(color: Colors.green.shade300, width: 2),
+                          border: Border.all(
+                            color: Colors.green.shade300,
+                            width: 2,
+                          ),
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
@@ -152,7 +145,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                     ],
                   ),
                 ),
-                
+
                 // Bottom option - Tùy chọn phía dưới
                 Positioned(
                   bottom: 40,
@@ -189,7 +182,4 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
       ),
     );
   }
-}
-
-CameraPreview(controller) {
 }

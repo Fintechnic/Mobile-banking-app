@@ -1,27 +1,60 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
+
+void main() {
+  runApp(const MyApp());
+}
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      title: 'Transaction Dashboard',
       theme: ThemeData(
         primarySwatch: Colors.blue,
-        scaffoldBackgroundColor: Colors.white,
+        fontFamily: 'SF Pro Display',
       ),
-      home: const CustomerDetailsScreen(),
+      home: const TransactionDashboard(),
     );
   }
 }
 
-class CustomerDetailsScreen extends StatelessWidget {
-  const CustomerDetailsScreen({Key? key}) : super(key: key);
+class TransactionDashboard extends StatefulWidget {
+  const TransactionDashboard({super.key});
+
+  @override
+  State<TransactionDashboard> createState() => _TransactionDashboardState();
+}
+
+class _TransactionDashboardState extends State<TransactionDashboard> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  int _selectedTabIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(() {
+      setState(() {
+        _selectedTabIndex = _tabController.index;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -35,13 +68,13 @@ class CustomerDetailsScreen extends StatelessWidget {
             color: Colors.grey[200],
             borderRadius: BorderRadius.circular(20),
           ),
-          child: Row(
-            children: [
-              const SizedBox(width: 10),
-              Icon(Icons.search, color: Colors.grey[600]),
-              const SizedBox(width: 10),
-              Text('Search', style: TextStyle(color: Colors.grey[600], fontSize: 16)),
-            ],
+          child: const TextField(
+            decoration: InputDecoration(
+              hintText: 'Search',
+              prefixIcon: Icon(Icons.search, color: Colors.grey),
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.symmetric(vertical: 10),
+            ),
           ),
         ),
         actions: [
@@ -52,377 +85,663 @@ class CustomerDetailsScreen extends StatelessWidget {
         ],
       ),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Phần hồ sơ người dùng
-              Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // User profile section
+            Container(
+              margin: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const CircleAvatar(
-                    radius: 30,
-                    backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=32'),
+                    radius: 25,
+                    backgroundImage: NetworkImage('https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-NCcl2nrSl9OVSkEdxjk3q8Ol0ZNQvT.png'),
                   ),
-                  const SizedBox(width: 15),
+                  const SizedBox(width: 12),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text(
-                        'Amanda',
+                    children: [
+                      const Text(
+                        "User's transaction",
                         style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Colors.black54,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Text(
+                        "Amanda",
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
                         ),
                       ),
                     ],
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
-              
-              // Phần chi tiết khách hàng
-              Row(
+            ),
+            
+          
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: GridView.count(
+                crossAxisCount: 2,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+                shrinkWrap: true,
+                childAspectRatio: 1.6,
+                physics: const NeverScrollableScrollPhysics(),
+                children: const [
+                  StatCard(
+                    title: 'New Top-up',
+                    value: '560',
+                    change: '+2.5%',
+                    isPositive: true,
+                  ),
+                  StatCard(
+                    title: 'Total use',
+                    value: '102,990',
+                    change: '+8.5%',
+                    isPositive: true,
+                  ),
+                  StatCard(
+                    title: 'Total Paid Out',
+                    value: '30,980 VND',
+                    change: '-2.5%',
+                    isPositive: false,
+                  ),
+                  StatCard(
+                    title: 'New Payment',
+                    value: '230',
+                    change: '-5%',
+                    isPositive: false,
+                  ),
+                ],
+              ),
+            ),
+            
+            const SizedBox(height: 20),
+
+            // Transactions list
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'CUSTOMER DETAILS',
+                  Text(
+                    'Recent Transactions',
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(width: 15),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: Colors.blue[100],
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: Row(
-                      children: [
-                        const CircleAvatar(
-                          radius: 5,
-                          backgroundColor: Colors.blue,
+                  SizedBox(height: 12),
+                  TransactionsList(),
+                ],
+              ),
+            ),
+            
+            const SizedBox(height: 20),
+            
+            // Customer Details Section
+            Container(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header with dropdown
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'CUSTOMER DETAILS',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
                         ),
-                        const SizedBox(width: 5),
-                        Text(
-                          'Top-up',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.blue[800],
-                            fontWeight: FontWeight.bold,
-                          ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey[300]!),
+                          borderRadius: BorderRadius.circular(4),
                         ),
-                      ],
-                    ),
+                        child: Row(
+                          children: [
+                            Text(
+                              'In This Year',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[700],
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Icon(
+                              Icons.arrow_drop_down,
+                              size: 18,
+                              color: Colors.grey[700],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 10),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // Tab Bar
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
                       color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(15),
+                      borderRadius: BorderRadius.circular(25),
                     ),
-                    child: Row(
-                      children: [
-                        const CircleAvatar(
-                          radius: 5,
-                          backgroundColor: Colors.green,
+                    child: TabBar(
+                      controller: _tabController,
+                      indicator: BoxDecoration(
+                        borderRadius: BorderRadius.circular(25),
+                        color: Colors.transparent,
+                      ),
+                      labelColor: Colors.blue,
+                      unselectedLabelColor: Colors.grey[600],
+                      tabs: [
+                        Tab(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.circle,
+                                size: 10,
+                                color: _selectedTabIndex == 0 ? Colors.blue : Colors.transparent,
+                              ),
+                              const SizedBox(width: 4),
+                              const Text('Top-up'),
+                            ],
+                          ),
                         ),
-                        const SizedBox(width: 5),
-                        Text(
-                          'Saving',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[800],
-                            fontWeight: FontWeight.bold,
+                        Tab(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.circle,
+                                size: 10,
+                                color: _selectedTabIndex == 1 ? Colors.blue : Colors.transparent,
+                              ),
+                              const SizedBox(width: 4),
+                              const Text('Saving'),
+                            ],
+                          ),
+                        ),
+                        Tab(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.circle,
+                                size: 10,
+                                color: _selectedTabIndex == 2 ? Colors.blue : Colors.transparent,
+                              ),
+                              const SizedBox(width: 4),
+                              const Text('Transaction'),
+                            ],
                           ),
                         ),
                       ],
                     ),
                   ),
+                  
+                  const SizedBox(height: 20),
+                  
+                  // Bar Chart
+                  SizedBox(
+                    height: 200,
+                    child: BarChartWidget(),
+                  ),
+                  
+                  const SizedBox(height: 20),
+                  
+                  // Financial Summary Cards
+                  GridView.count(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                    shrinkWrap: true,
+                    childAspectRatio: 1.6,
+                    physics: const NeverScrollableScrollPhysics(),
+                    children: const [
+                      FinancialCard(
+                        title: 'Payment in this Period',
+                        value: '60,726 VND',
+                        change: '+2.5%',
+                        isPositive: true,
+                      ),
+                      FinancialCard(
+                        title: 'Expense in this Period',
+                        value: '30,966 VND',
+                        change: '+2.5%',
+                        isPositive: true,
+                      ),
+                      FinancialCard(
+                        title: 'Total Cashed in this Period',
+                        value: '28,019 VND',
+                        change: '-5%',
+                        isPositive: false,
+                      ),
+                      FinancialCard(
+                        title: 'New Income in this Period',
+                        value: '30,966 VND',
+                        change: '+2.5%',
+                        isPositive: true,
+                      ),
+                    ],
+                  ),
                 ],
               ),
-              
-              const SizedBox(height: 10),
-              
-              // Dropdown thời gian
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+            ),
+            
+            const SizedBox(height: 20),
+            
+            // Pagination
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'In This Year',
+                    '1-10 of 105 items',
                     style: TextStyle(
+                      color: Colors.grey[600],
                       fontSize: 14,
-                      color: Colors.grey[800],
                     ),
                   ),
-                  const SizedBox(width: 5),
-                  const Icon(Icons.keyboard_arrow_down, size: 20),
-                ],
-              ),
-              
-              const SizedBox(height: 5),
-              
-              // Tab giao dịch
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(color: Colors.grey[300]!, width: 1),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Text(
-                      'Transaction',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey[800],
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.chevron_left),
+                        onPressed: () {},
+                        color: Colors.grey[600],
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              
-              const SizedBox(height: 20),
-              
-              // Biểu đồ
-              Container(
-                height: 200,
-                child: CustomBarChart(),
-              ),
-              
-              const SizedBox(height: 20),
-              
-              // Các thẻ thông tin tài chính
-              Row(
-                children: [
-                  Expanded(
-                    child: FinancialMetricCard(
-                      amount: '60.726 VND',
-                      description: 'Payment in this Period',
-                      percentage: '+2.5%',
-                      isPositive: true,
-                    ),
-                  ),
-                  const SizedBox(width: 15),
-                  Expanded(
-                    child: FinancialMetricCard(
-                      amount: '30.966 VND',
-                      description: 'Expense in this Period',
-                      percentage: '+2.5%',
-                      isPositive: true,
-                    ),
+                      IconButton(
+                        icon: const Icon(Icons.chevron_right),
+                        onPressed: () {},
+                        color: Colors.grey[600],
+                      ),
+                    ],
                   ),
                 ],
               ),
-              
-              const SizedBox(height: 15),
-              
-              Row(
-                children: [
-                  Expanded(
-                    child: FinancialMetricCard(
-                      amount: '28.019 VND',
-                      description: 'Total Cashout in this Period',
-                      percentage: '-1.5%',
-                      isPositive: false,
-                    ),
-                  ),
-                  const SizedBox(width: 15),
-                  Expanded(
-                    child: FinancialMetricCard(
-                      amount: '30.966 VND',
-                      description: 'New Income in this Period',
-                      percentage: '+2.5%',
-                      isPositive: true,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-class CustomBarChart extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      size: Size(double.infinity, 200),
-      painter: BarChartPainter(),
-    );
-  }
-}
-
-class BarChartPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.blue
-      ..style = PaintingStyle.fill;
-    
-    final lightBluePaint = Paint()
-      ..color = Colors.blue[200]!
-      ..style = PaintingStyle.fill;
-    
-    final gridLinePaint = Paint()
-      ..color = Colors.grey[300]!
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
-    
-    final textPainter = TextPainter(
-      textDirection: TextDirection.ltr,
-      textAlign: TextAlign.center,
-    );
-    
-    // Vẽ đường lưới
-    for (int i = 0; i <= 4; i++) {
-      final y = size.height - (i * size.height / 4);
-      canvas.drawLine(
-        Offset(30, y),
-        Offset(size.width, y),
-        gridLinePaint,
-      );
-      
-      // Vẽ nhãn trục y
-      textPainter.text = TextSpan(
-        text: '${i * 200}',
-        style: TextStyle(color: Colors.grey[600], fontSize: 10),
-      );
-      textPainter.layout();
-      textPainter.paint(canvas, Offset(5, y - 5));
-    }
-    
-    // Dữ liệu cột
-    final barData = [
-      [450.0, 200.0], // Tháng 1
-      [300.0, 100.0], // Tháng 2
-      [500.0, 150.0], // Tháng 3
-      [400.0, 180.0], // Tháng 4
-      [500.0, 120.0], // Tháng 5
-      [350.0, 100.0], // Tháng 6
-    ];
-    
-    final barWidth = 15.0;
-    final chartWidth = size.width - 40;
-    final spaceWidth = chartWidth / barData.length;
-    final maxValue = 800.0;
-    
-    // Vẽ các cột
-    for (int i = 0; i < barData.length; i++) {
-      final x = 40 + (i * spaceWidth) + (spaceWidth / 2) - barWidth;
-      final mainHeight = barData[i][0] / maxValue * size.height;
-      final secHeight = barData[i][1] / maxValue * size.height;
-      
-      // Cột chính
-      canvas.drawRRect(
-        RRect.fromRectAndCorners(
-          Rect.fromLTWH(x, size.height - mainHeight, barWidth, mainHeight),
-          topLeft: Radius.circular(4),
-          topRight: Radius.circular(4),
-        ),
-        paint,
-      );
-      
-      // Cột phụ
-      canvas.drawRRect(
-        RRect.fromRectAndCorners(
-          Rect.fromLTWH(x + barWidth + 2, size.height - secHeight, barWidth, secHeight),
-          topLeft: Radius.circular(4),
-          topRight: Radius.circular(4),
-        ),
-        lightBluePaint,
-      );
-      
-      // Vẽ nhãn trục x
-      final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
-      textPainter.text = TextSpan(
-        text: months[i],
-        style: TextStyle(color: Colors.grey[600], fontSize: 10),
-      );
-      textPainter.layout();
-      textPainter.paint(canvas, Offset(x + barWidth - 5, size.height + 5));
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return true;
-  }
-}
-
-class FinancialMetricCard extends StatelessWidget {
-  final String amount;
-  final String description;
-  final String percentage;
+class StatCard extends StatelessWidget {
+  final String title;
+  final String value;
+  final String change;
   final bool isPositive;
 
-  const FinancialMetricCard({
-    Key? key,
-    required this.amount,
-    required this.description,
-    required this.percentage,
+  const StatCard({
+    super.key,
+    required this.title,
+    required this.value,
+    required this.change,
     required this.isPositive,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(15),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(15),
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  isPositive ? Icons.arrow_upward : Icons.arrow_downward,
-                  color: isPositive ? Colors.green : Colors.red,
-                  size: 16,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
           Text(
-            amount,
+            value,
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 5),
+          const SizedBox(height: 4),
           Text(
-            description,
+            title,
             style: TextStyle(
               fontSize: 12,
               color: Colors.grey[600],
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
           Row(
             children: [
+              Icon(
+                isPositive ? Icons.arrow_upward : Icons.arrow_downward,
+                color: isPositive ? Colors.green : Colors.red,
+                size: 12,
+              ),
+              const SizedBox(width: 2),
               Text(
-                percentage,
+                change,
                 style: TextStyle(
                   fontSize: 12,
                   color: isPositive ? Colors.green : Colors.red,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class FinancialCard extends StatelessWidget {
+  final String title;
+  final String value;
+  final String change;
+  final bool isPositive;
+
+  const FinancialCard({
+    super.key,
+    required this.title,
+    required this.value,
+    required this.change,
+    required this.isPositive,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Stack(
+        children: [
+          // Colored circle indicator
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: isPositive ? Colors.green : Colors.red,
+            ),
+          ),
+          
+          // Content
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                ),
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Text(
+                    change,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isPositive ? Colors.green : Colors.red,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class BarChartWidget extends StatelessWidget {
+  const BarChartWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+    final values = [500, 450, 520, 480, 510, 470];
+    
+    return Column(
+      children: [
+        // Y-axis labels
+        Row(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text('600', style: TextStyle(fontSize: 10, color: Colors.grey[600])),
+                const SizedBox(height: 30),
+                Text('500', style: TextStyle(fontSize: 10, color: Colors.grey[600])),
+                const SizedBox(height: 30),
+                Text('400', style: TextStyle(fontSize: 10, color: Colors.grey[600])),
+                const SizedBox(height: 30),
+                Text('200', style: TextStyle(fontSize: 10, color: Colors.grey[600])),
+                const SizedBox(height: 30),
+                Text('0', style: TextStyle(fontSize: 10, color: Colors.grey[600])),
+              ],
+            ),
+            const SizedBox(width: 10),
+            // Bar chart
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: List.generate(
+                  months.length,
+                  (index) => Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Container(
+                        width: 8,
+                        height: values[index] * 0.3,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(4),
+                          gradient: const LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Colors.lightBlue, Colors.blue],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        months[index],
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class TransactionsList extends StatelessWidget {
+  const TransactionsList({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final transactions = [
+      Transaction(
+        title: 'Payment from #10321',
+        date: DateTime(2023, 3, 21, 15, 30),
+        amount: '+250,000 VND',
+        status: TransactionStatus.completed,
+      ),
+      Transaction(
+        title: 'Process Refund #00910',
+        date: DateTime(2023, 3, 21, 15, 30),
+        amount: '-16,500 VND',
+        status: TransactionStatus.completed,
+      ),
+      Transaction(
+        title: 'Pay. Pending #097651',
+        date: DateTime(2023, 3, 21, 15, 30),
+        amount: '3 items',
+        status: TransactionStatus.declined,
+      ),
+      Transaction(
+        title: 'Payment From #023328',
+        date: DateTime(2023, 3, 21, 15, 30),
+        amount: '+250,000 VND',
+        status: TransactionStatus.completed,
+      ),
+      Transaction(
+        title: 'Pay. Pending #097651',
+        date: DateTime(2023, 3, 21, 15, 30),
+        amount: '+250,000 VND',
+        status: TransactionStatus.completed,
+      ),
+    ];
+
+    return Column(
+      children: transactions
+          .map((transaction) => TransactionItem(transaction: transaction))
+          .toList(),
+    );
+  }
+}
+
+enum TransactionStatus { completed, declined, pending }
+
+class Transaction {
+  final String title;
+  final DateTime date;
+  final String amount;
+  final TransactionStatus status;
+
+  Transaction({
+    required this.title,
+    required this.date,
+    required this.amount,
+    required this.status,
+  });
+}
+
+class TransactionItem extends StatelessWidget {
+  final Transaction transaction;
+
+  const TransactionItem({
+    super.key,
+    required this.transaction,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final dateFormat = DateFormat('MMM dd, yyyy, h:mma');
+    
+    Color statusColor;
+    String statusText;
+    
+    switch (transaction.status) {
+      case TransactionStatus.completed:
+        statusColor = Colors.green;
+        statusText = 'Completed';
+        break;
+      case TransactionStatus.declined:
+        statusColor = Colors.red;
+        statusText = 'Declined';
+        break;
+      case TransactionStatus.pending:
+        statusColor = Colors.orange;
+        statusText = 'Pending';
+        break;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: Colors.grey[300]!,
+            width: 1,
+          ),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  transaction.title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 15,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  dateFormat.format(transaction.date),
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                statusText,
+                style: TextStyle(
+                  color: statusColor,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                transaction.amount,
+                style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 14,
+                  color: transaction.amount.startsWith('+') ? Colors.green : Colors.black87,
                 ),
               ),
             ],

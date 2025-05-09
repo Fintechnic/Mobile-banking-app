@@ -1,966 +1,814 @@
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
+import 'dart:async';
 
+void main() {
+  runApp(const MyApp());
+}
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Transaction Management',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        scaffoldBackgroundColor: Colors.black,
-        brightness: Brightness.dark,
-      ),
-      home: const TransactionDashboard(),
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        brightness: Brightness.light,
+        primarySwatch: Colors.blue,
+        scaffoldBackgroundColor: Colors.white,
+        fontFamily: 'SF Pro Display',
+      ),
+      home: const TransactionManagementScreen(),
     );
   }
 }
 
-class TransactionDashboard extends StatelessWidget {
-  const TransactionDashboard({Key? key}) : super(key: key);
+// Transaction category model
+class TransactionCategory {
+  final String title;
+  final String value;
+  final Color color;
+  final double percentage;
+  
+  TransactionCategory({
+    required this.title,
+    required this.value,
+    required this.color,
+    required this.percentage,
+  });
+}
+
+// Daily data model
+class DailyData {
+  final String day;
+  final double userValue;
+  final double transactionValue;
+  
+  DailyData({
+    required this.day,
+    required this.userValue,
+    required this.transactionValue,
+  });
+}
+
+class TransactionManagementScreen extends StatefulWidget {
+  const TransactionManagementScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        elevation: 0,
-        title: const Text(
-          'Transaction Management',
-          style: TextStyle(color: Colors.white, fontSize: 18),
-        ),
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              _buildHeader(),
-              _buildYearSelector(),
-              const SizedBox(height: 20),
-              _buildDonutChart(),
-              const SizedBox(height: 15),
-              _buildCategoryLegend(),
-              const SizedBox(height: 20),
-              _buildReportHeader(),
-              const SizedBox(height: 15),
-              _buildBarLegend(),
-              const SizedBox(height: 15),
-              _buildBarChart(),
-              const SizedBox(height: 20),
-              _buildUserSummary(),
-              const SizedBox(height: 20),
-              _buildUserTransactions(),
-            ],
-          ),
-        ),
+  State<TransactionManagementScreen> createState() => _TransactionManagementScreenState();
+}
+
+class _TransactionManagementScreenState extends State<TransactionManagementScreen> with SingleTickerProviderStateMixin {
+  bool _isLoading = true;
+  bool _hasError = false;
+  String _errorMessage = '';
+  int _selectedYear = 2025;
+  String _selectedPeriod = 'Week';
+  final List<String> _periods = ['Day', 'Week', 'Month', 'Year'];
+  
+  // Data
+  int _totalUsers = 0;
+  List<TransactionCategory> _categories = [];
+  List<DailyData> _dailyData = [];
+  
+  // Animation controllers
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _chartAnimation;
+  
+  @override
+  void initState() {
+    super.initState();
+    
+    // Initialize animation controller
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+    
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.0, 0.6, curve: Curves.easeIn),
       ),
     );
-  }
-
-  Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Row(
-        children: [
-          const Icon(Icons.menu, color: Colors.white),
-          Expanded(
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                children: const [
-                  Icon(Icons.search, color: Colors.grey, size: 20),
-                  SizedBox(width: 8),
-                  Text(
-                    'Search',
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Stack(
-            children: [
-              const Icon(Icons.notifications_outlined, color: Colors.white),
-              Positioned(
-                right: 0,
-                top: 0,
-                child: Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: Colors.red,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
+    
+    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.2, 0.8, curve: Curves.easeOut),
       ),
     );
+    
+    _chartAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.4, 1.0, curve: Curves.easeOutBack),
+      ),
+    );
+    
+    // Load data
+    _loadData();
   }
-
-  Widget _buildYearSelector() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.chevron_left, color: Colors.grey),
-            onPressed: () {},
-          ),
-          const Expanded(
-            child: Text(
-              '2025',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 20,
+  
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+  
+  // Load data with simulated network delay
+  Future<void> _loadData() async {
+    setState(() {
+      _isLoading = true;
+      _hasError = false;
+    });
+    
+    try {
+      // Simulate network delay
+      await Future.delayed(const Duration(seconds: 2));
+      
+      // Generate random data
+      // final random = math.Random();
+      
+      // Total users
+      _totalUsers = 162387;
+      
+      // Categories
+      _categories = [
+        TransactionCategory(
+          title: 'Banking',
+          value: '20K',
+          color: Colors.blue,
+          percentage: 0.15,
+        ),
+        TransactionCategory(
+          title: 'Trans',
+          value: '36K',
+          color: Colors.orange,
+          percentage: 0.20,
+        ),
+        TransactionCategory(
+          title: 'Bills',
+          value: '32K',
+          color: Colors.green,
+          percentage: 0.20,
+        ),
+        TransactionCategory(
+          title: 'Top up',
+          value: '74K',
+          color: Colors.amber,
+          percentage: 0.45,
+        ),
+      ];
+      
+      // Daily data
+      _dailyData = [
+        DailyData(day: 'Mo', userValue: 10, transactionValue: 8),
+        DailyData(day: 'Tu', userValue: 18, transactionValue: 12),
+        DailyData(day: 'We', userValue: 14, transactionValue: 10),
+        DailyData(day: 'Th', userValue: 15, transactionValue: 11),
+        DailyData(day: 'Fr', userValue: 16, transactionValue: 13),
+        DailyData(day: 'Sa', userValue: 19, transactionValue: 10),
+      ];
+      
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        
+        // Start animations
+        _animationController.forward();
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _hasError = true;
+          _errorMessage = 'Failed to load data. Please try again.';
+        });
+      }
+    }
+  }
+  
+  // Change year
+  void _changeYear(int delta) {
+    setState(() {
+      _selectedYear += delta;
+      _animationController.reset();
+    });
+    
+    _loadData();
+  }
+  
+  // Change period
+  void _changePeriod(int delta) {
+    final currentIndex = _periods.indexOf(_selectedPeriod);
+    final newIndex = (currentIndex + delta) % _periods.length;
+    
+    setState(() {
+      _selectedPeriod = _periods[newIndex];
+      _animationController.reset();
+    });
+    
+    _loadData();
+  }
+  
+  // Show category details
+  void _showCategoryDetails(TransactionCategory category) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '${category.title} Details',
+              style: const TextStyle(
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.chevron_right, color: Colors.grey),
-            onPressed: () {},
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDonutChart() {
-    return SizedBox(
-      height: 160,
-      width: 160,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          CustomPaint(
-            size: const Size(160, 160),
-            painter: DonutChartPainter(),
-          ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              Text(
-                '162387',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: 4),
-              Text(
-                'Users',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCategoryLegend() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildLegendItem(Colors.blue, 'Banking', '20k'),
-          _buildLegendItem(Colors.orange, 'Trans', '36K'),
-          _buildLegendItem(Colors.green, 'Bills', '32k'),
-          _buildLegendItem(Colors.amber, 'Top up', '74K'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLegendItem(Color color, String title, String value) {
-    return Row(
-      children: [
-        Container(
-          width: 10,
-          height: 10,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          '$title $value',
-          style: const TextStyle(fontSize: 16),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildReportHeader() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          const Text(
-            'Users Report',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 22,
-            ),
-          ),
-          Row(
-            children: [
-              Icon(Icons.chevron_left, size: 18, color: Colors.grey),
-              const SizedBox(width: 4),
-              const Text(
-                'Week',
-                style: TextStyle(
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(width: 4),
-              Icon(Icons.chevron_right, size: 18, color: Colors.grey),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBarLegend() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-      child: Row(
-        children: [
-          Container(
-            width: 10,
-            height: 10,
-            decoration: BoxDecoration(
-              color: Colors.amber,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(width: 8),
-          const Text(
-            'User',
-            style: TextStyle(fontSize: 14),
-          ),
-          const SizedBox(width: 20),
-          Container(
-            width: 10,
-            height: 10,
-            decoration: BoxDecoration(
-              color: Colors.blue.shade700,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(width: 8),
-          const Text(
-            'Transaction',
-            style: TextStyle(fontSize: 14),
-          ),
-        ],
-      ),
-    );
-  }
-Widget _buildBarChart() {
-  // Cập nhật dữ liệu biểu đồ dựa trên hình ảnh được cung cấp
-  final chartData = [
-    {'day': 'Mo', 'user': 16000, 'transaction': 10000},
-    {'day': 'Tu', 'user': 18000, 'transaction': 16000},
-    {'day': 'We', 'user': 15000, 'transaction': 11000},
-    {'day': 'Th', 'user': 17000, 'transaction': 10000},
-    {'day': 'Fr', 'user': 20000, 'transaction': 14000},
-    {'day': 'Sa', 'user': 20000, 'transaction': 10000},
-  ];
-
-  return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-    height: 220,
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        //  labels
-        Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            Text('20k', style: TextStyle(fontSize: 10, color: Colors.grey)),
-            SizedBox(height: 10),
-            Text('15k', style: TextStyle(fontSize: 10, color: Colors.grey)),
-            SizedBox(height: 10),
-            Text('10k', style: TextStyle(fontSize: 10, color: Colors.grey)),
-            SizedBox(height: 10),
-            Text('5k', style: TextStyle(fontSize: 10, color: Colors.grey)),
-            SizedBox(height: 30), // Thêm khoảng trống phía dưới cho nhãn ngày
-          ],
-        ),
-        const SizedBox(width: 10),
-        // Biểu đồ thực tế
-        Expanded(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: chartData.map((data) {
-              // Tính toán chiều cao tỷ lệ (chiều cao tối đa cho 20k)
-              double userBarHeight = (data['user'] as num).toDouble() / 20000 * 150;
-              double transactionBarHeight = (data['transaction'] as num).toDouble() / 20000 * 150;
-              
-              return Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Row(
-                    children: [
-                      // Thanh User (màu amber/vàng)
-                      Container(
-                        width: 12,
-                        height: userBarHeight,
-                        decoration: BoxDecoration(
-                          color: Colors.amber,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                        margin: const EdgeInsets.only(right: 2),
-                      ),
-                      // Thanh Transaction (màu tím)
-                      Container(
-                        width: 12,
-                        height: transactionBarHeight,
-                        decoration: BoxDecoration(
-                          color: Colors.deepPurple,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                        margin: const EdgeInsets.only(left: 2),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  // Nhãn ngày
-                  Text(
-                    data['day'] as String,
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                ],
-              );
-            }).toList(),
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-
-  Widget _buildUserSummary() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 24.0),
-      padding: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        color: Colors.grey.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Text(
-                    '14,254',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    'Users this week',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey,
-                    ),
-                  ),
-                ],
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Row(
-                  children: const [
-                    Text(
-                      '+1.5%',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green,
-                      ),
-                    ),
-                    SizedBox(width: 2),
-                    Icon(
-                      Icons.arrow_upward,
-                      size: 12,
-                      color: Colors.green,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          // Small line chart
-          SizedBox(
-            height: 20,
-            child: CustomPaint(
-              size: const Size(double.infinity, 20),
-              painter: LineChartPainter(),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-  
-  Widget _buildUserTransactions() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 24.0),
-      child: Column(
-        children: [
-          // User Transactions Header
-          Container(
-            padding: const EdgeInsets.all(12.0),
-            decoration: BoxDecoration(
-              color: Colors.grey.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              children: [
-                // User Avatar
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    image: DecorationImage(
-                      image: NetworkImage('https://via.placeholder.com/40'),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                // User name and transaction text
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text(
-                      'Amanda',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    Text(
-                      'User\'s transaction',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          
-          const SizedBox(height: 12),
-          
-          // Transaction metrics - First Row
-          Row(
-            children: [
-              // New Top-up
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(12.0),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        '560',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const Text(
-                        'New Top-up',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: const [
-                          Text(
-                            '+4.8%',
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: Colors.green,
-                            ),
-                          ),
-                          Icon(
-                            Icons.arrow_upward,
-                            size: 10,
-                            color: Colors.green,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              // Total size
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(12.0),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        '102,990',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const Text(
-                        'Total size',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: const [
-                          Text(
-                            '+0.5%',
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: Colors.green,
-                            ),
-                          ),
-                          Icon(
-                            Icons.arrow_upward,
-                            size: 10,
-                            color: Colors.green,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          
-          const SizedBox(height: 12),
-          
-          // Second row of metrics
-          Row(
-            children: [
-              // Total Paid Out
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(12.0),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        '30,980 VND',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const Text(
-                        'Total Paid Out',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: const [
-                          Text(
-                            '-2.5%',
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: Colors.red,
-                            ),
-                          ),
-                          Icon(
-                            Icons.arrow_downward,
-                            size: 10,
-                            color: Colors.red,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              // New Payment
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(12.0),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        '230',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const Text(
-                        'New Payment',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: const [
-                          Text(
-                            '-5%',
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: Colors.red,
-                            ),
-                          ),
-                          Icon(
-                            Icons.arrow_downward,
-                            size: 10,
-                            color: Colors.red,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          
-          const SizedBox(height: 16),
-          
-          // Transactions List - First item with green background
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-            decoration: BoxDecoration(
-              color: Colors.green.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
+            const SizedBox(height: 16),
+            Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Left side - Title and date
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Payment from #10321',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 12,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Mar 21, 2025, 3:30pm',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: Colors.grey.shade500,
-                      ),
-                    ),
-                  ],
-                ),
-                // Right side - Amount with Completed tag
-                const Text(
-                  '+ 250,000 VND',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.green,
-                  ),
-                ),
+                Text('Total Value: ${category.value}'),
+                Text('Percentage: ${(category.percentage * 100).toStringAsFixed(1)}%'),
               ],
             ),
-          ),
-          
-          _buildTransactionItem(
-            title: 'Process Refund #00910',
-            date: 'Mar 21, 2025, 3:30pm',
-            amount: '-16,500 VND',
-            status: 'Completed',
-            isPositive: false,
-          ),
-          
-          _buildTransactionItem(
-            title: 'Pay, Pending #087651',
-            date: 'Mar 21, 2025, 3:30pm',
-            amount: '3 items',
-            status: 'Declined',
-            isPositive: false,
-            showAmountAsText: true,
-          ),
-          
-          _buildTransactionItem(
-            title: 'Payment From #023328',
-            date: 'Mar 21, 2025, 3:30pm',
-            amount: '+ 250,000 VND',
-            status: 'Completed',
-            isPositive: true,
-          ),
-          
-          _buildTransactionItem(
-            title: 'Pay, Pending #087651',
-            date: 'Mar 21, 2025, 3:30pm',
-            amount: '+ 250,000 VND',
-            status: 'Declined',
-            isPositive: true,
-          ),
-          
-          // Pagination indicator
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  '1-10 of 195 items',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                  ),
-                ),
-                const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.chevron_left, color: Colors.grey),
-                  onPressed: () {},
-                  iconSize: 20,
-                ),
-                IconButton(
-                  icon: const Icon(Icons.chevron_right, color: Colors.grey),
-                  onPressed: () {},
-                  iconSize: 20,
-                ),
-              ],
+            const SizedBox(height: 16),
+            LinearProgressIndicator(
+              value: category.percentage,
+              backgroundColor: Colors.grey.shade200,
+              valueColor: AlwaysStoppedAnimation<Color>(category.color),
+              minHeight: 8,
             ),
-          ),
-        ],
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: category.color,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text('Close'),
+            ),
+          ],
+        ),
       ),
     );
   }
-  
-  Widget _buildTransactionItem({
-    required String title,
-    required String date,
-    required String amount,
-    required String status,
-    required bool isPositive,
-    bool showAmountAsText = false,
-  }) {
-    Color statusColor;
-    if (status == 'Completed') {
-      statusColor = Colors.green;
-    } else if (status == 'Declined') {
-      statusColor = Colors.red;
-    } else {
-      statusColor = Colors.amber;
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading && _categories.isEmpty) {
+      return const Scaffold(
+        body: SafeArea(
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('Loading data...'),
+              ],
+            ),
+          ),
+        ),
+      );
     }
     
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: Colors.grey.withOpacity(0.2), width: 0.5),
+    if (_hasError) {
+      return Scaffold(
+        body: SafeArea(
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                const SizedBox(height: 16),
+                Text(_errorMessage),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: _loadData,
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
+          ),
         ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // Left side - Title and date
-          Column(
+      );
+    }
+    
+    return Scaffold(
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w500,
-                  fontSize: 14,
-                ),
+              const SizedBox(height: 16),
+              
+              // Year selector
+              AnimatedBuilder(
+                animation: _animationController,
+                builder: (context, child) {
+                  return Opacity(
+                    opacity: _fadeAnimation.value,
+                    child: Transform.scale(
+                      scale: _scaleAnimation.value,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.chevron_left, color: Colors.black54),
+                            onPressed: () => _changeYear(-1),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          ),
+                          const SizedBox(width: 16),
+                          Text(
+                            _selectedYear.toString(),
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          IconButton(
+                            icon: const Icon(Icons.chevron_right, color: Colors.black54),
+                            onPressed: () => _changeYear(1),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               ),
-              const SizedBox(height: 4),
-              Text(
-                date,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey.shade500,
+              
+              const SizedBox(height: 24),
+              
+              // Circular progress chart
+              AnimatedBuilder(
+                animation: _animationController,
+                builder: (context, child) {
+                  return Opacity(
+                    opacity: _fadeAnimation.value,
+                    child: Transform.scale(
+                      scale: _scaleAnimation.value,
+                      child: Center(
+                        child: SizedBox(
+                          height: 200,
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              SizedBox(
+                                width: 180,
+                                height: 180,
+                                child: CustomPaint(
+                                  painter: CircularChartPainter(
+                                    segments: _categories.map((category) => 
+                                      _ChartSegment(
+                                        startAngle: 0, // Will be calculated in the painter
+                                        endAngle: category.percentage,
+                                        color: category.color,
+                                      )
+                                    ).toList(),
+                                    animationValue: _chartAnimation.value,
+                                  ),
+                                ),
+                              ),
+                              TweenAnimationBuilder<int>(
+                                tween: IntTween(begin: 0, end: _totalUsers),
+                                duration: const Duration(seconds: 2),
+                                builder: (context, value, child) {
+                                  return Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        value.toString(),
+                                        style: const TextStyle(
+                                          fontSize: 28,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                      const Text(
+                                        'Users',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.black54,
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+              
+              const SizedBox(height: 16),
+              
+              // Categories
+              AnimatedBuilder(
+                animation: _animationController,
+                builder: (context, child) {
+                  return Opacity(
+                    opacity: _fadeAnimation.value,
+                    child: Transform.translate(
+                      offset: Offset(0, 20 * (1 - _fadeAnimation.value)),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: List.generate(
+                          _categories.length,
+                          (index) => GestureDetector(
+                            onTap: () => _showCategoryDetails(_categories[index]),
+                            child: CategoryItem(
+                              color: _categories[index].color,
+                              title: _categories[index].title,
+                              value: _categories[index].value,
+                              delay: index * 100,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+              
+              const SizedBox(height: 30),
+              
+              // Users Report section
+              AnimatedBuilder(
+                animation: _animationController,
+                builder: (context, child) {
+                  return Opacity(
+                    opacity: _fadeAnimation.value,
+                    child: Transform.translate(
+                      offset: Offset(0, 20 * (1 - _fadeAnimation.value)),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Users Report',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              GestureDetector(
+                                onTap: () => _changePeriod(-1),
+                                child: const Icon(Icons.chevron_left, size: 18, color: Colors.black54),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                _selectedPeriod,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              GestureDetector(
+                                onTap: () => _changePeriod(1),
+                                child: const Icon(Icons.chevron_right, size: 18, color: Colors.black54),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+              
+              const SizedBox(height: 10),
+              
+              // Legend
+              AnimatedBuilder(
+                animation: _animationController,
+                builder: (context, child) {
+                  return Opacity(
+                    opacity: _fadeAnimation.value,
+                    child: const Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 5,
+                          backgroundColor: Colors.amber,
+                        ),
+                        SizedBox(width: 6),
+                        Text(
+                          'User',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        SizedBox(width: 16),
+                        CircleAvatar(
+                          radius: 5,
+                          backgroundColor: Colors.deepPurple,
+                        ),
+                        SizedBox(width: 6),
+                        Text(
+                          'Transaction',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+              
+              const SizedBox(height: 10),
+              
+              // Bar chart
+              Expanded(
+                child: AnimatedBuilder(
+                  animation: _animationController,
+                  builder: (context, child) {
+                    return Opacity(
+                      opacity: _fadeAnimation.value,
+                      child: CustomBarChart(
+                        dailyData: _dailyData,
+                        animationValue: _chartAnimation.value,
+                      ),
+                    );
+                  },
                 ),
               ),
             ],
           ),
-          // Right side - Amount and status
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              showAmountAsText
-                ? Text(
-                    amount,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  )
-                : Text(
-                    amount,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: isPositive ? Colors.green : Colors.red,
-                    ),
-                  ),
-              const SizedBox(height: 4),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  status,
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: statusColor,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }
 }
 
-class DonutChartPainter extends CustomPainter {
+class CategoryItem extends StatelessWidget {
+  final Color color;
+  final String title;
+  final String value;
+  final int delay;
+  
+  const CategoryItem({
+    super.key,
+    required this.color,
+    required this.title,
+    required this.value,
+    this.delay = 0,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: Future.delayed(Duration(milliseconds: delay)),
+      builder: (context, snapshot) {
+        return TweenAnimationBuilder<double>(
+          tween: Tween<double>(begin: 0.0, end: 1.0),
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeOut,
+          builder: (context, value, child) {
+            return Opacity(
+              opacity: value,
+              child: Transform.translate(
+                offset: Offset(0, 10 * (1 - value)),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 5,
+                      backgroundColor: color,
+                    ),
+                    const SizedBox(width: 6),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        Text(
+                          value as String,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class CircularChartPainter extends CustomPainter {
+  final List<_ChartSegment> segments;
+  final double animationValue;
+  
+  CircularChartPainter({
+    required this.segments,
+    required this.animationValue,
+  });
+  
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2 - 10;
+    final radius = size.width / 2;
     final rect = Rect.fromCircle(center: center, radius: radius);
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 15.0
-      ..strokeCap = StrokeCap.round;
-
-    // Draw background circle
-    paint.color = Colors.grey.withOpacity(0.1);
-    canvas.drawCircle(center, radius, paint);
-
-    // Draw blue segment
-    paint.color = Colors.blue;
-    canvas.drawArc(rect, -1.57, 0.5 * 3.14159, false, paint);
     
-    // Draw orange segment
-    paint.color = Colors.orange;
-    canvas.drawArc(rect, -1.57 + 0.5 * 3.14159, 0.6 * 3.14159, false, paint);
-    
-    // Draw green segment
-    paint.color = Colors.green;
-    canvas.drawArc(rect, -1.57 + 1.1 * 3.14159, 0.3 * 3.14159, false, paint);
-    
-    // Draw amber segment
-    paint.color = Colors.amber;
-    canvas.drawArc(rect, -1.57 + 1.4 * 3.14159, 0.6 * 3.14159, false, paint);
+    // Calculate start and end angles
+    double startAngle = 0.0;
+    for (var i = 0; i < segments.length; i++) {
+      final segment = segments[i];
+      final endAngle = startAngle + segment.endAngle;
+      
+      final paint = Paint()
+        ..color = segment.color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 12
+        ..strokeCap = StrokeCap.round;
+      
+      // Apply animation
+      final sweepAngle = (endAngle - startAngle) * animationValue;
+      
+      canvas.drawArc(
+        rect,
+        startAngle * 2 * math.pi - math.pi / 2, 
+        sweepAngle * 2 * math.pi,
+        false,
+        paint,
+      );
+      
+      startAngle = endAngle;
+    }
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant CircularChartPainter oldDelegate) {
+    return oldDelegate.animationValue != animationValue;
+  }
 }
 
-class LineChartPainter extends CustomPainter {
+class _ChartSegment {
+  final double startAngle;
+  final double endAngle;
+  final Color color;
+  
+  _ChartSegment({
+    required this.startAngle,
+    required this.endAngle,
+    required this.color,
+  });
+}
+
+class CustomBarChart extends StatelessWidget {
+  final List<DailyData> dailyData;
+  final double animationValue;
+  final double maxValue = 20;
+
+  const CustomBarChart({
+    super.key,
+    required this.dailyData,
+    required this.animationValue,
+  });
+
   @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.blue
-      ..strokeWidth = 2.0
-      ..style = PaintingStyle.stroke;
-
-    // Points for the line chart (simplified representation of growth trend)
-    final points = [
-      Offset(0, size.height * 0.7),
-      Offset(size.width * 0.15, size.height * 0.8),
-      Offset(size.width * 0.3, size.height * 0.5),
-      Offset(size.width * 0.45, size.height * 0.6),
-      Offset(size.width * 0.6, size.height * 0.4),
-      Offset(size.width * 0.75, size.height * 0.5),
-      Offset(size.width * 0.9, size.height * 0.3),
-      Offset(size.width, size.height * 0.2),
-    ];
-
-    // Create path from points
-    final path = Path();
-    path.moveTo(points[0].dx, points[0].dy);
-    
-    for (int i = 1; i < points.length; i++) {
-      path.lineTo(points[i].dx, points[i].dy);
-    }
-    
-    // Draw the line
-    canvas.drawPath(path, paint);
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Expanded(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Y-axis labels
+              const SizedBox(
+                width: 30,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text('20k', style: TextStyle(fontSize: 10, color: Colors.black54)),
+                    Text('15k', style: TextStyle(fontSize: 10, color: Colors.black54)),
+                    Text('10k', style: TextStyle(fontSize: 10, color: Colors.black54)),
+                    Text('5k', style: TextStyle(fontSize: 10, color: Colors.black54)),
+                    SizedBox(height: 20), 
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              
+              // Bars
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final barWidth = constraints.maxWidth / dailyData.length * 0.3;
+                    final groupWidth = constraints.maxWidth / dailyData.length;
+                    final chartHeight = constraints.maxHeight - 20; 
+                    
+                    return Stack(
+                      children: [
+                        // Grid lines
+                        ...List.generate(4, (index) {
+                          final y = index * chartHeight / 4;
+                          return Positioned(
+                            top: y,
+                            left: 0,
+                            right: 0,
+                            child: Container(
+                              height: 1,
+                              color: Colors.grey.withOpacity(0.1),
+                            ),
+                          );
+                        }),
+                        
+                        // Bars
+                        ...List.generate(dailyData.length, (index) {
+                          final userHeight = (dailyData[index].userValue / maxValue) * chartHeight * animationValue;
+                          final transactionHeight = (dailyData[index].transactionValue / maxValue) * chartHeight * animationValue;
+                          
+                          return Positioned(
+                            bottom: 0,
+                            left: index * groupWidth,
+                            width: groupWidth,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                SizedBox(
+                                  height: chartHeight,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Container(
+                                        width: barWidth,
+                                        height: userHeight,
+                                        color: Colors.amber,
+                                      ),
+                                      SizedBox(width: barWidth * 0.2),
+                                      Container(
+                                        width: barWidth,
+                                        height: transactionHeight,
+                                        color: Colors.deepPurple,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 5),
+                                Text(
+                                  dailyData[index].day,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.black54,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
