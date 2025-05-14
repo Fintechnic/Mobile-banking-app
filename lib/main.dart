@@ -8,7 +8,6 @@ import 'package:camera/camera.dart';
 // Import các screen cần thiết
 import 'screens/homepage_screen.dart';
 import 'screens/qr_scan_screen.dart';     
-import 'screens/account_and_card2.dart';
 import 'screens/account_and_card1.dart'; 
 import 'screens/transaction_management.dart';
 import 'screens/user_management.dart';
@@ -56,8 +55,7 @@ class MyApp extends StatelessWidget {
         '/home': (context) => const HomeScreen(),
         '/login': (context) => const LoginScreen(),
         '/qr-show': (context) => const QRCodeScreen(),
-        '/account-card1': (context) => const AccountCardsScreen1(),
-        '/account-card2': (context) => const AccountCardScreen(),
+        '/account-card': (context) => const AccountScreen(),
         '/transaction-management': (context) => const TransactionManagementScreen(),
         '/user-management': (context) => const UserProfilePage(),
         '/details': (context) => const TransactionDashboard(),
