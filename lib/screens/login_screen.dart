@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import '../providers/auth_provider.dart';
-import 'homepage.dart';
+import 'homepage_screen.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -608,7 +608,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                             Navigator.pushReplacement(
                                               context, 
                                               PageRouteBuilder(
-                                                pageBuilder: (context, animation, secondaryAnimation) => const Homepage(),
+                                                pageBuilder: (context, animation, secondaryAnimation) => const HomeScreen(),
                                                 transitionsBuilder: (context, animation, secondaryAnimation, child) {
                                                   var begin = const Offset(1.0, 0.0);
                                                   var end = Offset.zero;
