@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 // Lớp chính của ứng dụng
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
 
 // Màn hình hiển thị tài khoản và thẻ
 class AccountCardsScreen extends StatelessWidget {
-  const AccountCardsScreen({Key? key}) : super(key: key);
+  const AccountCardsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -148,12 +148,12 @@ class AccountCard extends StatelessWidget {
   final String branch; // Chi nhánh
 
   const AccountCard({
-    Key? key,
+    super.key,
     required this.accountName,
     required this.accountNumber,
     required this.balance,
     required this.branch,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
