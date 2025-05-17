@@ -53,24 +53,22 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
   final FocusNode _passwordFocus = FocusNode();
   final FocusNode _confirmPasswordFocus = FocusNode();
   
-  // Error shake animation values
   double _errorShakeAnimation = 0;
   bool _showErrorShake = false;
 
   @override
   void initState() {
     super.initState();
-    // Add listeners to password fields to validate in real-time
     _passwordController.addListener(_validatePassword);
     _confirmPasswordController.addListener(_validatePassword);
     
-    // Initialize animation controller
+
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1800),
     );
     
-    // Initialize animations with different curves and delays
+   
     _fadeAnimation = CurvedAnimation(
       parent: _animationController,
       curve: const Interval(0.0, 0.5, curve: Curves.easeIn),
@@ -130,8 +128,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
     
     // Start the animation
     _animationController.forward();
-    
-    // Add focus listeners for field animations
+  
     _fullNameFocus.addListener(_onFocusChange);
     _emailFocus.addListener(_onFocusChange);
     _phoneFocus.addListener(_onFocusChange);
@@ -153,16 +150,15 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
       // Check minimum length (8 characters)
       _hasMinLength = password.length >= 8;
 
-      // Check for uppercase letters
+      
       _hasUppercase = password.contains(RegExp(r'[A-Z]'));
 
-      // Check for numbers
+     
       _hasNumber = password.contains(RegExp(r'[0-9]'));
 
-      // Check for special characters
       _hasSpecialChar = password.contains(RegExp(r'[_!@#$%^&*(),.?":{}|<->]'));
 
-      // Check if passwords match
+    
       _passwordsMatch = password == confirmPassword && password.isNotEmpty;
     });
   }
@@ -185,7 +181,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
       _showErrorShake = true;
     });
     
-    // Create a shake effect
+   
     Future.delayed(const Duration(milliseconds: 50), () {
       if (mounted) {
         setState(() {
@@ -277,7 +273,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // App bar with fade animation
+              
               FadeTransition(
                 opacity: _fadeAnimation,
                 child: Padding(
@@ -387,10 +383,10 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                           ),
                         ),
                         const SizedBox(height: 30),
-                        // Form fields with staggered animation
+                       
                         ..._buildAnimatedFormFields(),
                         const SizedBox(height: 20),
-                        // Password requirements with slide animation
+                      
                         AnimatedBuilder(
                           animation: _passwordRequirementsAnimation,
                           builder: (context, child) {
@@ -452,7 +448,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                           ),
                         ),
                         const SizedBox(height: 20),
-                        // Terms and conditions with fade animation
+         
                         AnimatedBuilder(
                           animation: _termsAnimation,
                           builder: (context, child) {
