@@ -47,4 +47,8 @@ flutter:
         - asset: assets/fonts/SF-Pro-Display-Medium.otf
           weight: 500
         - asset: assets/fonts/SF-Pro-Display-Bold.otf
+<<<<<<< HEAD
           weight: 700
+=======
+          weight: 700
+>>>>>>> 08e5ca5e538dcb3c0ac89589be8ae2bb04c6669b
