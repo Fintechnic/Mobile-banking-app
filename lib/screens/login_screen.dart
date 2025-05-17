@@ -207,7 +207,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     final authProvider = Provider.of<AuthProvider>(context);
     
     return Scaffold(
-<<<<<<< HEAD
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -521,10 +520,10 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                   );
                                 },
                                 style: ButtonStyle(
-                                  overlayColor: MaterialStateProperty.all(
+                                  overlayColor: WidgetStateProperty.all(
                                     Colors.blue.shade100.withOpacity(0.3),
                                   ),
-                                  shape: MaterialStateProperty.all(
+                                  shape: WidgetStateProperty.all(
                                     RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8),
                                     ),
@@ -790,33 +789,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
               ),
             ],
           ),
-=======
-      appBar: AppBar(title: const Text("Đăng nhập")),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(controller: usernameController, decoration: const InputDecoration(labelText: "Username")),
-            TextField(controller: passwordController, decoration: const InputDecoration(labelText: "Password"), obscureText: true),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () async {
-                bool success = await authProvider.login(usernameController.text, passwordController.text);
-                if (!context.mounted) return;
-                if (success) {
-                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomeScreen()));
-                }
-              },
-              child: const Text("Đăng nhập"),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterScreen()));
-              },
-              child: const Text("Chưa có tài khoản? Đăng ký ngay!"),
-            ),
-          ],
->>>>>>> 08e5ca5e538dcb3c0ac89589be8ae2bb04c6669b
         ),
       ),
     );

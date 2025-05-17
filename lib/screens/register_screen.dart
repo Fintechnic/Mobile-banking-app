@@ -1024,12 +1024,12 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                         );
                       },
                       style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all(const Color(0xFF1A3A6B)),
-                        foregroundColor: MaterialStateProperty.all(Colors.white),
-                        padding: MaterialStateProperty.all(
+                        backgroundColor: WidgetStateProperty.all(const Color(0xFF1A3A6B)),
+                        foregroundColor: WidgetStateProperty.all(Colors.white),
+                        padding: WidgetStateProperty.all(
                           const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
                         ),
-                        shape: MaterialStateProperty.all(
+                        shape: WidgetStateProperty.all(
                           RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),

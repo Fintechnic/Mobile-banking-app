@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-<<<<<<< HEAD
 import 'package:flutter/services.dart';
 
 // Import các màn hình với tên file chính xác
@@ -12,24 +11,6 @@ import 'screens/notification.dart';
 import 'screens/paybill.dart';
 import 'screens/transfer.dart';
 import 'screens/register_screen.dart';
-=======
-import 'package:provider/provider.dart';
-import 'providers/auth_provider.dart';
-import 'package:camera/camera.dart';
-
-
-// Import các screen cần thiết
-import 'screens/homepage_screen.dart';
-import 'screens/qr_scan_screen.dart';     
-import 'screens/account_and_card1.dart'; 
-import 'screens/transaction_management.dart';
-import 'screens/user_management.dart';
-import 'screens/Details.dart';
-import 'screens/login_screen.dart'; 
-import 'screens/app_information.dart';
-import 'screens/change_password.dart';
-import 'screens/qr_screen.dart';
->>>>>>> 08e5ca5e538dcb3c0ac89589be8ae2bb04c6669b
 
 void main() {
   SystemChrome.setSystemUIOverlayStyle(
@@ -48,7 +29,6 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-<<<<<<< HEAD
       title: 'Fintechnic',
       theme: ThemeData(
         primaryColor: const Color(0xFF1A3A6B),
@@ -141,16 +121,6 @@ class _MainScreenState extends State<MainScreen> {
               ),
           ],
         ),
-=======
-      title: 'Flutter Auth App',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: Consumer<AuthProvider>(
-        builder: (context, authProvider, child) {
-          return authProvider.isAuthenticated
-              ? const HomeScreen()
-              : const LoginScreen(); 
-        },
->>>>>>> 08e5ca5e538dcb3c0ac89589be8ae2bb04c6669b
       ),
       routes: {
         '/home': (context) => const HomeScreen(),

@@ -436,7 +436,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen>
                           AnimatedSize(
                             duration: const Duration(milliseconds: 300),
                             curve: Curves.easeInOut,
-                            child: Container(
+                            child: SizedBox(
                               height: _isExpanded ? null : 0,
                               child: _isExpanded
                                   ? Column(

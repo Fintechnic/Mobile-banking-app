@@ -454,7 +454,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> with Sing
                   ),
                 ),
               );
-            }).toList(),
+            }),
           ],
         ),
       ),
