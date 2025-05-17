@@ -22,22 +22,21 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
 
-  // Password validation flags
+ 
   bool _hasMinLength = false;
   bool _hasUppercase = false;
   bool _hasNumber = false;
   bool _hasSpecialChar = false;
   bool _passwordsMatch = false;
   
-  // Animation controllers
-  late AnimationController _animationController;
   
-  // Animations
+  late AnimationController _animationController;
+
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
   late Animation<double> _scaleAnimation;
   
-  // Individual animations for each element
+  
   late Animation<double> _logoAnimation;
   late Animation<double> _welcomeTextAnimation;
   late Animation<double> _formFieldsAnimation;
@@ -46,7 +45,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
   late Animation<double> _buttonAnimation;
   late Animation<double> _loginLinkAnimation;
   
-  // Focus nodes for form fields
+ 
   final FocusNode _fullNameFocus = FocusNode();
   final FocusNode _emailFocus = FocusNode();
   final FocusNode _phoneFocus = FocusNode();
@@ -90,7 +89,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
       curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
     ));
     
-    // Staggered animations for each element
+  
     _logoAnimation = CurvedAnimation(
       parent: _animationController,
       curve: const Interval(0.0, 0.4, curve: Curves.elasticOut),
@@ -126,7 +125,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
       curve: const Interval(0.7, 1.0, curve: Curves.easeOut),
     );
     
-    // Start the animation
+    
     _animationController.forward();
   
     _fullNameFocus.addListener(_onFocusChange);
@@ -147,7 +146,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
     final confirmPassword = _confirmPasswordController.text;
 
     setState(() {
-      // Check minimum length (8 characters)
+      
       _hasMinLength = password.length >= 8;
 
       
@@ -493,7 +492,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                           ),
                         ),
                         const SizedBox(height: 30),
-                        // Register button with scale animation
+                        
                         AnimatedBuilder(
                           animation: _buttonAnimation,
                           builder: (context, child) {
@@ -515,8 +514,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                                         _isLoading = true;
                                       });
                                       
-                                      // Removed incorrect API call
-                                      // Simulate success for demo purposes
+                                     
                                       await Future.delayed(const Duration(milliseconds: 1500));
                                       bool success = true;
                                       
