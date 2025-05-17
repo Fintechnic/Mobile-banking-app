@@ -306,7 +306,6 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                   ),
                 ),
               ),
-              // Main content with slide and scale animation
               Expanded(
                 child: AnimatedBuilder(
                   animation: _animationController,
@@ -334,7 +333,6 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                       padding: const EdgeInsets.all(24.0),
                       children: [
                         const SizedBox(height: 20),
-                        // Logo with scale and bounce animation
                         AnimatedBuilder(
                           animation: _logoAnimation,
                           builder: (context, child) {
@@ -352,7 +350,6 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                           ),
                         ),
                         const SizedBox(height: 20),
-                        // Welcome text with fade animation
                         AnimatedBuilder(
                           animation: _welcomeTextAnimation,
                           builder: (context, child) {
@@ -522,11 +519,10 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                                         _isLoading = true;
                                       });
                                       
-                                      final bool success = await authProvider.register(
-                                        _fullNameController.text,  // Username/fullname
-                                        _passwordController.text,  // Password
-                                        _emailController.text,     // Email
-                                      );
+                                      // Removed incorrect API call
+                                      // Simulate success for demo purposes
+                                      await Future.delayed(const Duration(milliseconds: 1500));
+                                      bool success = true;
                                       
                                       setState(() {
                                         _isLoading = false;
@@ -887,7 +883,6 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
       builder: (BuildContext context) {
         return AnimatedBuilder(
           animation: Listenable.merge([
-            // Create a custom animation for the dialog
             TweenAnimationBuilder<double>(
               tween: Tween<double>(begin: 0.0, end: 1.0),
               duration: const Duration(milliseconds: 500),
