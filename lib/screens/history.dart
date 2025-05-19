@@ -23,7 +23,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-
 enum TransactionType {
   ALL,
   INCOME,
@@ -36,7 +35,6 @@ enum TransactionType {
   INVESTMENT,
   SAVING,
 }
-
 
 extension TransactionTypeExtension on TransactionType {
   String get displayName {
@@ -88,7 +86,6 @@ class Transaction {
     required this.type,
   });
 
-  
   factory Transaction.fromJson(Map<String, dynamic> json) {
     return Transaction(
       id: json['id'],
@@ -135,18 +132,16 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     'Custom range',
   ];
 
- 
   List<Transaction> _transactions = [];
 
   @override
   void initState() {
     super.initState();
     _updateDateRange(_selectedPeriod);
-    
+
     _fetchTransactions();
   }
 
-  
   Future<void> _fetchTransactions() async {
     if (_startDate == null || _endDate == null) return;
 
@@ -156,41 +151,33 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     });
 
     try {
-      
       final apiUrl = 'https://api.example.com/transactions';
 
-      
       final queryParams = {
         'startDate': _startDate!.toIso8601String(),
         'endDate': _endDate!.toIso8601String(),
-        'type':
-            _selectedFilter != TransactionType.ALL
-                ? _selectedFilter.toString().split('.').last
-                : null,
+        'type': _selectedFilter != TransactionType.ALL
+            ? _selectedFilter.toString().split('.').last
+            : null,
         'search':
             _searchController.text.isNotEmpty ? _searchController.text : null,
       };
 
-      
       queryParams.removeWhere((key, value) => value == null);
 
       final uri = Uri.parse(apiUrl).replace(queryParameters: queryParams);
 
-      
       final response = await http.get(
         uri,
         headers: {
-          'Authorization':
-              'Bearer YOUR_ACCESS_TOKEN', 
+          'Authorization': 'Bearer YOUR_ACCESS_TOKEN',
           'Content-Type': 'application/json',
         },
       );
 
       if (response.statusCode == 200) {
-        
         final List<dynamic> data = json.decode(response.body);
 
-        
         final transactions =
             data.map((item) => Transaction.fromJson(item)).toList();
 
@@ -199,25 +186,21 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
           _isLoading = false;
         });
       } else {
-        
         setState(() {
           _errorMessage = 'Failed to load transactions: ${response.statusCode}';
           _isLoading = false;
         });
       }
     } catch (e) {
-      
       setState(() {
         _errorMessage = 'Error: ${e.toString()}';
         _isLoading = false;
       });
 
-      
       _loadMockData();
     }
   }
 
-  
   void _loadMockData() {
     _transactions = [
       Transaction(
@@ -342,7 +325,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         break;
       case 'Custom range':
         _isCustomDateRange = true;
-        
+
         if (_startDate == null || _endDate == null) {
           _startDate = now.subtract(const Duration(days: 30));
           _endDate = now;
@@ -351,7 +334,6 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         break;
     }
 
-    
     if (!_isCustomDateRange) {
       _fetchTransactions();
     }
@@ -389,7 +371,6 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         _endDate = pickedDateRange.end;
       });
 
-      
       _fetchTransactions();
     }
   }
@@ -397,26 +378,22 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   List<Transaction> get filteredTransactions {
     List<Transaction> result = List.from(_transactions);
 
-    
     if (_selectedFilter != TransactionType.ALL) {
-      result =
-          result
-              .where((transaction) => transaction.type == _selectedFilter)
-              .toList();
+      result = result
+          .where((transaction) => transaction.type == _selectedFilter)
+          .toList();
     }
 
-    
     if (_searchController.text.isNotEmpty) {
       final query = _searchController.text.toLowerCase();
-      result =
-          result
-              .where(
-                (transaction) =>
-                    transaction.title.toLowerCase().contains(query) ||
-                    transaction.description.toLowerCase().contains(query) ||
-                    transaction.category.toLowerCase().contains(query),
-              )
-              .toList();
+      result = result
+          .where(
+            (transaction) =>
+                transaction.title.toLowerCase().contains(query) ||
+                transaction.description.toLowerCase().contains(query) ||
+                transaction.category.toLowerCase().contains(query),
+          )
+          .toList();
     }
 
     return result;
@@ -443,7 +420,6 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
@@ -469,7 +445,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                           _isSearching = !_isSearching;
                           if (!_isSearching) {
                             _searchController.clear();
-                            _fetchTransactions(); 
+                            _fetchTransactions();
                           }
                         });
                       },
@@ -479,15 +455,11 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                         Icons.download_outlined,
                         color: Colors.white,
                       ),
-                      onPressed: () {
-                       
-                      },
+                      onPressed: () {},
                     ),
                   ],
                 ),
               ),
-
-              
               if (_isSearching)
                 Padding(
                   padding: const EdgeInsets.symmetric(
@@ -510,12 +482,9 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                     child: TextField(
                       controller: _searchController,
                       onChanged: (value) {
-                        
                         setState(() {});
-                       
                       },
                       onSubmitted: (value) {
-                        
                         _fetchTransactions();
                       },
                       decoration: InputDecoration(
@@ -524,18 +493,17 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                           Icons.search,
                           color: Color(0xFF5A8ED0),
                         ),
-                        suffixIcon:
-                            _searchController.text.isNotEmpty
-                                ? IconButton(
-                                  icon: const Icon(Icons.clear),
-                                  onPressed: () {
-                                    setState(() {
-                                      _searchController.clear();
-                                    });
-                                    _fetchTransactions();
-                                  },
-                                )
-                                : null,
+                        suffixIcon: _searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear),
+                                onPressed: () {
+                                  setState(() {
+                                    _searchController.clear();
+                                  });
+                                  _fetchTransactions();
+                                },
+                              )
+                            : null,
                         border: InputBorder.none,
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 20,
@@ -545,8 +513,6 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                     ),
                   ),
                 ),
-
-              
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16.0,
@@ -574,26 +540,24 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                                 setState(() {
                                   _selectedFilter = newValue;
                                 });
-                                _fetchTransactions(); 
+                                _fetchTransactions();
                               }
                             },
-                            items:
-                                TransactionType.values
-                                    .map<DropdownMenuItem<TransactionType>>((
-                                      TransactionType type,
-                                    ) {
-                                      return DropdownMenuItem<TransactionType>(
-                                        value: type,
-                                        child: Text(
-                                          type.displayName,
-                                          style: const TextStyle(
-                                            color: Color(0xFF1A3A6B),
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      );
-                                    })
-                                    .toList(),
+                            items: TransactionType.values
+                                .map<DropdownMenuItem<TransactionType>>((
+                              TransactionType type,
+                            ) {
+                              return DropdownMenuItem<TransactionType>(
+                                value: type,
+                                child: Text(
+                                  type.displayName,
+                                  style: const TextStyle(
+                                    color: Color(0xFF1A3A6B),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
                           ),
                         ),
                       ),
@@ -624,19 +588,19 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                             },
                             items:
                                 _periodOptions.map<DropdownMenuItem<String>>((
-                                  String value,
-                                ) {
-                                  return DropdownMenuItem<String>(
-                                    value: value,
-                                    child: Text(
-                                      value,
-                                      style: const TextStyle(
-                                        color: Color(0xFF1A3A6B),
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  );
-                                }).toList(),
+                              String value,
+                            ) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(
+                                  value,
+                                  style: const TextStyle(
+                                    color: Color(0xFF1A3A6B),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
                           ),
                         ),
                       ),
@@ -644,8 +608,6 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                   ],
                 ),
               ),
-
-              
               if (_startDate != null && _endDate != null)
                 Padding(
                   padding: const EdgeInsets.symmetric(
@@ -693,8 +655,6 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                     ),
                   ),
                 ),
-
-              
               Expanded(
                 child: Container(
                   decoration: const BoxDecoration(
@@ -704,14 +664,13 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                       topRight: Radius.circular(30),
                     ),
                   ),
-                  child:
-                      _isLoading
-                          ? _buildLoadingState()
-                          : _errorMessage != null
+                  child: _isLoading
+                      ? _buildLoadingState()
+                      : _errorMessage != null
                           ? _buildErrorState()
                           : filteredTransactions.isEmpty
-                          ? _buildEmptyState()
-                          : _buildTransactionList(),
+                              ? _buildEmptyState()
+                              : _buildTransactionList(),
                 ),
               ),
             ],
@@ -830,7 +789,6 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   }
 
   Widget _buildTransactionList() {
-    
     Map<String, List<Transaction>> groupedTransactions = {};
 
     for (var transaction in filteredTransactions) {
@@ -841,13 +799,12 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
       groupedTransactions[dateStr]!.add(transaction);
     }
 
-    
-    final sortedDates =
-        groupedTransactions.keys.toList()..sort(
-          (a, b) => DateFormat(
-            'MMMM d, yyyy',
-          ).parse(b).compareTo(DateFormat('MMMM d, yyyy').parse(a)),
-        );
+    final sortedDates = groupedTransactions.keys.toList()
+      ..sort(
+        (a, b) => DateFormat(
+          'MMMM d, yyyy',
+        ).parse(b).compareTo(DateFormat('MMMM d, yyyy').parse(a)),
+      );
 
     return ListView.builder(
       padding: const EdgeInsets.only(top: 20),
@@ -909,28 +866,24 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         ),
         child: Row(
           children: [
-            
             Container(
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                color:
-                    transaction.isExpense
-                        ? const Color(0xFFFFE8E8)
-                        : const Color(0xFFE8F5E9),
+                color: transaction.isExpense
+                    ? const Color(0xFFFFE8E8)
+                    : const Color(0xFFE8F5E9),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 _getCategoryIcon(transaction.type),
-                color:
-                    transaction.isExpense
-                        ? const Color(0xFFE53935)
-                        : const Color(0xFF43A047),
+                color: transaction.isExpense
+                    ? const Color(0xFFE53935)
+                    : const Color(0xFF43A047),
                 size: 24,
               ),
             ),
             const SizedBox(width: 16),
-            
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -983,7 +936,6 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                 ],
               ),
             ),
-            
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
@@ -994,10 +946,9 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
-                    color:
-                        transaction.isExpense
-                            ? const Color(0xFFE53935)
-                            : const Color(0xFF43A047),
+                    color: transaction.isExpense
+                        ? const Color(0xFFE53935)
+                        : const Color(0xFF43A047),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -1086,7 +1037,6 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
           ),
           child: Column(
             children: [
-              
               Container(
                 margin: const EdgeInsets.only(top: 10),
                 width: 50,
@@ -1119,7 +1069,6 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                 ),
               ),
               const Divider(),
-              
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 20),
                 child: Column(
@@ -1131,10 +1080,9 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color:
-                            transaction.isExpense
-                                ? const Color(0xFFE53935)
-                                : const Color(0xFF43A047),
+                        color: transaction.isExpense
+                            ? const Color(0xFFE53935)
+                            : const Color(0xFF43A047),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -1161,7 +1109,6 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                 ),
               ),
               const Divider(),
-              
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.all(20),
@@ -1172,7 +1119,6 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                     _buildDetailItem('Category', transaction.category),
                     _buildDetailItem('Description', transaction.description),
                     const SizedBox(height: 30),
-                    
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
@@ -1199,7 +1145,6 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                       ],
                     ),
                     const SizedBox(height: 30),
-                    
                     SizedBox(
                       width: double.infinity,
                       height: 50,

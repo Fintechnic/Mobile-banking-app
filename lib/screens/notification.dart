@@ -21,7 +21,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-
 class NotificationCategory {
   final String id;
   final String title;
@@ -135,17 +134,14 @@ class NotificationSetting {
   }
 }
 
-
 class NotificationService {
-  static const String baseUrl = 'https://api.example.com'; // Replace with your API URL
-  
- 
+  static const String baseUrl =
+      'https://api.example.com'; // Replace with your API URL
+
   static Future<List<NotificationCategory>> getNotificationSettings() async {
     try {
-      
       await Future.delayed(const Duration(seconds: 1));
-      
-      
+
       return [
         NotificationCategory(
           id: 'important',
@@ -154,28 +150,32 @@ class NotificationService {
             NotificationSetting(
               id: 'transaction',
               title: 'Transaction',
-              description: 'Changes in wallet balance, transaction status updates.',
+              description:
+                  'Changes in wallet balance, transaction status updates.',
               icon: Icons.account_balance_wallet,
               isEnabled: true,
             ),
             NotificationSetting(
               id: 'reminder',
               title: 'Reminder',
-              description: 'Bill due dates, pending transactions that need to be completed.',
+              description:
+                  'Bill due dates, pending transactions that need to be completed.',
               icon: Icons.notifications_active,
               isEnabled: true,
             ),
             NotificationSetting(
               id: 'alert',
               title: 'Alert',
-              description: 'Security-related updates, account safety notices, or maintenance notifications.',
+              description:
+                  'Security-related updates, account safety notices, or maintenance notifications.',
               icon: Icons.warning_amber_rounded,
               isEnabled: true,
             ),
             NotificationSetting(
               id: 'service',
               title: 'Service',
-              description: 'Updates on the status of services you are currently using.',
+              description:
+                  'Updates on the status of services you are currently using.',
               icon: Icons.support_agent,
               isEnabled: true,
             ),
@@ -188,14 +188,16 @@ class NotificationService {
             NotificationSetting(
               id: 'service_promotions',
               title: 'Service Promotions',
-              description: 'Exclusive offers from the services you frequently use.',
+              description:
+                  'Exclusive offers from the services you frequently use.',
               icon: Icons.local_offer,
               isEnabled: true,
             ),
             NotificationSetting(
               id: 'expiring_offers',
               title: 'Expiring Offers',
-              description: 'Reminders for vouchers or gift cards that are about to expire.',
+              description:
+                  'Reminders for vouchers or gift cards that are about to expire.',
               icon: Icons.card_giftcard,
               isEnabled: true,
             ),
@@ -236,14 +238,16 @@ class NotificationService {
             NotificationSetting(
               id: 'community',
               title: 'Community',
-              description: 'Updates from communities and groups on Fintechnic\'s social network.',
+              description:
+                  'Updates from communities and groups on Fintechnic\'s social network.',
               icon: Icons.groups,
               isEnabled: true,
             ),
             NotificationSetting(
               id: 'surveys',
               title: 'Surveys',
-              description: 'Surveys and feedback requests about services or stores.',
+              description:
+                  'Surveys and feedback requests about services or stores.',
               icon: Icons.rate_review,
               isEnabled: true,
             ),
@@ -254,14 +258,12 @@ class NotificationService {
       throw Exception('Failed to load notification settings: $e');
     }
   }
-  
-  
-  static Future<bool> saveNotificationSettings(List<NotificationCategory> categories) async {
+
+  static Future<bool> saveNotificationSettings(
+      List<NotificationCategory> categories) async {
     try {
-      
       await Future.delayed(const Duration(seconds: 1));
-      
-    
+
       return true;
     } catch (e) {
       throw Exception('Failed to save notification settings: $e');
@@ -320,7 +322,8 @@ class _NotificationSettingsScreenState
     });
 
     try {
-      final success = await NotificationService.saveNotificationSettings(_categories);
+      final success =
+          await NotificationService.saveNotificationSettings(_categories);
       setState(() {
         _isSaving = false;
         _hasChanges = false;
@@ -388,7 +391,6 @@ class _NotificationSettingsScreenState
       backgroundColor: const Color(0xFFF5F7FA),
       body: Column(
         children: [
-          
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -416,12 +418,9 @@ class _NotificationSettingsScreenState
                     IconButton(
                       icon: const Icon(Icons.arrow_back, color: Colors.white),
                       onPressed: () {
-                        
                         if (_hasChanges) {
                           _showUnsavedChangesDialog();
-                        } else {
-                          
-                        }
+                        } else {}
                       },
                     ),
                     const Expanded(
@@ -438,7 +437,6 @@ class _NotificationSettingsScreenState
                     IconButton(
                       icon: const Icon(Icons.help_outline, color: Colors.white),
                       onPressed: () {
-                       
                         _showHelpDialog();
                       },
                     ),
@@ -447,8 +445,6 @@ class _NotificationSettingsScreenState
               ),
             ),
           ),
-
-          
           Expanded(
             child: _isLoading
                 ? _buildLoadingState()
@@ -456,8 +452,6 @@ class _NotificationSettingsScreenState
                     ? _buildErrorState()
                     : _buildContent(),
           ),
-
-          
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16.0),
@@ -472,9 +466,8 @@ class _NotificationSettingsScreenState
               ],
             ),
             child: ElevatedButton(
-              onPressed: _isSaving || !_hasChanges
-                  ? null
-                  : _saveNotificationSettings,
+              onPressed:
+                  _isSaving || !_hasChanges ? null : _saveNotificationSettings,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF1A3A6B),
                 foregroundColor: Colors.white,
@@ -496,7 +489,8 @@ class _NotificationSettingsScreenState
                     )
                   : const Text(
                       'Save Settings',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
             ),
           ),
@@ -577,15 +571,12 @@ class _NotificationSettingsScreenState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            
             for (var category in _categories) ...[
               _buildSectionTitle(category.title),
               const SizedBox(height: 12),
               _buildNotificationSection(category),
               const SizedBox(height: 24),
             ],
-
-            
             Center(
               child: TextButton(
                 onPressed: _turnOffAllNotifications,
@@ -742,17 +733,14 @@ class _NotificationSettingsScreenState
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop(); 
-              
+              Navigator.of(context).pop();
             },
             child: const Text('Discard'),
           ),
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop(); 
-              _saveNotificationSettings().then((_) {
-                
-              });
+              Navigator.of(context).pop();
+              _saveNotificationSettings().then((_) {});
             },
             child: const Text('Save'),
           ),

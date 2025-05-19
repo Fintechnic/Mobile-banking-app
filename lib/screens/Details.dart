@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-
 void main() {
   runApp(const MyApp());
 }
@@ -30,7 +29,8 @@ class TransactionDashboard extends StatefulWidget {
   State<TransactionDashboard> createState() => _TransactionDashboardState();
 }
 
-class _TransactionDashboardState extends State<TransactionDashboard> with SingleTickerProviderStateMixin {
+class _TransactionDashboardState extends State<TransactionDashboard>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   int _selectedTabIndex = 0;
 
@@ -101,7 +101,8 @@ class _TransactionDashboardState extends State<TransactionDashboard> with Single
                 children: [
                   const CircleAvatar(
                     radius: 25,
-                    backgroundImage: NetworkImage('https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-NCcl2nrSl9OVSkEdxjk3q8Ol0ZNQvT.png'),
+                    backgroundImage: NetworkImage(
+                        'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-NCcl2nrSl9OVSkEdxjk3q8Ol0ZNQvT.png'),
                   ),
                   const SizedBox(width: 12),
                   Column(
@@ -127,8 +128,7 @@ class _TransactionDashboardState extends State<TransactionDashboard> with Single
                 ],
               ),
             ),
-            
-          
+
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: GridView.count(
@@ -166,7 +166,7 @@ class _TransactionDashboardState extends State<TransactionDashboard> with Single
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 20),
 
             // Transactions list
@@ -187,9 +187,9 @@ class _TransactionDashboardState extends State<TransactionDashboard> with Single
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 20),
-            
+
             // Customer Details Section
             Container(
               padding: const EdgeInsets.all(16),
@@ -209,7 +209,8 @@ class _TransactionDashboardState extends State<TransactionDashboard> with Single
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
                           border: Border.all(color: Colors.grey[300]!),
                           borderRadius: BorderRadius.circular(4),
@@ -234,9 +235,9 @@ class _TransactionDashboardState extends State<TransactionDashboard> with Single
                       ),
                     ],
                   ),
-                  
+
                   const SizedBox(height: 16),
-                  
+
                   // Tab Bar
                   Container(
                     decoration: BoxDecoration(
@@ -259,7 +260,9 @@ class _TransactionDashboardState extends State<TransactionDashboard> with Single
                               Icon(
                                 Icons.circle,
                                 size: 10,
-                                color: _selectedTabIndex == 0 ? Colors.blue : Colors.transparent,
+                                color: _selectedTabIndex == 0
+                                    ? Colors.blue
+                                    : Colors.transparent,
                               ),
                               const SizedBox(width: 4),
                               const Text('Top-up'),
@@ -273,7 +276,9 @@ class _TransactionDashboardState extends State<TransactionDashboard> with Single
                               Icon(
                                 Icons.circle,
                                 size: 10,
-                                color: _selectedTabIndex == 1 ? Colors.blue : Colors.transparent,
+                                color: _selectedTabIndex == 1
+                                    ? Colors.blue
+                                    : Colors.transparent,
                               ),
                               const SizedBox(width: 4),
                               const Text('Saving'),
@@ -287,7 +292,9 @@ class _TransactionDashboardState extends State<TransactionDashboard> with Single
                               Icon(
                                 Icons.circle,
                                 size: 10,
-                                color: _selectedTabIndex == 2 ? Colors.blue : Colors.transparent,
+                                color: _selectedTabIndex == 2
+                                    ? Colors.blue
+                                    : Colors.transparent,
                               ),
                               const SizedBox(width: 4),
                               const Text('Transaction'),
@@ -297,17 +304,17 @@ class _TransactionDashboardState extends State<TransactionDashboard> with Single
                       ],
                     ),
                   ),
-                  
+
                   const SizedBox(height: 20),
-                  
+
                   // Bar Chart
                   SizedBox(
                     height: 200,
                     child: BarChartWidget(),
                   ),
-                  
+
                   const SizedBox(height: 20),
-                  
+
                   // Financial Summary Cards
                   GridView.count(
                     crossAxisCount: 2,
@@ -346,9 +353,9 @@ class _TransactionDashboardState extends State<TransactionDashboard> with Single
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 20),
-            
+
             // Pagination
             Padding(
               padding: const EdgeInsets.all(16.0),
@@ -485,7 +492,7 @@ class FinancialCard extends StatelessWidget {
               color: isPositive ? Colors.green : Colors.red,
             ),
           ),
-          
+
           // Content
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -534,7 +541,7 @@ class BarChartWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
     final values = [500, 450, 520, 480, 510, 470];
-    
+
     return Column(
       children: [
         // Y-axis labels
@@ -543,15 +550,20 @@ class BarChartWidget extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text('600', style: TextStyle(fontSize: 10, color: Colors.grey[600])),
+                Text('600',
+                    style: TextStyle(fontSize: 10, color: Colors.grey[600])),
                 const SizedBox(height: 30),
-                Text('500', style: TextStyle(fontSize: 10, color: Colors.grey[600])),
+                Text('500',
+                    style: TextStyle(fontSize: 10, color: Colors.grey[600])),
                 const SizedBox(height: 30),
-                Text('400', style: TextStyle(fontSize: 10, color: Colors.grey[600])),
+                Text('400',
+                    style: TextStyle(fontSize: 10, color: Colors.grey[600])),
                 const SizedBox(height: 30),
-                Text('200', style: TextStyle(fontSize: 10, color: Colors.grey[600])),
+                Text('200',
+                    style: TextStyle(fontSize: 10, color: Colors.grey[600])),
                 const SizedBox(height: 30),
-                Text('0', style: TextStyle(fontSize: 10, color: Colors.grey[600])),
+                Text('0',
+                    style: TextStyle(fontSize: 10, color: Colors.grey[600])),
               ],
             ),
             const SizedBox(width: 10),
@@ -670,10 +682,10 @@ class TransactionItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('MMM dd, yyyy, h:mma');
-    
+
     Color statusColor;
     String statusText;
-    
+
     switch (transaction.status) {
       case TransactionStatus.completed:
         statusColor = Colors.green;
@@ -741,7 +753,9 @@ class TransactionItem extends StatelessWidget {
                 style: TextStyle(
                   fontWeight: FontWeight.w500,
                   fontSize: 14,
-                  color: transaction.amount.startsWith('+') ? Colors.green : Colors.black87,
+                  color: transaction.amount.startsWith('+')
+                      ? Colors.green
+                      : Colors.black87,
                 ),
               ),
             ],

@@ -42,9 +42,9 @@ class Account {
 
   String get formattedBalance {
     return '${balance.toStringAsFixed(0).replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (Match m) => '${m[1]},',
-    )} $currency';
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]},',
+        )} $currency';
   }
 }
 
@@ -111,9 +111,9 @@ class Transaction {
 
   String get formattedAmount {
     return '${amount.toStringAsFixed(0).replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (Match m) => '${m[1]},',
-    )} $currency';
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]},',
+        )} $currency';
   }
 
   String get formattedDate {
@@ -126,8 +126,18 @@ class Transaction {
 
   String _getMonthName(int month) {
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
     ];
     return months[month - 1];
   }
@@ -135,14 +145,15 @@ class Transaction {
 
 // API Service
 class TransferService {
-  static const String baseUrl = 'https://api.example.com'; // Replace with your API URL
-  
+  static const String baseUrl =
+      'https://api.example.com'; // Replace with your API URL
+
   // Fetch user accounts
   static Future<List<Account>> getUserAccounts() async {
     try {
       // Simulate API delay
       await Future.delayed(const Duration(milliseconds: 800));
-      
+
       // In a real app, you would make an actual API call:
       // final response = await http.get(Uri.parse('$baseUrl/accounts'));
       // if (response.statusCode == 200) {
@@ -151,7 +162,7 @@ class TransferService {
       // } else {
       //   throw Exception('Failed to load accounts');
       // }
-      
+
       // Mock data for demonstration
       return [
         Account(
@@ -177,13 +188,13 @@ class TransferService {
       throw Exception('Failed to load accounts: $e');
     }
   }
-  
+
   // Fetch recipients
   static Future<List<Recipient>> getRecipients() async {
     try {
       // Simulate API delay
       await Future.delayed(const Duration(milliseconds: 1000));
-      
+
       // In a real app, you would make an actual API call:
       // final response = await http.get(Uri.parse('$baseUrl/recipients'));
       // if (response.statusCode == 200) {
@@ -192,7 +203,7 @@ class TransferService {
       // } else {
       //   throw Exception('Failed to load recipients');
       // }
-      
+
       // Mock data for demonstration
       return [
         Recipient(
@@ -224,13 +235,13 @@ class TransferService {
       throw Exception('Failed to load recipients: $e');
     }
   }
-  
+
   // Fetch recent transactions
   static Future<List<Transaction>> getRecentTransactions() async {
     try {
       // Simulate API delay
       await Future.delayed(const Duration(milliseconds: 1200));
-      
+
       // In a real app, you would make an actual API call:
       // final response = await http.get(Uri.parse('$baseUrl/transactions/recent'));
       // if (response.statusCode == 200) {
@@ -239,7 +250,7 @@ class TransferService {
       // } else {
       //   throw Exception('Failed to load transactions');
       // }
-      
+
       // Mock data for demonstration
       return [
         Transaction(
@@ -277,7 +288,7 @@ class TransferService {
       throw Exception('Failed to load transactions: $e');
     }
   }
-  
+
   // Submit transfer
   static Future<bool> submitTransfer({
     required String fromAccountId,
@@ -288,7 +299,7 @@ class TransferService {
     try {
       // Simulate API delay
       await Future.delayed(const Duration(seconds: 2));
-      
+
       // In a real app, you would make an actual API call:
       // final response = await http.post(
       //   Uri.parse('$baseUrl/transfer'),
@@ -301,12 +312,12 @@ class TransferService {
       //   }),
       // );
       // return response.statusCode == 200;
-      
+
       // For demonstration, validate amount and return success
       if (amount <= 0) {
         throw Exception('Amount must be greater than 0');
       }
-      
+
       // Simulate a 90% success rate
       final random = DateTime.now().millisecondsSinceEpoch % 10;
       if (random < 9) {
@@ -330,27 +341,27 @@ class TransferScreen extends StatefulWidget {
 class _TransferScreenState extends State<TransferScreen> {
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _noteController = TextEditingController();
-  
+
   bool _isLoadingAccounts = true;
   bool _isLoadingRecipients = true;
   bool _isLoadingTransactions = true;
   bool _isSubmitting = false;
-  
+
   bool _hasAccountsError = false;
   bool _hasRecipientsError = false;
   bool _hasTransactionsError = false;
-  
+
   String _accountsErrorMessage = '';
   String _recipientsErrorMessage = '';
   String _transactionsErrorMessage = '';
-  
+
   List<Account> _accounts = [];
   List<Recipient> _recipients = [];
   List<Transaction> _transactions = [];
-  
+
   Account? _selectedAccount;
   Recipient? _selectedRecipient;
-  
+
   String? _amountError;
 
   @override
@@ -438,7 +449,7 @@ class _TransferScreenState extends State<TransferScreen> {
       });
       return;
     }
-    
+
     final amount = double.tryParse(_amountController.text.replaceAll(',', ''));
     if (amount == null) {
       setState(() {
@@ -446,40 +457,40 @@ class _TransferScreenState extends State<TransferScreen> {
       });
       return;
     }
-    
+
     if (amount <= 0) {
       setState(() {
         _amountError = 'Amount must be greater than 0';
       });
       return;
     }
-    
+
     if (_selectedAccount == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select a source account')),
       );
       return;
     }
-    
+
     if (_selectedRecipient == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select a recipient')),
       );
       return;
     }
-    
+
     if (amount > _selectedAccount!.balance) {
       setState(() {
         _amountError = 'Insufficient funds';
       });
       return;
     }
-    
+
     setState(() {
       _amountError = null;
       _isSubmitting = true;
     });
-    
+
     try {
       final success = await TransferService.submitTransfer(
         fromAccountId: _selectedAccount!.id,
@@ -487,11 +498,11 @@ class _TransferScreenState extends State<TransferScreen> {
         amount: amount,
         note: _noteController.text,
       );
-      
+
       setState(() {
         _isSubmitting = false;
       });
-      
+
       if (success) {
         _showSuccessDialog(amount);
       } else {
@@ -506,7 +517,7 @@ class _TransferScreenState extends State<TransferScreen> {
       setState(() {
         _isSubmitting = false;
       });
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error: ${e.toString()}'),
@@ -533,9 +544,9 @@ class _TransferScreenState extends State<TransferScreen> {
             const SizedBox(height: 16),
             Text(
               'You have successfully transferred ${amount.toStringAsFixed(0).replaceAllMapped(
-                RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-                (Match m) => '${m[1]},',
-              )} VND to ${_selectedRecipient!.name}',
+                    RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+                    (Match m) => '${m[1]},',
+                  )} VND to ${_selectedRecipient!.name}',
               textAlign: TextAlign.center,
             ),
           ],
@@ -631,7 +642,8 @@ class _TransferScreenState extends State<TransferScreen> {
                         _isLoadingAccounts
                             ? _buildLoadingDropdown()
                             : _hasAccountsError
-                                ? _buildErrorDropdown(_accountsErrorMessage, _loadAccounts)
+                                ? _buildErrorDropdown(
+                                    _accountsErrorMessage, _loadAccounts)
                                 : _buildAccountDropdown(),
                         const SizedBox(height: 30),
                         // To recipient
@@ -647,7 +659,8 @@ class _TransferScreenState extends State<TransferScreen> {
                         _isLoadingRecipients
                             ? _buildLoadingDropdown()
                             : _hasRecipientsError
-                                ? _buildErrorDropdown(_recipientsErrorMessage, _loadRecipients)
+                                ? _buildErrorDropdown(
+                                    _recipientsErrorMessage, _loadRecipients)
                                 : _buildRecipientDropdown(),
                         const SizedBox(height: 30),
                         // Amount
@@ -728,7 +741,8 @@ class _TransferScreenState extends State<TransferScreen> {
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(15),
-                              borderSide: BorderSide(color: Colors.grey.shade300),
+                              borderSide:
+                                  BorderSide(color: Colors.grey.shade300),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(15),
@@ -984,7 +998,8 @@ class _TransferScreenState extends State<TransferScreen> {
               _selectedRecipient = newValue;
             });
           },
-          items: _recipients.map<DropdownMenuItem<Recipient>>((Recipient recipient) {
+          items: _recipients
+              .map<DropdownMenuItem<Recipient>>((Recipient recipient) {
             return DropdownMenuItem<Recipient>(
               value: recipient,
               child: Row(

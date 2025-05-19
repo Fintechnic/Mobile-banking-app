@@ -1,2 +1,7 @@
 .dart_tool/extension_discovery/vs_code.json
 /android
+.flutter-plugins
+.dart_tool/package_config_subset
+.dart_tool/package_config.json
+.idea/libraries/Dart_SDK.xml
+android/local.properties

@@ -38,7 +38,6 @@ class _LoansScreenState extends State<LoansScreen> with TickerProviderStateMixin
   
   
   bool _isSearchExpanded = false;
-  late Animation<double> _searchWidthAnimation;
   final TextEditingController _searchTextController = TextEditingController();
   
   
@@ -103,13 +102,6 @@ class _LoansScreenState extends State<LoansScreen> with TickerProviderStateMixin
       curve: Curves.easeOutBack,
     ));
     
-    _searchWidthAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _searchController,
-      curve: Curves.easeInOut,
-    ));
     
     
     for (int i = 0; i < 8; i++) {

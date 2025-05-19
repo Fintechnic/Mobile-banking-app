@@ -197,8 +197,6 @@ class _BillPaymentScreenState extends State<BillPaymentScreen> {
   bool _isLoadingBills = true;
   bool _hasServicesError = false;
   bool _hasBillsError = false;
-  String _servicesErrorMessage = '';
-  String _billsErrorMessage = '';
   List<ServiceCategory> _services = [];
   List<Bill> _bills = [];
   bool _isBookmarked = false;
@@ -230,7 +228,6 @@ class _BillPaymentScreenState extends State<BillPaymentScreen> {
       setState(() {
         _isLoadingServices = false;
         _hasServicesError = true;
-        _servicesErrorMessage = e.toString();
       });
     }
   }
@@ -251,7 +248,6 @@ class _BillPaymentScreenState extends State<BillPaymentScreen> {
       setState(() {
         _isLoadingBills = false;
         _hasBillsError = true;
-        _billsErrorMessage = e.toString();
       });
     }
   }

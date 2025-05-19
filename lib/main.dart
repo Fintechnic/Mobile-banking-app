@@ -1,3 +1,14 @@
+import 'package:camera/camera.dart';
+import 'package:fintechnic/screens/Details.dart';
+import 'package:fintechnic/screens/account_and_card1.dart';
+import 'package:fintechnic/screens/app_information.dart';
+import 'package:fintechnic/screens/change_password.dart';
+import 'package:fintechnic/screens/homepage_screen.dart';
+import 'package:fintechnic/screens/login_screen.dart';
+import 'package:fintechnic/screens/qr_scan_screen.dart';
+import 'package:fintechnic/screens/qr_screen.dart';
+import 'package:fintechnic/screens/transaction_management.dart';
+import 'package:fintechnic/screens/user_management.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -10,20 +21,26 @@ import 'screens/history.dart';
 import 'screens/notification.dart';
 import 'screens/paybill.dart';
 import 'screens/transfer.dart';
-import 'screens/register_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // Initialize cameras
+  final cameras = await availableCameras();
+  final firstCamera = cameras.first;
+
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.dark,
     ),
   );
-  runApp(const MyApp());
+  runApp(MyApp(firstCamera: firstCamera));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final CameraDescription firstCamera;
+
+  const MyApp({super.key, required this.firstCamera});
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +51,40 @@ class MyApp extends StatelessWidget {
         primaryColor: const Color(0xFF1A3A6B),
         fontFamily: 'SF Pro Display',
       ),
-      home: const MainScreen(),
+      initialRoute: '/login',
+      routes: {
+        '/home': (context) => const HomeScreen(),
+        '/login': (context) => const LoginScreen(),
+        '/register': (context) => const RegisterScreen(),
+        '/qr-show': (context) => const QRCodeScreen(),
+        '/account-card': (context) => const AccountCardsScreen(),
+        '/transaction-management': (context) => const TransactionManagementScreen(),
+        '/user-management': (context) => const UserProfilePage(),
+        '/details': (context) => const TransactionDashboard(),
+        '/information': (context) => const InformationScreen(),
+        '/change-password': (context) => const ChangePasswordScreen(),
+        '/payment-confirmation': (context) => const PaymentConfirmationScreen(),
+        '/loan': (context) => const LoansScreen(),
+        '/profile-settings': (context) => const ProfileSettingsScreen(),
+        '/transaction-history': (context) => const TransactionHistoryScreen(),
+        '/notification-settings': (context) => const NotificationSettingsScreen(),
+        '/bill-payment': (context) => const BillPaymentScreen(),
+        '/transfer': (context) => const TransferScreen(),
+      },
+      onGenerateRoute: (settings) {
+        if (settings.name == '/qr-scan') {
+          return MaterialPageRoute(
+            builder: (context) => QRScannerScreen(camera: firstCamera),
+          );
+        }
+        return MaterialPageRoute(
+          builder: (context) => Scaffold(
+            body: Center(
+              child: Text('Route ${settings.name} not found'),
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -49,17 +99,17 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
-  // Danh sách các màn hình từ các file đã có
-  final List<Widget> _screens = [
-    const _LoginScreenState(),
-    const _RegisterScreenState(),
-    const PaymentConfirmationScreen(),
-    const LoansScreen(),
-    const ProfileSettingsScreen(),
-    const TransactionHistoryScreen(),
-    const NotificationSettingsScreen(),
-    const BillPaymentScreen(),
-    const TransferScreen(),
+  // Danh sách các route names tương ứng với các màn hình
+  final List<String> _routes = [
+    '/login',
+    '/register',
+    '/payment-confirmation',
+    '/loan',
+    '/profile-settings',
+    '/transaction-history',
+    '/notification-settings',
+    '/bill-payment',
+    '/transfer',
   ];
 
   // Danh sách tên các màn hình
@@ -67,7 +117,7 @@ class _MainScreenState extends State<MainScreen> {
     'Login',
     'Sign Up',
     'Payment Confirmation',
-    'LOanLOan',
+    'Loan',
     'Account settings',
     'Transaction History',
     'Notification settings',
@@ -83,7 +133,6 @@ class _MainScreenState extends State<MainScreen> {
         backgroundColor: const Color(0xFF1A3A6B),
         foregroundColor: Colors.white,
       ),
-      body: _screens[_currentIndex],
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
@@ -93,16 +142,16 @@ class _MainScreenState extends State<MainScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  const Text(
-                    'FintechnicFintechnic',
+                children: const [
+                  Text(
+                    'Fintechnic',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                 ],
               ),
             ),
@@ -117,31 +166,12 @@ class _MainScreenState extends State<MainScreen> {
                     _currentIndex = i;
                   });
                   Navigator.pop(context);
+                  Navigator.pushNamed(context, _routes[i]);
                 },
               ),
           ],
         ),
       ),
-      routes: {
-        '/home': (context) => const HomeScreen(),
-        '/login': (context) => const LoginScreen(),
-        '/qr-show': (context) => const QRCodeScreen(),
-        '/account-card': (context) => const AccountScreen(),
-        '/transaction-management': (context) => const TransactionManagementScreen(),
-        '/user-management': (context) => const UserProfilePage(),
-        '/details': (context) => const TransactionDashboard(),
-        '/information': (context) => const InformationScreen(),
-        '/change-password': (context) => const ChangePasswordScreen(),
-      },
-      onGenerateRoute: (settings) {
-        if (settings.name == '/qr-scan') {
-          final camera = settings.arguments as CameraDescription;
-          return MaterialPageRoute(
-            builder: (context) => QRScannerScreen(camera: camera),
-          );
-        }
-        return null;
-      },
     );
   }
 }

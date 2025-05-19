@@ -44,7 +44,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   
  
   double _errorShakeAnimation = 0;
-  bool _showErrorShake = false;
 
   @override
   void initState() {
@@ -130,7 +129,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   
   void _showErrorAnimation() {
     setState(() {
-      _showErrorShake = true;
     });
     
     
@@ -186,7 +184,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       if (mounted) {
         setState(() {
           _errorShakeAnimation = 0;
-          _showErrorShake = false;
         });
       }
     });
@@ -254,7 +251,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                   animation: _animationController,
                   builder: (context, child) {
                     return Transform.translate(
-                      offset: Offset(0, 100 * (1 - _slideAnimation.value)),
+                      offset: Offset(0, 100 * (1 - _slideAnimation.value.dy)),
                       child: Transform.scale(
                         scale: _scaleAnimation.value,
                         child: Opacity(

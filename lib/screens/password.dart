@@ -29,13 +29,14 @@ class PasswordManagerScreen extends StatefulWidget {
   State<PasswordManagerScreen> createState() => _PasswordManagerScreenState();
 }
 
-class _PasswordManagerScreenState extends State<PasswordManagerScreen> with SingleTickerProviderStateMixin {
+class _PasswordManagerScreenState extends State<PasswordManagerScreen>
+    with SingleTickerProviderStateMixin {
   bool _isLoading = true;
   int _securityScore = 0;
   final int _maxScore = 5;
   late AnimationController _animationController;
   late Animation<double> _progressAnimation;
-  
+
   // Security features status
   final Map<String, bool> _securityFeatures = {
     'Account Identification': true,
@@ -48,49 +49,49 @@ class _PasswordManagerScreenState extends State<PasswordManagerScreen> with Sing
   @override
   void initState() {
     super.initState();
-    
+
     // Initialize animation controller
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
     );
-    
+
     _progressAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _animationController,
         curve: Curves.easeOutBack,
       ),
     );
-    
+
     // Load security status
     _loadSecurityStatus();
   }
-  
+
   @override
   void dispose() {
     _animationController.dispose();
     super.dispose();
   }
-  
+
   // Load security status with simulated delay
   Future<void> _loadSecurityStatus() async {
     setState(() {
       _isLoading = true;
     });
-    
+
     try {
       // Simulate network delay
       await Future.delayed(const Duration(seconds: 1));
-      
+
       // Calculate security score based on enabled features
-      _securityScore = _securityFeatures.values.where((enabled) => enabled).length;
-      
+      _securityScore =
+          _securityFeatures.values.where((enabled) => enabled).length;
+
       if (mounted) {
         setState(() {
           _isLoading = false;
         });
-        
-        
+
         _animationController.forward();
       }
     } catch (e) {
@@ -101,29 +102,34 @@ class _PasswordManagerScreenState extends State<PasswordManagerScreen> with Sing
       }
     }
   }
-  
+
   // Show feature details dialog
   void _showFeatureDetails(String feature) {
     String description = '';
-    
+
     switch (feature) {
       case 'Account Identification':
-        description = 'Your account is protected with a unique identifier that helps prevent unauthorized access.';
+        description =
+            'Your account is protected with a unique identifier that helps prevent unauthorized access.';
         break;
       case 'Biometric Authentication':
-        description = 'Use your fingerprint to securely access your account without entering passwords.';
+        description =
+            'Use your fingerprint to securely access your account without entering passwords.';
         break;
       case 'Face Authentication':
-        description = 'Advanced facial recognition technology to verify your identity.';
+        description =
+            'Advanced facial recognition technology to verify your identity.';
         break;
       case 'Change Password':
-        description = 'Regularly update your password to maintain account security.';
+        description =
+            'Regularly update your password to maintain account security.';
         break;
       case 'OTP':
-        description = 'One-Time Password provides an additional layer of security for sensitive transactions.';
+        description =
+            'One-Time Password provides an additional layer of security for sensitive transactions.';
         break;
     }
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -138,11 +144,11 @@ class _PasswordManagerScreenState extends State<PasswordManagerScreen> with Sing
       ),
     );
   }
-  
+
   // Show action details
   void _showActionDetails(String action) {
     String message = '';
-    
+
     switch (action) {
       case 'Emergency Support':
         message = 'Connecting to emergency support...';
@@ -154,7 +160,7 @@ class _PasswordManagerScreenState extends State<PasswordManagerScreen> with Sing
         message = 'Loading activity history...';
         break;
     }
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );
@@ -163,7 +169,7 @@ class _PasswordManagerScreenState extends State<PasswordManagerScreen> with Sing
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF98C5F5), 
+      backgroundColor: const Color(0xFF98C5F5),
       appBar: AppBar(
         backgroundColor: const Color(0xFF98C5F5),
         elevation: 0,
@@ -183,7 +189,8 @@ class _PasswordManagerScreenState extends State<PasswordManagerScreen> with Sing
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.flag_outlined, color: Colors.black, size: 22),
+            icon:
+                const Icon(Icons.flag_outlined, color: Colors.black, size: 22),
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Report an issue')),
@@ -191,7 +198,8 @@ class _PasswordManagerScreenState extends State<PasswordManagerScreen> with Sing
             },
           ),
           IconButton(
-            icon: const Icon(Icons.phone_outlined, color: Colors.black, size: 22),
+            icon:
+                const Icon(Icons.phone_outlined, color: Colors.black, size: 22),
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Contact support')),
@@ -210,7 +218,6 @@ class _PasswordManagerScreenState extends State<PasswordManagerScreen> with Sing
                 child: Column(
                   children: [
                     const SizedBox(height: 10),
-                    
                     Container(
                       margin: const EdgeInsets.symmetric(horizontal: 16.0),
                       decoration: BoxDecoration(
@@ -236,7 +243,7 @@ class _PasswordManagerScreenState extends State<PasswordManagerScreen> with Sing
                               ),
                             ),
                             const SizedBox(height: 25),
-    
+
                             AnimatedBuilder(
                               animation: _progressAnimation,
                               builder: (context, child) {
@@ -250,17 +257,22 @@ class _PasswordManagerScreenState extends State<PasswordManagerScreen> with Sing
                                       CustomPaint(
                                         size: const Size(240, 120),
                                         painter: SemiCirclePainter(
-                                          progress: _progressAnimation.value * (_securityScore / _maxScore),
+                                          progress: _progressAnimation.value *
+                                              (_securityScore / _maxScore),
                                         ),
                                       ),
                                       Positioned(
                                         top: 30,
                                         child: Column(
-                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
                                           children: [
                                             TweenAnimationBuilder<int>(
-                                              tween: IntTween(begin: 0, end: _securityScore),
-                                              duration: const Duration(milliseconds: 1000),
+                                              tween: IntTween(
+                                                  begin: 0,
+                                                  end: _securityScore),
+                                              duration: const Duration(
+                                                  milliseconds: 1000),
                                               builder: (context, value, child) {
                                                 return Text(
                                                   '$value/$_maxScore',
@@ -295,19 +307,23 @@ class _PasswordManagerScreenState extends State<PasswordManagerScreen> with Sing
                                   Icons.person_outline,
                                   'Account\nIdentification',
                                   _securityFeatures['Account Identification']!,
-                                  () => _showFeatureDetails('Account Identification'),
+                                  () => _showFeatureDetails(
+                                      'Account Identification'),
                                 ),
                                 _buildFeatureItem(
                                   Icons.fingerprint,
                                   'Biometric\nAuthentication',
-                                  _securityFeatures['Biometric Authentication']!,
-                                  () => _showFeatureDetails('Biometric Authentication'),
+                                  _securityFeatures[
+                                      'Biometric Authentication']!,
+                                  () => _showFeatureDetails(
+                                      'Biometric Authentication'),
                                 ),
                                 _buildFeatureItem(
                                   Icons.face,
                                   'Face\nAuthentication',
                                   _securityFeatures['Face Authentication']!,
-                                  () => _showFeatureDetails('Face Authentication'),
+                                  () => _showFeatureDetails(
+                                      'Face Authentication'),
                                 ),
                                 _buildFeatureItem(
                                   Icons.lock_outline,
@@ -324,7 +340,7 @@ class _PasswordManagerScreenState extends State<PasswordManagerScreen> with Sing
                               ],
                             ),
                             const SizedBox(height: 30),
-                            
+
                             // Security info sections with staggered animation
                             _buildAnimatedSecurityInfoItem(
                               Icons.star,
@@ -343,10 +359,9 @@ class _PasswordManagerScreenState extends State<PasswordManagerScreen> with Sing
                               'Take security measures to enhance the protection of your information.',
                               400,
                             ),
-                            
+
                             const SizedBox(height: 30),
-                            
-                           
+
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [
@@ -358,7 +373,8 @@ class _PasswordManagerScreenState extends State<PasswordManagerScreen> with Sing
                                 _buildActionButton(
                                   Icons.settings,
                                   'Account\nCustomization',
-                                  () => _showActionDetails('Account Customization'),
+                                  () => _showActionDetails(
+                                      'Account Customization'),
                                 ),
                                 _buildActionButton(
                                   Icons.history,
@@ -378,8 +394,9 @@ class _PasswordManagerScreenState extends State<PasswordManagerScreen> with Sing
             ),
     );
   }
-  
-  Widget _buildFeatureItem(IconData icon, String label, bool isEnabled, VoidCallback onTap) {
+
+  Widget _buildFeatureItem(
+      IconData icon, String label, bool isEnabled, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Column(
@@ -413,7 +430,7 @@ class _PasswordManagerScreenState extends State<PasswordManagerScreen> with Sing
       ),
     );
   }
-  
+
   Widget _buildAnimatedSecurityInfoItem(IconData icon, String text, int delay) {
     return FutureBuilder(
       future: Future.delayed(Duration(milliseconds: delay)),
@@ -455,7 +472,7 @@ class _PasswordManagerScreenState extends State<PasswordManagerScreen> with Sing
       },
     );
   }
-  
+
   Widget _buildActionButton(IconData icon, String label, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
@@ -484,23 +501,21 @@ class _PasswordManagerScreenState extends State<PasswordManagerScreen> with Sing
   }
 }
 
-
 class SemiCirclePainter extends CustomPainter {
   final double progress; // 0.0 to 1.0
-  
+
   SemiCirclePainter({required this.progress});
-  
+
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height);
     final radius = size.height;
-    
+
     final backgroundPaint = Paint()
       ..color = Colors.grey.shade200
       ..style = PaintingStyle.stroke
       ..strokeWidth = 8;
-      
-    
+
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: radius),
       -math.pi,
@@ -508,15 +523,13 @@ class SemiCirclePainter extends CustomPainter {
       false,
       backgroundPaint,
     );
-    
- 
+
     final progressPaint = Paint()
       ..color = const Color(0xFF32CD32) // Bright green
       ..style = PaintingStyle.stroke
       ..strokeWidth = 8
       ..strokeCap = StrokeCap.round;
-      
-    
+
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: radius),
       -math.pi,

@@ -11,32 +11,31 @@ class RegisterScreen extends StatefulWidget {
   _RegisterScreenState createState() => _RegisterScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProviderStateMixin {
+class _RegisterScreenState extends State<RegisterScreen>
+    with SingleTickerProviderStateMixin {
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
   bool _agreeToTerms = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
 
- 
   bool _hasMinLength = false;
   bool _hasUppercase = false;
   bool _hasNumber = false;
   bool _hasSpecialChar = false;
   bool _passwordsMatch = false;
-  
-  
+
   late AnimationController _animationController;
 
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
   late Animation<double> _scaleAnimation;
-  
-  
+
   late Animation<double> _logoAnimation;
   late Animation<double> _welcomeTextAnimation;
   late Animation<double> _formFieldsAnimation;
@@ -44,35 +43,31 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
   late Animation<double> _termsAnimation;
   late Animation<double> _buttonAnimation;
   late Animation<double> _loginLinkAnimation;
-  
- 
+
   final FocusNode _fullNameFocus = FocusNode();
   final FocusNode _emailFocus = FocusNode();
   final FocusNode _phoneFocus = FocusNode();
   final FocusNode _passwordFocus = FocusNode();
   final FocusNode _confirmPasswordFocus = FocusNode();
-  
-  double _errorShakeAnimation = 0;
-  bool _showErrorShake = false;
+
+  final double _errorShakeAnimation = 0;
 
   @override
   void initState() {
     super.initState();
     _passwordController.addListener(_validatePassword);
     _confirmPasswordController.addListener(_validatePassword);
-    
 
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1800),
     );
-    
-   
+
     _fadeAnimation = CurvedAnimation(
       parent: _animationController,
       curve: const Interval(0.0, 0.5, curve: Curves.easeIn),
     );
-    
+
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
       end: Offset.zero,
@@ -80,7 +75,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
       parent: _animationController,
       curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
     ));
-    
+
     _scaleAnimation = Tween<double>(
       begin: 0.8,
       end: 1.0,
@@ -88,53 +83,51 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
       parent: _animationController,
       curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
     ));
-    
-  
+
     _logoAnimation = CurvedAnimation(
       parent: _animationController,
       curve: const Interval(0.0, 0.4, curve: Curves.elasticOut),
     );
-    
+
     _welcomeTextAnimation = CurvedAnimation(
       parent: _animationController,
       curve: const Interval(0.1, 0.5, curve: Curves.easeOut),
     );
-    
+
     _formFieldsAnimation = CurvedAnimation(
       parent: _animationController,
       curve: const Interval(0.2, 0.6, curve: Curves.easeOut),
     );
-    
+
     _passwordRequirementsAnimation = CurvedAnimation(
       parent: _animationController,
       curve: const Interval(0.4, 0.7, curve: Curves.easeOut),
     );
-    
+
     _termsAnimation = CurvedAnimation(
       parent: _animationController,
       curve: const Interval(0.5, 0.8, curve: Curves.easeOut),
     );
-    
+
     _buttonAnimation = CurvedAnimation(
       parent: _animationController,
       curve: const Interval(0.6, 0.9, curve: Curves.easeOut),
     );
-    
+
     _loginLinkAnimation = CurvedAnimation(
       parent: _animationController,
       curve: const Interval(0.7, 1.0, curve: Curves.easeOut),
     );
-    
-    
+
     _animationController.forward();
-  
+
     _fullNameFocus.addListener(_onFocusChange);
     _emailFocus.addListener(_onFocusChange);
     _phoneFocus.addListener(_onFocusChange);
     _passwordFocus.addListener(_onFocusChange);
     _confirmPasswordFocus.addListener(_onFocusChange);
   }
-  
+
   void _onFocusChange() {
     setState(() {
       // Just trigger a rebuild when focus changes
@@ -146,18 +139,14 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
     final confirmPassword = _confirmPasswordController.text;
 
     setState(() {
-      
       _hasMinLength = password.length >= 8;
 
-      
       _hasUppercase = password.contains(RegExp(r'[A-Z]'));
 
-     
       _hasNumber = password.contains(RegExp(r'[0-9]'));
 
       _hasSpecialChar = password.contains(RegExp(r'[_!@#$%^&*(),.?":{}|<->]'));
 
-    
       _passwordsMatch = password == confirmPassword && password.isNotEmpty;
     });
   }
@@ -173,70 +162,6 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
         _fullNameController.text.isNotEmpty &&
         _emailController.text.isNotEmpty &&
         _phoneController.text.isNotEmpty;
-  }
-  
-  void _showErrorAnimation() {
-    setState(() {
-      _showErrorShake = true;
-    });
-    
-   
-    Future.delayed(const Duration(milliseconds: 50), () {
-      if (mounted) {
-        setState(() {
-          _errorShakeAnimation = -10;
-        });
-      }
-    });
-    
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (mounted) {
-        setState(() {
-          _errorShakeAnimation = 10;
-        });
-      }
-    });
-    
-    Future.delayed(const Duration(milliseconds: 150), () {
-      if (mounted) {
-        setState(() {
-          _errorShakeAnimation = -8;
-        });
-      }
-    });
-    
-    Future.delayed(const Duration(milliseconds: 200), () {
-      if (mounted) {
-        setState(() {
-          _errorShakeAnimation = 8;
-        });
-      }
-    });
-    
-    Future.delayed(const Duration(milliseconds: 250), () {
-      if (mounted) {
-        setState(() {
-          _errorShakeAnimation = -5;
-        });
-      }
-    });
-    
-    Future.delayed(const Duration(milliseconds: 300), () {
-      if (mounted) {
-        setState(() {
-          _errorShakeAnimation = 5;
-        });
-      }
-    });
-    
-    Future.delayed(const Duration(milliseconds: 350), () {
-      if (mounted) {
-        setState(() {
-          _errorShakeAnimation = 0;
-          _showErrorShake = false;
-        });
-      }
-    });
   }
 
   @override
@@ -257,8 +182,8 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
-    
+    Provider.of<AuthProvider>(context);
+
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -272,7 +197,6 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              
               FadeTransition(
                 opacity: _fadeAnimation,
                 child: Padding(
@@ -306,7 +230,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                   animation: _animationController,
                   builder: (context, child) {
                     return Transform.translate(
-                      offset: Offset(0, 100 * (1 - _slideAnimation.value)),
+                      offset: Offset(0, 100 * (1 - _slideAnimation.value.dy)),
                       child: Transform.scale(
                         scale: _scaleAnimation.value,
                         child: Opacity(
@@ -351,7 +275,8 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                             return Opacity(
                               opacity: _welcomeTextAnimation.value,
                               child: Transform.translate(
-                                offset: Offset(0, 20 * (1 - _welcomeTextAnimation.value)),
+                                offset: Offset(
+                                    0, 20 * (1 - _welcomeTextAnimation.value)),
                                 child: child,
                               ),
                             );
@@ -382,15 +307,19 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                           ),
                         ),
                         const SizedBox(height: 30),
-                       
+
                         ..._buildAnimatedFormFields(),
                         const SizedBox(height: 20),
-                      
+
                         AnimatedBuilder(
                           animation: _passwordRequirementsAnimation,
                           builder: (context, child) {
                             return Transform.translate(
-                              offset: Offset(300 * (1 - _passwordRequirementsAnimation.value), 0),
+                              offset: Offset(
+                                  300 *
+                                      (1 -
+                                          _passwordRequirementsAnimation.value),
+                                  0),
                               child: Opacity(
                                 opacity: _passwordRequirementsAnimation.value,
                                 child: child,
@@ -447,14 +376,15 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                           ),
                         ),
                         const SizedBox(height: 20),
-         
+
                         AnimatedBuilder(
                           animation: _termsAnimation,
                           builder: (context, child) {
                             return Opacity(
                               opacity: _termsAnimation.value,
                               child: Transform.translate(
-                                offset: Offset(0, 20 * (1 - _termsAnimation.value)),
+                                offset:
+                                    Offset(0, 20 * (1 - _termsAnimation.value)),
                                 child: child,
                               ),
                             );
@@ -492,7 +422,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                           ),
                         ),
                         const SizedBox(height: 30),
-                        
+
                         AnimatedBuilder(
                           animation: _buttonAnimation,
                           builder: (context, child) {
@@ -513,11 +443,11 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                                       setState(() {
                                         _isLoading = true;
                                       });
-                                      
-                                     
-                                      await Future.delayed(const Duration(milliseconds: 1500));
+
+                                      await Future.delayed(
+                                          const Duration(milliseconds: 1500));
                                       bool success = true;
-                                      
+
                                       setState(() {
                                         _isLoading = false;
                                       });
@@ -526,14 +456,6 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
 
                                       if (success) {
                                         _showSuccessDialog();
-                                      } else {
-                                        _showErrorAnimation();
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(
-                                            content: Text("Đăng ký thất bại"),
-                                            backgroundColor: Colors.red,
-                                          ),
-                                        );
                                       }
                                     }
                                   : null,
@@ -546,22 +468,22 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                                 elevation: 2,
                               ),
                               child: _isLoading
-                                ? const SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 2,
+                                  ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : const Text(
+                                      'CREATE ACCOUNT',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 1,
+                                      ),
                                     ),
-                                  )
-                                : const Text(
-                                    'CREATE ACCOUNT',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      letterSpacing: 1,
-                                    ),
-                                  ),
                             ),
                           ),
                         ),
@@ -573,7 +495,8 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                             return Opacity(
                               opacity: _loginLinkAnimation.value,
                               child: Transform.translate(
-                                offset: Offset(0, 20 * (1 - _loginLinkAnimation.value)),
+                                offset: Offset(
+                                    0, 20 * (1 - _loginLinkAnimation.value)),
                                 child: child,
                               ),
                             );
@@ -589,19 +512,26 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                                 onTap: () async {
                                   // Animate out before navigation
                                   await _animationController.reverse();
-                                  
+
                                   if (!context.mounted) return;
-                                  
+
                                   Navigator.push(
-                                    context, 
+                                    context,
                                     PageRouteBuilder(
-                                      pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
-                                      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                      pageBuilder: (context, animation,
+                                              secondaryAnimation) =>
+                                          const LoginScreen(),
+                                      transitionsBuilder: (context, animation,
+                                          secondaryAnimation, child) {
                                         var begin = const Offset(1.0, 0.0);
                                         var end = Offset.zero;
                                         var curve = Curves.easeInOut;
-                                        var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                                        return SlideTransition(position: animation.drive(tween), child: child);
+                                        var tween = Tween(
+                                                begin: begin, end: end)
+                                            .chain(CurveTween(curve: curve));
+                                        return SlideTransition(
+                                            position: animation.drive(tween),
+                                            child: child);
                                       },
                                     ),
                                   );
@@ -640,7 +570,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
       ),
     );
   }
-  
+
   // Helper method to build animated form fields with staggered animation
   List<Widget> _buildAnimatedFormFields() {
     final formFields = [
@@ -701,10 +631,10 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
         delay: 0.4,
       ),
     ];
-    
+
     return formFields;
   }
-  
+
   // Helper method to build animated text field
   Widget _buildAnimatedTextField({
     required TextEditingController controller,
@@ -729,7 +659,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
             (_formFieldsAnimation.value - delay) / (1.0 - delay),
           ),
         );
-        
+
         return Transform.translate(
           offset: Offset(300 * (1 - staggeredValue), 0),
           child: Opacity(
@@ -771,7 +701,8 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                 ? IconButton(
                     icon: AnimatedSwitcher(
                       duration: const Duration(milliseconds: 300),
-                      transitionBuilder: (Widget child, Animation<double> animation) {
+                      transitionBuilder:
+                          (Widget child, Animation<double> animation) {
                         return ScaleTransition(scale: animation, child: child);
                       },
                       child: Icon(
@@ -815,7 +746,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
       ),
     );
   }
-  
+
   // Helper method to build animated requirement item
   Widget _buildAnimatedRequirement(String text, bool isMet, double delay) {
     return TweenAnimationBuilder<double>(
@@ -831,7 +762,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
             (value - delay) / (1.0 - delay),
           ),
         );
-        
+
         return Opacity(
           opacity: staggeredValue,
           child: Transform.translate(
@@ -842,13 +773,16 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                 children: [
                   AnimatedSwitcher(
                     duration: const Duration(milliseconds: 300),
-                    transitionBuilder: (Widget child, Animation<double> animation) {
+                    transitionBuilder:
+                        (Widget child, Animation<double> animation) {
                       return ScaleTransition(scale: animation, child: child);
                     },
                     child: Icon(
                       isMet ? Icons.check_circle : Icons.circle_outlined,
                       key: ValueKey<bool>(isMet),
-                      color: isMet ? const Color(0xFF43A047) : Colors.grey.shade400,
+                      color: isMet
+                          ? const Color(0xFF43A047)
+                          : Colors.grey.shade400,
                       size: 16,
                     ),
                   ),
@@ -856,7 +790,8 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                   Text(
                     text,
                     style: TextStyle(
-                      color: isMet ? Colors.grey.shade700 : Colors.grey.shade500,
+                      color:
+                          isMet ? Colors.grey.shade700 : Colors.grey.shade500,
                       fontSize: 14,
                       fontWeight: isMet ? FontWeight.w500 : FontWeight.normal,
                     ),
@@ -875,179 +810,171 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return AnimatedBuilder(
-          animation: Listenable.merge([
-            TweenAnimationBuilder<double>(
-              tween: Tween<double>(begin: 0.0, end: 1.0),
-              duration: const Duration(milliseconds: 500),
-              builder: (context, value, _) => Container(), // Dummy container
-            ),
-          ]),
-          builder: (context, _) {
-            return TweenAnimationBuilder<double>(
-              tween: Tween<double>(begin: 0.0, end: 1.0),
-              duration: const Duration(milliseconds: 400),
-              curve: Curves.easeOut,
-              builder: (context, value, child) {
-                return Transform.scale(
-                  scale: value,
-                  child: Opacity(
-                    opacity: value,
-                    child: child,
-                  ),
-                );
-              },
-              child: AlertDialog(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                title: const Text(
-                  'Account Created',
-                  style: TextStyle(
-                    color: Color(0xFF1A3A6B),
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TweenAnimationBuilder<double>(
-                      tween: Tween<double>(begin: 0.0, end: 1.0),
-                      duration: const Duration(milliseconds: 800),
-                      curve: Curves.elasticOut,
-                      builder: (context, value, child) {
-                        return Transform.scale(
-                          scale: value,
-                          child: child,
-                        );
-                      },
-                      child: Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE8F5E9),
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.green.withOpacity(0.3),
-                              blurRadius: 10,
-                              spreadRadius: 2,
-                            ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.check_circle,
-                          color: Color(0xFF43A047),
-                          size: 50,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    TweenAnimationBuilder<double>(
-                      tween: Tween<double>(begin: 0.0, end: 1.0),
-                      duration: const Duration(milliseconds: 500),
-                      curve: Curves.easeOut,
-                      builder: (context, value, child) {
-                        return Opacity(
-                          opacity: value,
-                          child: Transform.translate(
-                            offset: Offset(0, 20 * (1 - value)),
-                            child: child,
-                          ),
-                        );
-                      },
-                      child: const Text(
-                        'Your account has been created successfully!',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 16),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    TweenAnimationBuilder<double>(
-                      tween: Tween<double>(begin: 0.0, end: 1.0),
-                      duration: const Duration(milliseconds: 500),
-                      curve: Curves.easeOut,
-                      delay: const Duration(milliseconds: 200),
-                      builder: (context, value, child) {
-                        return Opacity(
-                          opacity: value,
-                          child: Transform.translate(
-                            offset: Offset(0, 20 * (1 - value)),
-                            child: child,
-                          ),
-                        );
-                      },
-                      child: Text(
-                        'You can now login with your credentials.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
-                      ),
-                    ),
-                  ],
-                ),
-                actions: [
-                  TweenAnimationBuilder<double>(
-                    tween: Tween<double>(begin: 0.0, end: 1.0),
-                    duration: const Duration(milliseconds: 500),
-                    curve: Curves.easeOut,
-                    delay: const Duration(milliseconds: 400),
-                    builder: (context, value, child) {
-                      return Opacity(
-                        opacity: value,
-                        child: Transform.translate(
-                          offset: Offset(0, 20 * (1 - value)),
-                          child: child,
-                        ),
-                      );
-                    },
-                    child: TextButton(
-                      onPressed: () async {
-                        Navigator.of(context).pop();
-                        
-                        // Animate out before navigation
-                        await _animationController.reverse();
-                        
-                        if (!context.mounted) return;
-                        
-                        Navigator.pushReplacement(
-                          context, 
-                          PageRouteBuilder(
-                            pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
-                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                              var begin = const Offset(1.0, 0.0);
-                              var end = Offset.zero;
-                              var curve = Curves.easeInOut;
-                              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                              return SlideTransition(position: animation.drive(tween), child: child);
-                            },
-                          ),
-                        );
-                      },
-                      style: ButtonStyle(
-                        backgroundColor: WidgetStateProperty.all(const Color(0xFF1A3A6B)),
-                        foregroundColor: WidgetStateProperty.all(Colors.white),
-                        padding: WidgetStateProperty.all(
-                          const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
-                        ),
-                        shape: WidgetStateProperty.all(
-                          RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      ),
-                      child: const Text(
-                        'OK',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+        return TweenAnimationBuilder<double>(
+          tween: Tween<double>(begin: 0.0, end: 1.0),
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeOut,
+          builder: (context, value, child) {
+            return Transform.scale(
+              scale: value,
+              child: Opacity(
+                opacity: value,
+                child: child,
               ),
             );
           },
+          child: AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: const Text(
+              'Account Created',
+              style: TextStyle(
+                color: Color(0xFF1A3A6B),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TweenAnimationBuilder<double>(
+                  tween: Tween<double>(begin: 0.0, end: 1.0),
+                  duration: const Duration(milliseconds: 800),
+                  curve: Curves.elasticOut,
+                  builder: (context, value, child) {
+                    return Transform.scale(
+                      scale: value,
+                      child: child,
+                    );
+                  },
+                  child: Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE8F5E9),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.green.withOpacity(0.3),
+                          blurRadius: 10,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.check_circle,
+                      color: Color(0xFF43A047),
+                      size: 50,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                TweenAnimationBuilder<double>(
+                  tween: Tween<double>(begin: 0.0, end: 1.0),
+                  duration: const Duration(milliseconds: 500),
+                  curve: Curves.easeOut,
+                  builder: (context, value, child) {
+                    return Opacity(
+                      opacity: value,
+                      child: Transform.translate(
+                        offset: Offset(0, 20 * (1 - value)),
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: const Text(
+                    'Your account has been created successfully!',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                TweenAnimationBuilder<double>(
+                  tween: Tween<double>(begin: 0.0, end: 1.0),
+                  duration: const Duration(milliseconds: 500),
+                  curve: Curves.easeOut,
+                  builder: (context, value, child) {
+                    return Opacity(
+                      opacity: value,
+                      child: Transform.translate(
+                        offset: Offset(0, 20 * (1 - value)),
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: Text(
+                    'You can now login with your credentials.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TweenAnimationBuilder<double>(
+                tween: Tween<double>(begin: 0.0, end: 1.0),
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.easeOut,
+                builder: (context, value, child) {
+                  return Opacity(
+                    opacity: value,
+                    child: Transform.translate(
+                      offset: Offset(0, 20 * (1 - value)),
+                      child: child,
+                    ),
+                  );
+                },
+                child: TextButton(
+                  onPressed: () async {
+                    Navigator.of(context).pop();
+
+                    // Animate out before navigation
+                    await _animationController.reverse();
+
+                    if (!context.mounted) return;
+
+                    Navigator.pushReplacement(
+                      context,
+                      PageRouteBuilder(
+                        pageBuilder: (context, animation, secondaryAnimation) =>
+                            const LoginScreen(),
+                        transitionsBuilder:
+                            (context, animation, secondaryAnimation, child) {
+                          var begin = const Offset(1.0, 0.0);
+                          var end = Offset.zero;
+                          var curve = Curves.easeInOut;
+                          var tween = Tween(begin: begin, end: end)
+                              .chain(CurveTween(curve: curve));
+                          return SlideTransition(
+                              position: animation.drive(tween), child: child);
+                        },
+                      ),
+                    );
+                  },
+                  style: ButtonStyle(
+                    backgroundColor:
+                        WidgetStateProperty.all(const Color(0xFF1A3A6B)),
+                    foregroundColor: WidgetStateProperty.all(Colors.white),
+                    padding: WidgetStateProperty.all(
+                      const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
+                    ),
+                    shape: WidgetStateProperty.all(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                  child: const Text(
+                    'OK',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         );
       },
     );

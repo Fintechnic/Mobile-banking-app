@@ -40,53 +40,50 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen>
   late Animation<double> _textAnimation;
   late Animation<double> _buttonsAnimation;
   late Animation<double> _detailsAnimation;
-  
 
   int? _tappedButtonIndex;
 
   @override
   void initState() {
     super.initState();
-    
 
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
     );
-    
 
     _successIconAnimation = CurvedAnimation(
       parent: _animationController,
       curve: const Interval(0.0, 0.4, curve: Curves.elasticOut),
     );
-    
+
     _nameAnimation = CurvedAnimation(
       parent: _animationController,
       curve: const Interval(0.3, 0.5, curve: Curves.easeOut),
     );
-    
+
     _amountAnimation = CurvedAnimation(
       parent: _animationController,
       curve: const Interval(0.4, 0.6, curve: Curves.easeOut),
     );
-    
+
     _textAnimation = CurvedAnimation(
       parent: _animationController,
       curve: const Interval(0.5, 0.7, curve: Curves.easeOut),
     );
-    
+
     _buttonsAnimation = CurvedAnimation(
       parent: _animationController,
       curve: const Interval(0.6, 0.8, curve: Curves.easeOut),
     );
-    
+
     _detailsAnimation = CurvedAnimation(
       parent: _animationController,
       curve: const Interval(0.7, 0.9, curve: Curves.easeOut),
     );
-        _animationController.forward();
+    _animationController.forward();
   }
-  
+
   @override
   void dispose() {
     _animationController.dispose();
@@ -99,13 +96,12 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen>
     required Color color,
     required int index,
   }) {
-
     final double delay = index * 0.1;
     final Animation<double> buttonAnimation = CurvedAnimation(
       parent: _buttonsAnimation,
       curve: Interval(delay, 1.0, curve: Curves.easeOut),
     );
-    
+
     return AnimatedBuilder(
       animation: buttonAnimation,
       builder: (context, child) {
@@ -118,7 +114,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen>
                 setState(() {
                   _tappedButtonIndex = index;
                 });
- 
+
                 HapticFeedback.lightImpact();
               },
               onTapUp: (_) {
@@ -129,7 +125,6 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen>
                     });
                   }
                 });
-                
 
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -209,7 +204,6 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen>
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF1A3A6B)),
           onPressed: () {
-
             _animationController.reverse().then((_) {
               Navigator.pop(context);
             });
@@ -245,7 +239,6 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen>
                       child: Column(
                         children: [
                           const SizedBox(height: 20),
-                          
                           Transform.scale(
                             scale: _successIconAnimation.value,
                             child: Transform.rotate(
@@ -258,9 +251,11 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen>
                                   shape: BoxShape.circle,
                                   boxShadow: [
                                     BoxShadow(
-                                      color: const Color(0xFF6AC259).withOpacity(0.3),
+                                      color: const Color(0xFF6AC259)
+                                          .withOpacity(0.3),
                                       blurRadius: 15,
-                                      spreadRadius: 5 * _successIconAnimation.value,
+                                      spreadRadius:
+                                          5 * _successIconAnimation.value,
                                     ),
                                   ],
                                 ),
@@ -276,7 +271,8 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen>
                           Opacity(
                             opacity: _nameAnimation.value,
                             child: Transform.translate(
-                              offset: Offset(0, 20 * (1 - _nameAnimation.value)),
+                              offset:
+                                  Offset(0, 20 * (1 - _nameAnimation.value)),
                               child: const Text(
                                 'Nguyen Van A',
                                 style: TextStyle(
@@ -287,11 +283,11 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen>
                             ),
                           ),
                           const SizedBox(height: 16),
-        
                           Opacity(
                             opacity: _amountAnimation.value,
                             child: Transform.translate(
-                              offset: Offset(0, 20 * (1 - _amountAnimation.value)),
+                              offset:
+                                  Offset(0, 20 * (1 - _amountAnimation.value)),
                               child: TweenAnimationBuilder<double>(
                                 tween: Tween<double>(begin: 0, end: 100),
                                 duration: const Duration(milliseconds: 1000),
@@ -309,11 +305,11 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen>
                             ),
                           ),
                           const SizedBox(height: 8),
-                          
                           Opacity(
                             opacity: _textAnimation.value,
                             child: Transform.translate(
-                              offset: Offset(0, 10 * (1 - _textAnimation.value)),
+                              offset:
+                                  Offset(0, 10 * (1 - _textAnimation.value)),
                               child: Text(
                                 'No commission',
                                 style: TextStyle(
@@ -324,11 +320,11 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen>
                             ),
                           ),
                           const SizedBox(height: 8),
-                          
                           Opacity(
                             opacity: _textAnimation.value,
                             child: Transform.translate(
-                              offset: Offset(0, 10 * (1 - _textAnimation.value)),
+                              offset:
+                                  Offset(0, 10 * (1 - _textAnimation.value)),
                               child: Text(
                                 'Completed, 12 September 16:00',
                                 style: TextStyle(
@@ -339,7 +335,6 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen>
                             ),
                           ),
                           const SizedBox(height: 32),
-                          
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
@@ -364,20 +359,20 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen>
                             ],
                           ),
                           const SizedBox(height: 32),
-                          
                           Opacity(
                             opacity: _detailsAnimation.value,
                             child: SizedBox(
-                              width: MediaQuery.of(context).size.width * _detailsAnimation.value,
+                              width: MediaQuery.of(context).size.width *
+                                  _detailsAnimation.value,
                               child: const Divider(),
                             ),
                           ),
                           const SizedBox(height: 16),
-                          
                           Opacity(
                             opacity: _detailsAnimation.value,
                             child: Transform.translate(
-                              offset: Offset(0, 10 * (1 - _detailsAnimation.value)),
+                              offset:
+                                  Offset(0, 10 * (1 - _detailsAnimation.value)),
                               child: InkWell(
                                 onTap: () {
                                   HapticFeedback.selectionClick();
@@ -387,12 +382,16 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen>
                                 },
                                 borderRadius: BorderRadius.circular(10),
                                 child: Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 8.0, horizontal: 4.0),
                                   child: Row(
                                     children: [
                                       TweenAnimationBuilder<double>(
-                                        tween: Tween<double>(begin: 1.0, end: _isExpanded ? 1.2 : 1.0),
-                                        duration: const Duration(milliseconds: 300),
+                                        tween: Tween<double>(
+                                            begin: 1.0,
+                                            end: _isExpanded ? 1.2 : 1.0),
+                                        duration:
+                                            const Duration(milliseconds: 300),
                                         builder: (context, scale, child) {
                                           return Transform.scale(
                                             scale: scale,
@@ -414,8 +413,10 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen>
                                       ),
                                       const Spacer(),
                                       TweenAnimationBuilder<double>(
-                                        tween: Tween<double>(begin: 0, end: _isExpanded ? 1 : 0),
-                                        duration: const Duration(milliseconds: 300),
+                                        tween: Tween<double>(
+                                            begin: 0, end: _isExpanded ? 1 : 0),
+                                        duration:
+                                            const Duration(milliseconds: 300),
                                         builder: (context, value, child) {
                                           return Transform.rotate(
                                             angle: value * math.pi,
@@ -432,7 +433,6 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen>
                               ),
                             ),
                           ),
-                    
                           AnimatedSize(
                             duration: const Duration(milliseconds: 300),
                             curve: Curves.easeInOut,
@@ -442,22 +442,26 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen>
                                   ? Column(
                                       children: [
                                         const SizedBox(height: 24),
-                                        
                                         TweenAnimationBuilder<double>(
-                                          tween: Tween<double>(begin: 0, end: 1),
-                                          duration: const Duration(milliseconds: 300),
+                                          tween:
+                                              Tween<double>(begin: 0, end: 1),
+                                          duration:
+                                              const Duration(milliseconds: 300),
                                           builder: (context, value, child) {
                                             return Opacity(
                                               opacity: value,
                                               child: Transform.translate(
-                                                offset: Offset(20 * (1 - value), 0),
+                                                offset:
+                                                    Offset(20 * (1 - value), 0),
                                                 child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
                                                   children: [
                                                     Text(
                                                       'Withdrawal account',
                                                       style: TextStyle(
-                                                        color: Colors.grey.shade600,
+                                                        color: Colors
+                                                            .grey.shade600,
                                                         fontSize: 14,
                                                       ),
                                                     ),
@@ -468,23 +472,36 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen>
                                                           'Salary card',
                                                           style: TextStyle(
                                                             fontSize: 16,
-                                                            fontWeight: FontWeight.w500,
+                                                            fontWeight:
+                                                                FontWeight.w500,
                                                           ),
                                                         ),
                                                         const Spacer(),
                                                         Container(
-                                                          padding: const EdgeInsets.symmetric(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .symmetric(
                                                             horizontal: 8,
                                                             vertical: 2,
                                                           ),
-                                                          decoration: BoxDecoration(
-                                                            color: Colors.grey.shade200,
-                                                            borderRadius: BorderRadius.circular(4),
+                                                          decoration:
+                                                              BoxDecoration(
+                                                            color: Colors
+                                                                .grey.shade200,
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        4),
                                                             boxShadow: [
                                                               BoxShadow(
-                                                                color: Colors.black.withOpacity(0.05),
+                                                                color: Colors
+                                                                    .black
+                                                                    .withOpacity(
+                                                                        0.05),
                                                                 blurRadius: 5,
-                                                                offset: const Offset(0, 2),
+                                                                offset:
+                                                                    const Offset(
+                                                                        0, 2),
                                                               ),
                                                             ],
                                                           ),
@@ -492,17 +509,25 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen>
                                                             children: [
                                                               const Text(
                                                                 'VISA',
-                                                                style: TextStyle(
-                                                                  color: Color(0xFF5A8ED0),
-                                                                  fontWeight: FontWeight.bold,
+                                                                style:
+                                                                    TextStyle(
+                                                                  color: Color(
+                                                                      0xFF5A8ED0),
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
                                                                   fontSize: 12,
                                                                 ),
                                                               ),
-                                                              const SizedBox(width: 4),
+                                                              const SizedBox(
+                                                                  width: 4),
                                                               Text(
                                                                 '· 3040',
-                                                                style: TextStyle(
-                                                                  color: Colors.grey.shade700,
+                                                                style:
+                                                                    TextStyle(
+                                                                  color: Colors
+                                                                      .grey
+                                                                      .shade700,
                                                                   fontSize: 12,
                                                                 ),
                                                               ),
@@ -518,23 +543,27 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen>
                                           },
                                         ),
                                         const SizedBox(height: 16),
-                         
                                         TweenAnimationBuilder<double>(
-                                          tween: Tween<double>(begin: 0, end: 1),
-                                          duration: const Duration(milliseconds: 300),
+                                          tween:
+                                              Tween<double>(begin: 0, end: 1),
+                                          duration:
+                                              const Duration(milliseconds: 300),
                                           curve: const Interval(0.1, 1.0),
                                           builder: (context, value, child) {
                                             return Opacity(
                                               opacity: value,
                                               child: Transform.translate(
-                                                offset: Offset(20 * (1 - value), 0),
+                                                offset:
+                                                    Offset(20 * (1 - value), 0),
                                                 child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
                                                   children: [
                                                     Text(
                                                       'Name of the recipient',
                                                       style: TextStyle(
-                                                        color: Colors.grey.shade600,
+                                                        color: Colors
+                                                            .grey.shade600,
                                                         fontSize: 14,
                                                       ),
                                                     ),
@@ -543,7 +572,8 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen>
                                                       'Nguyen Van A',
                                                       style: TextStyle(
                                                         fontSize: 16,
-                                                        fontWeight: FontWeight.w500,
+                                                        fontWeight:
+                                                            FontWeight.w500,
                                                       ),
                                                     ),
                                                   ],
@@ -562,7 +592,6 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen>
                     ),
                   ),
                 ),
-      
                 Align(
                   alignment: Alignment.bottomCenter,
                   child: Padding(
@@ -583,13 +612,12 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen>
                                 scale: pulseValue,
                                 child: ElevatedButton(
                                   onPressed: () {
-                              
                                     HapticFeedback.mediumImpact();
-                                    
-                      
+
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
-                                        content: Text('Payment shared successfully!'),
+                                        content: Text(
+                                            'Payment shared successfully!'),
                                         duration: Duration(seconds: 2),
                                         behavior: SnackBarBehavior.floating,
                                       ),
@@ -606,7 +634,8 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen>
                                       borderRadius: BorderRadius.circular(30),
                                     ),
                                     elevation: 4,
-                                    shadowColor: const Color(0xFF1A3A6B).withOpacity(0.3),
+                                    shadowColor: const Color(0xFF1A3A6B)
+                                        .withOpacity(0.3),
                                   ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,

@@ -67,7 +67,7 @@ class BankingDataProvider extends ChangeNotifier {
     try {
       // Simulate API call with delay
       await Future.delayed(const Duration(seconds: 2));
-      
+
       // In a real app, you would fetch data from your API
       // final response = await http.get(Uri.parse('https://your-api.com/banking-data'));
       // if (response.statusCode == 200) {
@@ -77,13 +77,13 @@ class BankingDataProvider extends ChangeNotifier {
       // } else {
       //   throw Exception('Failed to load data');
       // }
-      
+
       // Mock data for demonstration
       _balance = '1.000.000 VND';
       _paylaterAmount = '500.000 VND';
       _initializeQuickAccessItems();
       _initializePromos();
-      
+
       _isLoading = false;
       notifyListeners();
     } catch (e) {
@@ -99,7 +99,8 @@ class BankingDataProvider extends ChangeNotifier {
       QuickAccessItem(type: "chat", label: "Top-up", isMultiLine: false),
       QuickAccessItem(type: "transfer", label: "Transfer", isMultiLine: false),
       QuickAccessItem(type: "ticket", label: "Ticket", isMultiLine: false),
-      QuickAccessItem(type: "piggy", label: "Saving\nWallet", isMultiLine: true),
+      QuickAccessItem(
+          type: "piggy", label: "Saving\nWallet", isMultiLine: true),
       QuickAccessItem(type: "data", label: "Datapack", isMultiLine: false),
       QuickAccessItem(type: "wallet", label: "Paylater", isMultiLine: false),
       QuickAccessItem(type: "bill", label: "Bill\nPayment", isMultiLine: true),
@@ -111,7 +112,8 @@ class BankingDataProvider extends ChangeNotifier {
     _promos = [
       PromoItem(
         title: 'Giảm 50% phí chuyển tiền',
-        description: 'Áp dụng cho tất cả các giao dịch chuyển tiền đến hết 30/04/2025',
+        description:
+            'Áp dụng cho tất cả các giao dịch chuyển tiền đến hết 30/04/2025',
         expiry: '30/04/2025',
         backgroundColor: Colors.blue.shade50,
       ),
@@ -132,7 +134,8 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   final ScrollController _scrollController = ScrollController();
@@ -140,31 +143,32 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   @override
   void initState() {
     super.initState();
-    
+
     // Setup animations
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
     );
-    
+
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _animationController,
         curve: Curves.easeIn,
       ),
     );
-    
+
     _animationController.forward();
-    
+
     // Load data
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final bankingDataProvider = Provider.of<BankingDataProvider>(context, listen: false);
-      
+      final bankingDataProvider =
+          Provider.of<BankingDataProvider>(context, listen: false);
+
       if (authProvider.userData == null) {
         authProvider.getUserData();
       }
-      
+
       bankingDataProvider.fetchData();
     });
   }
@@ -178,8 +182,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   Future<void> _refreshData() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final bankingDataProvider = Provider.of<BankingDataProvider>(context, listen: false);
-    
+    final bankingDataProvider =
+        Provider.of<BankingDataProvider>(context, listen: false);
+
     await Future.wait([
       authProvider.getUserData(),
       bankingDataProvider.fetchData(),
@@ -207,17 +212,17 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               _buildHeader(authProvider, bankingDataProvider),
               Expanded(
                 child: bankingDataProvider.hasError
-                ? _buildErrorView(bankingDataProvider.errorMessage)
-                : SingleChildScrollView(
-                    controller: _scrollController,
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    child: Column(
-                      children: [
-                        _buildQuickAccess(bankingDataProvider),
-                        _buildInfoPromo(bankingDataProvider),
-                      ],
-                    ),
-                  ),
+                    ? _buildErrorView(bankingDataProvider.errorMessage)
+                    : SingleChildScrollView(
+                        controller: _scrollController,
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        child: Column(
+                          children: [
+                            _buildQuickAccess(bankingDataProvider),
+                            _buildInfoPromo(bankingDataProvider),
+                          ],
+                        ),
+                      ),
               ),
             ],
           ),
@@ -255,7 +260,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           const SizedBox(height: 16),
           ElevatedButton.icon(
             onPressed: () {
-              final bankingDataProvider = Provider.of<BankingDataProvider>(context, listen: false);
+              final bankingDataProvider =
+                  Provider.of<BankingDataProvider>(context, listen: false);
               bankingDataProvider.fetchData();
             },
             icon: const Icon(Icons.refresh),
@@ -266,10 +272,11 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildHeader(AuthProvider authProvider, BankingDataProvider bankingDataProvider) {
+  Widget _buildHeader(
+      AuthProvider authProvider, BankingDataProvider bankingDataProvider) {
     // Get username from AuthProvider
     final username = authProvider.userData?['username'] ?? 'Mr.A';
-    
+
     return Container(
       padding: const EdgeInsets.only(top: 40, left: 20, right: 20, bottom: 20),
       decoration: BoxDecoration(
@@ -308,7 +315,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                           context: context,
                           builder: (context) => AlertDialog(
                             title: const Text('Đăng xuất'),
-                            content: const Text('Bạn có chắc chắn muốn đăng xuất?'),
+                            content:
+                                const Text('Bạn có chắc chắn muốn đăng xuất?'),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(context),
@@ -319,9 +327,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                   Navigator.pop(context);
                                   authProvider.logout();
                                   Navigator.pushReplacement(
-                                    context, 
-                                    MaterialPageRoute(builder: (_) => const LoginScreen())
-                                  );
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (_) => const LoginScreen()));
                                 },
                                 child: const Text('Đăng xuất'),
                               ),
@@ -654,25 +662,27 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         // First row of quick access items
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: bankingDataProvider.quickAccessItems.sublist(0, 4).map((item) => 
-            _buildQuickAccessItem(
-              _buildCustomIcon(item.type, Icons.help_outline),
-              item.label,
-              item.isMultiLine,
-            )
-          ).toList(),
+          children: bankingDataProvider.quickAccessItems
+              .sublist(0, 4)
+              .map((item) => _buildQuickAccessItem(
+                    _buildCustomIcon(item.type, Icons.help_outline),
+                    item.label,
+                    item.isMultiLine,
+                  ))
+              .toList(),
         ),
         const SizedBox(height: 20),
         // Second row of quick access items
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: bankingDataProvider.quickAccessItems.sublist(4, 8).map((item) => 
-            _buildQuickAccessItem(
-              _buildCustomIcon(item.type, Icons.help_outline),
-              item.label,
-              item.isMultiLine,
-            )
-          ).toList(),
+          children: bankingDataProvider.quickAccessItems
+              .sublist(4, 8)
+              .map((item) => _buildQuickAccessItem(
+                    _buildCustomIcon(item.type, Icons.help_outline),
+                    item.label,
+                    item.isMultiLine,
+                  ))
+              .toList(),
         ),
       ],
     );
@@ -796,7 +806,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               ),
               const SizedBox(height: 5),
               Container(
-                height: isMultiLine ? 32 : 16, // Fixed height based on number of lines
+                height: isMultiLine
+                    ? 32
+                    : 16, // Fixed height based on number of lines
                 alignment: Alignment.center,
                 child: Text(
                   label,
@@ -911,14 +923,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         child: const Text('Không có khuyến mãi hiện tại'),
       );
     }
-    
+
     return Column(
-      children: bankingDataProvider.promos.map((promo) => 
-        Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: _buildPromoCard(promo),
-        )
-      ).toList(),
+      children: bankingDataProvider.promos
+          .map((promo) => Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: _buildPromoCard(promo),
+              ))
+          .toList(),
     );
   }
 
@@ -1037,7 +1049,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               onPressed: () {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Đã áp dụng khuyến mãi: ${promo.title}')),
+                  SnackBar(
+                      content: Text('Đã áp dụng khuyến mãi: ${promo.title}')),
                 );
               },
               style: ElevatedButton.styleFrom(
@@ -1323,12 +1336,12 @@ class CoinStackPainter extends CustomPainter {
       Rect.fromCenter(center: const Offset(12, 8), width: 16, height: 6),
       paint,
     );
-    
+
     canvas.drawOval(
       Rect.fromCenter(center: const Offset(12, 12), width: 16, height: 6),
       paint,
     );
-    
+
     canvas.drawOval(
       Rect.fromCenter(center: const Offset(12, 16), width: 16, height: 6),
       paint,

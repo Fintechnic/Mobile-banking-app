@@ -84,65 +84,66 @@ class UserProfilePage extends StatefulWidget {
   State<UserProfilePage> createState() => _UserProfilePageState();
 }
 
-class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProviderStateMixin {
+class _UserProfilePageState extends State<UserProfilePage>
+    with SingleTickerProviderStateMixin {
   bool _isLoading = true;
   bool _hasError = false;
   String _errorMessage = '';
   User? _user;
   bool _isFollowing = true;
   bool _isEditing = false;
-  
+
   // Controllers for editing
   late TextEditingController _nameController;
   late TextEditingController _emailController;
   late TextEditingController _mobileController;
-  
+
   // Animation controllers
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _slideAnimation;
   late Animation<double> _scaleAnimation;
-  
+
   @override
   void initState() {
     super.initState();
-    
+
     // Initialize animation controller
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
     );
-    
+
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _animationController,
         curve: const Interval(0.0, 0.6, curve: Curves.easeIn),
       ),
     );
-    
+
     _slideAnimation = Tween<double>(begin: 50.0, end: 0.0).animate(
       CurvedAnimation(
         parent: _animationController,
         curve: const Interval(0.2, 0.8, curve: Curves.easeOut),
       ),
     );
-    
+
     _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
       CurvedAnimation(
         parent: _animationController,
         curve: const Interval(0.2, 0.8, curve: Curves.elasticOut),
       ),
     );
-    
+
     // Initialize controllers
     _nameController = TextEditingController();
     _emailController = TextEditingController();
     _mobileController = TextEditingController();
-    
+
     // Load user data
     _loadUserData();
   }
-  
+
   @override
   void dispose() {
     _animationController.dispose();
@@ -151,18 +152,18 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
     _mobileController.dispose();
     super.dispose();
   }
-  
+
   // Load user data with simulated network delay
   Future<void> _loadUserData() async {
     setState(() {
       _isLoading = true;
       _hasError = false;
     });
-    
+
     try {
       // Simulate network delay
       await Future.delayed(const Duration(seconds: 2));
-      
+
       // Simulate fetching user data
       final user = User(
         name: 'Mr. A',
@@ -177,18 +178,18 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
         paidOutLimit: 362000,
         maxPaidOutLimit: 1000000,
       );
-      
+
       // Update controllers
       _nameController.text = user.name;
       _emailController.text = user.email;
       _mobileController.text = user.mobile;
-      
+
       if (mounted) {
         setState(() {
           _user = user;
           _isLoading = false;
         });
-        
+
         // Start animations
         _animationController.forward();
       }
@@ -202,7 +203,7 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
       }
     }
   }
-  
+
   // Toggle follow status
   void _toggleFollow() {
     setState(() {
@@ -213,23 +214,25 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
         );
       }
     });
-    
+
     // Show feedback
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(_isFollowing ? 'You are now following Mr. A' : 'You unfollowed Mr. A'),
+        content: Text(_isFollowing
+            ? 'You are now following Mr. A'
+            : 'You unfollowed Mr. A'),
         duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
-  
+
   // Toggle edit mode
   void _toggleEditMode() {
     setState(() {
       _isEditing = !_isEditing;
-      
+
       // Reset controllers if canceling edit
       if (!_isEditing && _user != null) {
         _nameController.text = _user!.name;
@@ -238,34 +241,34 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
       }
     });
   }
-  
+
   // Save user details
   Future<void> _saveUserDetails() async {
     if (_user == null) return;
-    
+
     // Show loading indicator
     setState(() {
       _isLoading = true;
     });
-    
+
     try {
       // Simulate network delay
       await Future.delayed(const Duration(seconds: 1));
-      
+
       // Update user with new values
       final updatedUser = _user!.copyWith(
         name: _nameController.text,
         email: _emailController.text,
         mobile: _mobileController.text,
       );
-      
+
       if (mounted) {
         setState(() {
           _user = updatedUser;
           _isLoading = false;
           _isEditing = false;
         });
-        
+
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -279,7 +282,7 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
         setState(() {
           _isLoading = false;
         });
-        
+
         // Show error message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -290,7 +293,7 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
       }
     }
   }
-  
+
   // Show permissions dialog
   void _showPermissionsDialog() {
     showDialog(
@@ -325,7 +328,7 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
       ),
     );
   }
-  
+
   // Build permission switch
   Widget _buildPermissionSwitch(String label, bool initialValue) {
     return StatefulBuilder(
@@ -344,7 +347,7 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
       },
     );
   }
-  
+
   // Show search dialog
   void _showSearchDialog() {
     showDialog(
@@ -376,7 +379,7 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
       ),
     );
   }
-  
+
   // Show notifications
   void _showNotifications() {
     showModalBottomSheet(
@@ -424,9 +427,10 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
       ),
     );
   }
-  
+
   // Build notification item
-  Widget _buildNotificationItem(String text, String time, IconData icon, Color color) {
+  Widget _buildNotificationItem(
+      String text, String time, IconData icon, Color color) {
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: color.withOpacity(0.2),
@@ -454,7 +458,7 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
         ),
       );
     }
-    
+
     if (_hasError) {
       return Scaffold(
         body: Center(
@@ -474,7 +478,7 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
         ),
       );
     }
-    
+
     return Scaffold(
       body: Stack(
         children: [
@@ -486,7 +490,7 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
               ),
             ],
           ),
-          
+
           // Loading overlay
           if (_isLoading)
             Container(
@@ -502,7 +506,7 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
 
   Widget _buildHeader() {
     if (_user == null) return const SizedBox.shrink();
-    
+
     return SizedBox(
       height: 300,
       child: Stack(
@@ -524,7 +528,7 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
               ),
             ],
           ),
-          
+
           // App bar
           Positioned(
             top: 0,
@@ -532,7 +536,8 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
             right: 0,
             child: SafeArea(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Row(
                   children: [
                     const Icon(Icons.menu, color: Colors.black54),
@@ -551,7 +556,9 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
                               const SizedBox(width: 8),
                               Icon(Icons.search, color: Colors.grey.shade600),
                               const SizedBox(width: 8),
-                              Text('Search', style: TextStyle(color: Colors.grey.shade600)),
+                              Text('Search',
+                                  style:
+                                      TextStyle(color: Colors.grey.shade600)),
                             ],
                           ),
                         ),
@@ -559,14 +566,15 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
                     ),
                     GestureDetector(
                       onTap: _showNotifications,
-                      child: const Icon(CupertinoIcons.bell, color: Colors.black54),
+                      child: const Icon(CupertinoIcons.bell,
+                          color: Colors.black54),
                     ),
                   ],
                 ),
               ),
             ),
           ),
-          
+
           // White rounded container
           Positioned(
             top: 120,
@@ -583,7 +591,8 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
                       height: 130,
                       decoration: const BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+                        borderRadius:
+                            BorderRadius.vertical(top: Radius.circular(25)),
                       ),
                     ),
                   ),
@@ -591,7 +600,7 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
               },
             ),
           ),
-          
+
           // Profile picture
           Positioned(
             top: 70,
@@ -627,7 +636,8 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
                               _user!.avatarUrl,
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) {
-                                return const Icon(Icons.person, size: 60, color: Colors.black45);
+                                return const Icon(Icons.person,
+                                    size: 60, color: Colors.black45);
                               },
                             ),
                           ),
@@ -639,7 +649,7 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
               },
             ),
           ),
-          
+
           // Name
           Positioned(
             top: 180,
@@ -658,7 +668,8 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
                               controller: _nameController,
                               textAlign: TextAlign.center,
                               decoration: const InputDecoration(
-                                contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
                                 border: OutlineInputBorder(),
                               ),
                             ),
@@ -676,7 +687,7 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
               },
             ),
           ),
-          
+
           // Stats
           Positioned(
             top: 210,
@@ -710,7 +721,7 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
               },
             ),
           ),
-          
+
           // Action buttons
           Positioned(
             top: 250,
@@ -734,20 +745,24 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
                                 size: 16,
                               ),
                               label: Text(_isEditing ? 'Save' : 'Edit Details'),
-                              onPressed: _isEditing ? _saveUserDetails : _toggleEditMode,
+                              onPressed: _isEditing
+                                  ? _saveUserDetails
+                                  : _toggleEditMode,
                               style: ElevatedButton.styleFrom(
                                 foregroundColor: Colors.black54,
                                 backgroundColor: Colors.white,
                                 elevation: 0,
                                 side: BorderSide(color: Colors.grey.shade300),
-                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 8),
                               ),
                             ),
                           ),
                           const SizedBox(width: 10),
                           Expanded(
                             child: ElevatedButton.icon(
-                              icon: const Icon(Icons.security_outlined, size: 16),
+                              icon:
+                                  const Icon(Icons.security_outlined, size: 16),
                               label: const Text('Edit Permission'),
                               onPressed: _showPermissionsDialog,
                               style: ElevatedButton.styleFrom(
@@ -755,7 +770,8 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
                                 backgroundColor: Colors.white,
                                 elevation: 0,
                                 side: BorderSide(color: Colors.grey.shade300),
-                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 8),
                               ),
                             ),
                           ),
@@ -772,7 +788,8 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
     );
   }
 
-  Widget _buildStat(String value, String label, {bool isBlue = false, bool showAnimation = false}) {
+  Widget _buildStat(String value, String label,
+      {bool isBlue = false, bool showAnimation = false}) {
     return Column(
       children: [
         showAnimation
@@ -816,7 +833,7 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
 
   Widget _buildProfileDetails() {
     if (_user == null) return const SizedBox.shrink();
-    
+
     return AnimatedBuilder(
       animation: _animationController,
       builder: (context, child) {
@@ -834,7 +851,6 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
                   controller: _emailController,
                 ),
                 const SizedBox(height: 16),
-                
                 _buildInfoItem(
                   'MOBILE',
                   _user!.mobile,
@@ -842,21 +858,18 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
                   controller: _mobileController,
                 ),
                 const SizedBox(height: 16),
-                
                 _buildActionItem(
                   'Reliability',
                   _user!.reliability.toString(),
                   Icons.check_box,
                   Colors.blue,
                 ),
-                
                 _buildActionItem(
                   'Following',
                   _user!.following.toString(),
                   Icons.people_outline,
                   Colors.blue,
                 ),
-                
                 const SizedBox(height: 16),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -886,7 +899,8 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
                               child: LinearProgressIndicator(
                                 value: value,
                                 backgroundColor: Colors.grey.shade200,
-                                valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
+                                valueColor: const AlwaysStoppedAnimation<Color>(
+                                    Colors.blue),
                                 minHeight: 8,
                               ),
                             );
@@ -934,7 +948,8 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
             ? TextField(
                 controller: controller,
                 decoration: InputDecoration(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -951,7 +966,8 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
     );
   }
 
-  Widget _buildActionItem(String label, String value, IconData icon, Color color) {
+  Widget _buildActionItem(
+      String label, String value, IconData icon, Color color) {
     return Container(
       decoration: BoxDecoration(
         border: Border(
@@ -990,8 +1006,7 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
       ),
     );
   }
-  
-  
+
   String _formatNumber(num number) {
     if (number >= 1000) {
       return '${(number / 1000).toStringAsFixed(1)}K';

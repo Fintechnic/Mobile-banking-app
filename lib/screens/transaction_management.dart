@@ -31,7 +31,7 @@ class TransactionCategory {
   final String value;
   final Color color;
   final double percentage;
-  
+
   TransactionCategory({
     required this.title,
     required this.value,
@@ -45,7 +45,7 @@ class DailyData {
   final String day;
   final double userValue;
   final double transactionValue;
-  
+
   DailyData({
     required this.day,
     required this.userValue,
@@ -57,86 +57,89 @@ class TransactionManagementScreen extends StatefulWidget {
   const TransactionManagementScreen({super.key});
 
   @override
-  State<TransactionManagementScreen> createState() => _TransactionManagementScreenState();
+  State<TransactionManagementScreen> createState() =>
+      _TransactionManagementScreenState();
 }
 
-class _TransactionManagementScreenState extends State<TransactionManagementScreen> with SingleTickerProviderStateMixin {
+class _TransactionManagementScreenState
+    extends State<TransactionManagementScreen>
+    with SingleTickerProviderStateMixin {
   bool _isLoading = true;
   bool _hasError = false;
   String _errorMessage = '';
   int _selectedYear = 2025;
   String _selectedPeriod = 'Week';
   final List<String> _periods = ['Day', 'Week', 'Month', 'Year'];
-  
+
   // Data
   int _totalUsers = 0;
   List<TransactionCategory> _categories = [];
   List<DailyData> _dailyData = [];
-  
+
   // Animation controllers
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
   late Animation<double> _chartAnimation;
-  
+
   @override
   void initState() {
     super.initState();
-    
+
     // Initialize animation controller
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     );
-    
+
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _animationController,
         curve: const Interval(0.0, 0.6, curve: Curves.easeIn),
       ),
     );
-    
+
     _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
       CurvedAnimation(
         parent: _animationController,
         curve: const Interval(0.2, 0.8, curve: Curves.easeOut),
       ),
     );
-    
+
     _chartAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _animationController,
         curve: const Interval(0.4, 1.0, curve: Curves.easeOutBack),
       ),
     );
-    
+
     // Load data
     _loadData();
   }
-  
+
   @override
   void dispose() {
     _animationController.dispose();
     super.dispose();
   }
-  
+
   // Load data with simulated network delay
   Future<void> _loadData() async {
     setState(() {
       _isLoading = true;
       _hasError = false;
     });
-    
+
     try {
       // Simulate network delay
       await Future.delayed(const Duration(seconds: 2));
-      
+
       // Generate random data
       // final random = math.Random();
-      
+
       // Total users
       _totalUsers = 162387;
-      
+
       // Categories
       _categories = [
         TransactionCategory(
@@ -164,7 +167,7 @@ class _TransactionManagementScreenState extends State<TransactionManagementScree
           percentage: 0.45,
         ),
       ];
-      
+
       // Daily data
       _dailyData = [
         DailyData(day: 'Mo', userValue: 10, transactionValue: 8),
@@ -174,12 +177,12 @@ class _TransactionManagementScreenState extends State<TransactionManagementScree
         DailyData(day: 'Fr', userValue: 16, transactionValue: 13),
         DailyData(day: 'Sa', userValue: 19, transactionValue: 10),
       ];
-      
+
       if (mounted) {
         setState(() {
           _isLoading = false;
         });
-        
+
         // Start animations
         _animationController.forward();
       }
@@ -193,30 +196,30 @@ class _TransactionManagementScreenState extends State<TransactionManagementScree
       }
     }
   }
-  
+
   // Change year
   void _changeYear(int delta) {
     setState(() {
       _selectedYear += delta;
       _animationController.reset();
     });
-    
+
     _loadData();
   }
-  
+
   // Change period
   void _changePeriod(int delta) {
     final currentIndex = _periods.indexOf(_selectedPeriod);
     final newIndex = (currentIndex + delta) % _periods.length;
-    
+
     setState(() {
       _selectedPeriod = _periods[newIndex];
       _animationController.reset();
     });
-    
+
     _loadData();
   }
-  
+
   // Show category details
   void _showCategoryDetails(TransactionCategory category) {
     showModalBottomSheet(
@@ -241,7 +244,8 @@ class _TransactionManagementScreenState extends State<TransactionManagementScree
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text('Total Value: ${category.value}'),
-                Text('Percentage: ${(category.percentage * 100).toStringAsFixed(1)}%'),
+                Text(
+                    'Percentage: ${(category.percentage * 100).toStringAsFixed(1)}%'),
               ],
             ),
             const SizedBox(height: 16),
@@ -286,7 +290,7 @@ class _TransactionManagementScreenState extends State<TransactionManagementScree
         ),
       );
     }
-    
+
     if (_hasError) {
       return Scaffold(
         body: SafeArea(
@@ -308,7 +312,7 @@ class _TransactionManagementScreenState extends State<TransactionManagementScree
         ),
       );
     }
-    
+
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -317,7 +321,7 @@ class _TransactionManagementScreenState extends State<TransactionManagementScree
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 16),
-              
+
               // Year selector
               AnimatedBuilder(
                 animation: _animationController,
@@ -330,7 +334,8 @@ class _TransactionManagementScreenState extends State<TransactionManagementScree
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           IconButton(
-                            icon: const Icon(Icons.chevron_left, color: Colors.black54),
+                            icon: const Icon(Icons.chevron_left,
+                                color: Colors.black54),
                             onPressed: () => _changeYear(-1),
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(),
@@ -346,7 +351,8 @@ class _TransactionManagementScreenState extends State<TransactionManagementScree
                           ),
                           const SizedBox(width: 16),
                           IconButton(
-                            icon: const Icon(Icons.chevron_right, color: Colors.black54),
+                            icon: const Icon(Icons.chevron_right,
+                                color: Colors.black54),
                             onPressed: () => _changeYear(1),
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(),
@@ -357,9 +363,9 @@ class _TransactionManagementScreenState extends State<TransactionManagementScree
                   );
                 },
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Circular progress chart
               AnimatedBuilder(
                 animation: _animationController,
@@ -379,13 +385,14 @@ class _TransactionManagementScreenState extends State<TransactionManagementScree
                                 height: 180,
                                 child: CustomPaint(
                                   painter: CircularChartPainter(
-                                    segments: _categories.map((category) => 
-                                      _ChartSegment(
-                                        startAngle: 0, // Will be calculated in the painter
-                                        endAngle: category.percentage,
-                                        color: category.color,
-                                      )
-                                    ).toList(),
+                                    segments: _categories
+                                        .map((category) => _ChartSegment(
+                                              startAngle:
+                                                  0, // Will be calculated in the painter
+                                              endAngle: category.percentage,
+                                              color: category.color,
+                                            ))
+                                        .toList(),
                                     animationValue: _chartAnimation.value,
                                   ),
                                 ),
@@ -424,9 +431,9 @@ class _TransactionManagementScreenState extends State<TransactionManagementScree
                   );
                 },
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Categories
               AnimatedBuilder(
                 animation: _animationController,
@@ -440,7 +447,8 @@ class _TransactionManagementScreenState extends State<TransactionManagementScree
                         children: List.generate(
                           _categories.length,
                           (index) => GestureDetector(
-                            onTap: () => _showCategoryDetails(_categories[index]),
+                            onTap: () =>
+                                _showCategoryDetails(_categories[index]),
                             child: CategoryItem(
                               color: _categories[index].color,
                               title: _categories[index].title,
@@ -454,9 +462,9 @@ class _TransactionManagementScreenState extends State<TransactionManagementScree
                   );
                 },
               ),
-              
+
               const SizedBox(height: 30),
-              
+
               // Users Report section
               AnimatedBuilder(
                 animation: _animationController,
@@ -480,7 +488,8 @@ class _TransactionManagementScreenState extends State<TransactionManagementScree
                             children: [
                               GestureDetector(
                                 onTap: () => _changePeriod(-1),
-                                child: const Icon(Icons.chevron_left, size: 18, color: Colors.black54),
+                                child: const Icon(Icons.chevron_left,
+                                    size: 18, color: Colors.black54),
                               ),
                               const SizedBox(width: 4),
                               Text(
@@ -493,7 +502,8 @@ class _TransactionManagementScreenState extends State<TransactionManagementScree
                               const SizedBox(width: 4),
                               GestureDetector(
                                 onTap: () => _changePeriod(1),
-                                child: const Icon(Icons.chevron_right, size: 18, color: Colors.black54),
+                                child: const Icon(Icons.chevron_right,
+                                    size: 18, color: Colors.black54),
                               ),
                             ],
                           ),
@@ -503,9 +513,9 @@ class _TransactionManagementScreenState extends State<TransactionManagementScree
                   );
                 },
               ),
-              
+
               const SizedBox(height: 10),
-              
+
               // Legend
               AnimatedBuilder(
                 animation: _animationController,
@@ -544,9 +554,9 @@ class _TransactionManagementScreenState extends State<TransactionManagementScree
                   );
                 },
               ),
-              
+
               const SizedBox(height: 10),
-              
+
               // Bar chart
               Expanded(
                 child: AnimatedBuilder(
@@ -575,7 +585,7 @@ class CategoryItem extends StatelessWidget {
   final String title;
   final String value;
   final int delay;
-  
+
   const CategoryItem({
     super.key,
     required this.color,
@@ -639,41 +649,41 @@ class CategoryItem extends StatelessWidget {
 class CircularChartPainter extends CustomPainter {
   final List<_ChartSegment> segments;
   final double animationValue;
-  
+
   CircularChartPainter({
     required this.segments,
     required this.animationValue,
   });
-  
+
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2;
     final rect = Rect.fromCircle(center: center, radius: radius);
-    
+
     // Calculate start and end angles
     double startAngle = 0.0;
     for (var i = 0; i < segments.length; i++) {
       final segment = segments[i];
       final endAngle = startAngle + segment.endAngle;
-      
+
       final paint = Paint()
         ..color = segment.color
         ..style = PaintingStyle.stroke
         ..strokeWidth = 12
         ..strokeCap = StrokeCap.round;
-      
+
       // Apply animation
       final sweepAngle = (endAngle - startAngle) * animationValue;
-      
+
       canvas.drawArc(
         rect,
-        startAngle * 2 * math.pi - math.pi / 2, 
+        startAngle * 2 * math.pi - math.pi / 2,
         sweepAngle * 2 * math.pi,
         false,
         paint,
       );
-      
+
       startAngle = endAngle;
     }
   }
@@ -688,7 +698,7 @@ class _ChartSegment {
   final double startAngle;
   final double endAngle;
   final Color color;
-  
+
   _ChartSegment({
     required this.startAngle,
     required this.endAngle,
@@ -722,24 +732,29 @@ class CustomBarChart extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text('20k', style: TextStyle(fontSize: 10, color: Colors.black54)),
-                    Text('15k', style: TextStyle(fontSize: 10, color: Colors.black54)),
-                    Text('10k', style: TextStyle(fontSize: 10, color: Colors.black54)),
-                    Text('5k', style: TextStyle(fontSize: 10, color: Colors.black54)),
-                    SizedBox(height: 20), 
+                    Text('20k',
+                        style: TextStyle(fontSize: 10, color: Colors.black54)),
+                    Text('15k',
+                        style: TextStyle(fontSize: 10, color: Colors.black54)),
+                    Text('10k',
+                        style: TextStyle(fontSize: 10, color: Colors.black54)),
+                    Text('5k',
+                        style: TextStyle(fontSize: 10, color: Colors.black54)),
+                    SizedBox(height: 20),
                   ],
                 ),
               ),
               const SizedBox(width: 10),
-              
+
               // Bars
               Expanded(
                 child: LayoutBuilder(
                   builder: (context, constraints) {
-                    final barWidth = constraints.maxWidth / dailyData.length * 0.3;
+                    final barWidth =
+                        constraints.maxWidth / dailyData.length * 0.3;
                     final groupWidth = constraints.maxWidth / dailyData.length;
-                    final chartHeight = constraints.maxHeight - 20; 
-                    
+                    final chartHeight = constraints.maxHeight - 20;
+
                     return Stack(
                       children: [
                         // Grid lines
@@ -755,12 +770,18 @@ class CustomBarChart extends StatelessWidget {
                             ),
                           );
                         }),
-                        
+
                         // Bars
                         ...List.generate(dailyData.length, (index) {
-                          final userHeight = (dailyData[index].userValue / maxValue) * chartHeight * animationValue;
-                          final transactionHeight = (dailyData[index].transactionValue / maxValue) * chartHeight * animationValue;
-                          
+                          final userHeight =
+                              (dailyData[index].userValue / maxValue) *
+                                  chartHeight *
+                                  animationValue;
+                          final transactionHeight =
+                              (dailyData[index].transactionValue / maxValue) *
+                                  chartHeight *
+                                  animationValue;
+
                           return Positioned(
                             bottom: 0,
                             left: index * groupWidth,

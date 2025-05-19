@@ -24,9 +24,11 @@ class ChangePasswordScreen extends StatefulWidget {
 }
 
 class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
-  final TextEditingController _originalPasswordController = TextEditingController();
+  final TextEditingController _originalPasswordController =
+      TextEditingController();
   final TextEditingController _newPasswordController = TextEditingController();
-  final TextEditingController _reEnterPasswordController = TextEditingController();
+  final TextEditingController _reEnterPasswordController =
+      TextEditingController();
 
   @override
   void dispose() {
@@ -183,7 +185,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           decoration: InputDecoration(
             filled: true,
             fillColor: Colors.grey[200],
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide.none,
