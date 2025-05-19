@@ -1,26 +1,37 @@
-import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../models/transaction.dart';
+import 'dart:convert';
 
 class ApiService {
-  final String baseUrl = "http://localhost:8080"; // Change if using emulator or different port
+  static const String baseUrl = "http://192.168.1.6:8080";
 
-  Future<List<Transaction>> fetchTransactions(String token) async {
-    final url = Uri.parse('$baseUrl/api/transactions');
+  /// Hàm POST chung,có thể truyền hoặc không truyền token
+  static Future<Map<String, dynamic>> post(String endpoint, Map<String, dynamic> data, {String? token}) async {
+    final headers = {
+      "Content-Type": "application/json",
+      if (token != null) "Authorization": "Bearer $token",
+    };
 
-    final response = await http.get(
-      url,
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
+    final response = await http.post(
+      Uri.parse("$baseUrl$endpoint"),
+      headers: headers,
+      body: json.encode(data),
     );
 
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      return data.map((json) => Transaction.fromJson(json)).toList();
-    } else {
-      throw Exception('Failed to load transactions. Status: ${response.statusCode}');
-    }
+    return json.decode(response.body);
+  }
+
+  /// Hàm GET chung
+  static Future<Map<String, dynamic>> get(String endpoint, {String? token}) async {
+    final headers = {
+      "Content-Type": "application/json",
+      if (token != null) "Authorization": "Bearer $token",
+    };
+
+    final response = await http.get(
+      Uri.parse("$baseUrl$endpoint"),
+      headers: headers,
+    );
+
+    return json.decode(response.body);
   }
 }
