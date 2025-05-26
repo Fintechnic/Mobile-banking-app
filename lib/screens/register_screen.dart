@@ -438,32 +438,55 @@ class _RegisterScreenState extends State<RegisterScreen>
                             width: double.infinity,
                             height: 56,
                             child: ElevatedButton(
-                              onPressed: _canCreateAccount
-                                  ? () async {
+                              onPressed: _isLoading || !_canCreateAccount
+                                  ? null
+                                  : () async {
+                                      if (!_agreeToTerms) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(
+                                            content: Text('Vui lòng đồng ý với điều khoản và điều kiện'),
+                                            backgroundColor: Colors.red,
+                                          ),
+                                        );
+                                        return;
+                                      }
+                                      
                                       setState(() {
                                         _isLoading = true;
                                       });
-
-                                      await Future.delayed(
-                                          const Duration(milliseconds: 1500));
-                                      bool success = true;
-
+                                      
+                                      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                                      
+                                      bool success = await authProvider.register(
+                                        _fullNameController.text,
+                                        _passwordController.text,
+                                        _emailController.text,
+                                        _phoneController.text,
+                                      );
+                                      
                                       setState(() {
                                         _isLoading = false;
                                       });
-
+                                      
                                       if (!context.mounted) return;
-
+                                      
                                       if (success) {
                                         _showSuccessDialog();
+                                      } else {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              authProvider.error ?? 'Đăng ký không thành công. Vui lòng thử lại.'
+                                            ),
+                                            backgroundColor: Colors.red,
+                                          ),
+                                        );
                                       }
-                                    }
-                                  : null,
+                                    },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF1A3A6B),
-                                disabledBackgroundColor: Colors.grey.shade400,
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(15),
+                                  borderRadius: BorderRadius.circular(30),
                                 ),
                                 elevation: 2,
                               ),
@@ -477,7 +500,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                                       ),
                                     )
                                   : const Text(
-                                      'CREATE ACCOUNT',
+                                      'ĐĂNG KÝ',
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
@@ -505,7 +528,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                'Already have an account? ',
+                                'Đã có tài khoản? ',
                                 style: TextStyle(color: Colors.grey.shade600),
                               ),
                               GestureDetector(
@@ -515,43 +538,18 @@ class _RegisterScreenState extends State<RegisterScreen>
 
                                   if (!context.mounted) return;
 
-                                  Navigator.push(
+                                  Navigator.pushReplacement(
                                     context,
-                                    PageRouteBuilder(
-                                      pageBuilder: (context, animation,
-                                              secondaryAnimation) =>
-                                          const LoginScreen(),
-                                      transitionsBuilder: (context, animation,
-                                          secondaryAnimation, child) {
-                                        var begin = const Offset(1.0, 0.0);
-                                        var end = Offset.zero;
-                                        var curve = Curves.easeInOut;
-                                        var tween = Tween(
-                                                begin: begin, end: end)
-                                            .chain(CurveTween(curve: curve));
-                                        return SlideTransition(
-                                            position: animation.drive(tween),
-                                            child: child);
-                                      },
+                                    MaterialPageRoute(
+                                      builder: (context) => const LoginScreen(),
                                     ),
                                   );
                                 },
-                                child: TweenAnimationBuilder<double>(
-                                  tween: Tween<double>(begin: 1.0, end: 1.05),
-                                  duration: const Duration(milliseconds: 800),
-                                  curve: Curves.easeInOut,
-                                  builder: (context, value, child) {
-                                    return Transform.scale(
-                                      scale: value,
-                                      child: child,
-                                    );
-                                  },
-                                  child: const Text(
-                                    'Login',
-                                    style: TextStyle(
-                                      color: Color(0xFF5A8ED0),
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                child: const Text(
+                                  'Đăng nhập',
+                                  style: TextStyle(
+                                    color: Color(0xFF5A8ED0),
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
                               ),

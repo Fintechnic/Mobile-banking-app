@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 import '../providers/auth_provider.dart';
 import 'login_screen.dart';
+import 'package:camera/camera.dart';
 
 void main() {
   runApp(
@@ -306,55 +307,22 @@ class _HomeScreenState extends State<HomeScreen>
             children: [
               Row(
                 children: [
-                  Hero(
-                    tag: 'profile_avatar',
-                    child: GestureDetector(
-                      onTap: () {
-                        // Show logout confirmation dialog
-                        showDialog(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            title: const Text('Đăng xuất'),
-                            content:
-                                const Text('Bạn có chắc chắn muốn đăng xuất?'),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text('Hủy'),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                  authProvider.logout();
-                                  Navigator.pushReplacement(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (_) => const LoginScreen()));
-                                },
-                                child: const Text('Đăng xuất'),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                      child: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
                         ),
-                        child: const Center(
-                          child: Icon(Icons.person, color: Colors.grey),
-                        ),
-                      ),
+                      ],
+                    ),
+                    child: const Center(
+                      child: Icon(Icons.person, color: Colors.grey),
                     ),
                   ),
                   const SizedBox(width: 10),

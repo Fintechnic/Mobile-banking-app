@@ -1,53 +1,69 @@
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
 import 'api_service.dart';
 
 class BillService {
-  static Future<List<dynamic>> getUserBills() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString("token");
-    if (token == null) return [];
-    final response = await ApiService.get("/api/bills", token: token);
-    debugPrint("Get Bills Response: $response");
-    if (response.containsKey("bills")) {
-      return response["bills"];
+  final ApiService _apiService = ApiService();
+
+  /// Get user bills
+  Future<List<dynamic>> getUserBills() async {
+    try {
+      final token = await _apiService.getToken();
+      if (token == null) return [];
+
+      final response = await _apiService.get("/api/bills", token: token);
+      if (!response.containsKey("error")) {
+        return response["bills"] ?? [];
+      }
+      return [];
+    } catch (e) {
+      debugPrint("Get bills error: $e");
+      return [];
     }
-    
-    return [];
   }
-  
-  /// Pay a specific bill by ID
-  static Future<bool> payBill(int billId) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString("token");
-    if (token == null) return false;
-    final response = await ApiService.post(
-      "/api/bills/$billId/pay", 
-      {}, 
-      token: token
-    );
-    
-    debugPrint("Pay Bill Response: $response");
-    return response.containsKey("success") && response["success"] == true;
+
+  /// Pay bill
+  Future<bool> payBill(String billId) async {
+    try {
+      final token = await _apiService.getToken();
+      if (token == null) return false;
+
+      final response = await _apiService.post(
+        "/api/bills/$billId/pay",
+        {},
+        token: token,
+      );
+
+      return !response.containsKey("error");
+    } catch (e) {
+      debugPrint("Pay bill error: $e");
+      return false;
+    }
   }
-  
-  /// Admin function to create a new bill
-  static Future<bool> createBill(String type, String phoneNumber, double amount) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString("token");
-    if (token == null) return false;
-    final response = await ApiService.post(
-      "/api/admin/new-bill", 
-      {
-        "type": type,
-        "phoneNumber": phoneNumber,
-        "amount": amount
-      },
-      token: token
-    );
-    
-    debugPrint("Create Bill Response: $response");
-    
-    return response.containsKey("id"); 
+
+  /// Create new bill (Admin only)
+  Future<bool> createBill({
+    required String type,
+    required String phoneNumber,
+    required double amount,
+  }) async {
+    try {
+      final token = await _apiService.getToken();
+      if (token == null) return false;
+
+      final response = await _apiService.post(
+        "/api/admin/new-bill",
+        {
+          "type": type,
+          "phoneNumber": phoneNumber,
+          "amount": amount,
+        },
+        token: token,
+      );
+
+      return !response.containsKey("error");
+    } catch (e) {
+      debugPrint("Create bill error: $e");
+      return false;
+    }
   }
 }

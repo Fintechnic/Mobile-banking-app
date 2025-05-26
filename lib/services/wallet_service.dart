@@ -1,14 +1,15 @@
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
 import 'api_service.dart';
 
 class WalletService {
-  /// Admin function to search for a wallet by username
-  static Future<Map<String, dynamic>?> searchWallet(String username) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString("token");
+  final ApiService _apiService = ApiService();
+
+  /// Tìm kiếm ví theo tên người dùng (dành cho admin)
+  Future<Map<String, dynamic>?> searchWallet(String username) async {
+    final token = await _apiService.getToken();
     if (token == null) return null;
-    final response = await ApiService.post(
+    
+    final response = await _apiService.post(
       "/api/admin/transaction/search-wallet",
       {
         "username": username
@@ -17,21 +18,20 @@ class WalletService {
     );
 
     debugPrint("Search Wallet Response: $response");
-    if (response.containsKey("wallet")) {
-      return response["wallet"];
+    
+    if (response.containsKey("error")) {
+      return null;
     }
-
-    return null;
+    
+    return response;
   }
 
-
-  static Future<bool> topUpAgentWallet(String phoneNumber, double amount, String description) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString("token");
-
+  /// Nạp tiền vào ví đại lý (dành cho admin)
+  Future<bool> topUpAgentWallet(String phoneNumber, double amount, String description) async {
+    final token = await _apiService.getToken();
     if (token == null) return false;
 
-    final response = await ApiService.post(
+    final response = await _apiService.post(
       "/api/admin/transaction/top-up",
       {
         "phoneNumber": phoneNumber,
@@ -42,25 +42,21 @@ class WalletService {
     );
 
     debugPrint("Top Up Agent Wallet Response: $response");
-
-    return response.containsKey("success") && response["success"] == true;
+    return !response.containsKey("error");
   }
 
-  /// Admin function to get wallet summary
-  static Future<Map<String, dynamic>?> getWalletSummary() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString("token");
-
+  /// Lấy tổng quan về ví (dành cho admin)
+  Future<Map<String, dynamic>?> getWalletSummary() async {
+    final token = await _apiService.getToken();
     if (token == null) return null;
 
-    final response = await ApiService.get("/api/admin/wallet/summary", token: token);
-
+    final response = await _apiService.get("/api/admin/wallet/summary", token: token);
     debugPrint("Wallet Summary Response: $response");
-
-    if (response.containsKey("summary")) {
-      return response["summary"];
+    
+    if (response.containsKey("error")) {
+      return null;
     }
-
-    return null;
+    
+    return response;
   }
 }

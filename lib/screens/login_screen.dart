@@ -560,7 +560,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                     onPressed: _isLoading 
                                       ? null 
                                       : () async {
-                                          
                                           if (_usernameController.text.isEmpty || 
                                               _passwordController.text.isEmpty) {
                                             _showErrorAnimation();
@@ -582,47 +581,32 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                             _passwordController.text
                                           );
                                           
+                                          if (!context.mounted) return;
+                                          
                                           setState(() {
                                             _isLoading = false;
                                           });
                                           
-                                          if (!context.mounted) return;
-                                          
-                                          if (success) {
-                                            
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              const SnackBar(
-                                                content: Text('Đăng nhập thành công!'),
-                                                backgroundColor: Colors.green,
-                                              ),
-                                            );
-                                            
-                                            
-                                            await _animationController.reverse();
-                                            
+                                          if (success && authProvider.isAuthenticated) {
+                                            // Không cần hiển thị SnackBar vì sẽ chuyển màn hình ngay
                                             if (!context.mounted) return;
                                             
-                                            Navigator.pushReplacement(
-                                              context, 
-                                              PageRouteBuilder(
-                                                pageBuilder: (context, animation, secondaryAnimation) => const HomeScreen(),
-                                                transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                                  var begin = const Offset(1.0, 0.0);
-                                                  var end = Offset.zero;
-                                                  var curve = Curves.easeInOut;
-                                                  var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                                                  return SlideTransition(position: animation.drive(tween), child: child);
-                                                },
+                                            // Chuyển sang màn hình chính
+                                            Navigator.of(context).pushAndRemoveUntil(
+                                              MaterialPageRoute(
+                                                builder: (context) => const HomeScreen(),
                                               ),
+                                              (route) => false, // Xóa tất cả các màn hình trong stack
                                             );
                                           } else {
-                                            
                                             _showErrorAnimation();
                                             
                                             // Show error message
                                             ScaffoldMessenger.of(context).showSnackBar(
-                                              const SnackBar(
-                                                content: Text('Đăng nhập thất bại. Vui lòng kiểm tra thông tin đăng nhập.'),
+                                              SnackBar(
+                                                content: Text(
+                                                  authProvider.error ?? 'Đăng nhập thất bại. Vui lòng kiểm tra thông tin đăng nhập.'
+                                                ),
                                                 backgroundColor: Colors.red,
                                               ),
                                             );
