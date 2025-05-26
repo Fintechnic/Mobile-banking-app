@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fintechnic/services/api_test_service.dart';
 
 class ApiTestScreen extends StatefulWidget {
-  const ApiTestScreen({Key? key}) : super(key: key);
+  const ApiTestScreen({super.key});
 
   @override
   State<ApiTestScreen> createState() => _ApiTestScreenState();

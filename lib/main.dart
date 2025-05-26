@@ -39,7 +39,6 @@ import 'screens/notification.dart';
 import 'screens/paybill.dart';
 import 'screens/transfer.dart';
 import 'screens/splash_screen.dart';
-import 'screens/api_test_screen.dart';
 
 final appLogger = AppLogger();
 
@@ -190,7 +189,7 @@ class AuthWrapper extends StatelessWidget {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           theme: Theme.of(context),
-          home: const ApiTestScreen(),
+          home: const HomeScreen(),
           onGenerateRoute: (settings) {
             Widget page;
             switch (settings.name) {
@@ -258,7 +257,7 @@ class AuthWrapper extends StatelessWidget {
 }
 
 class SplashScreen extends StatelessWidget {
-  const SplashScreen({Key? key}) : super(key: key);
+  const SplashScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

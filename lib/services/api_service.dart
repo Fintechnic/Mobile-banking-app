@@ -2,6 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fintechnic/utils/app_logger.dart';
+import 'package:flutter/foundation.dart';
+import 'dart:convert';
 
 class ApiService {
   static final ApiService _instance = ApiService._internal();
@@ -10,7 +12,7 @@ class ApiService {
   final _logger = AppLogger();
 
   // Development configuration
-  static const defaultHost = '10.0.2.2'; // Android Emulator localhost
+  static const defaultHost = '192.168.100.221'; // Android Emulator localhost
   static const defaultPort = '8080';     // Spring Boot default port
   
   factory ApiService() {
@@ -32,11 +34,15 @@ class ApiService {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
+      validateStatus: (status) {
+        return status != null && status < 500; // Accept all status codes below 500
+      },
     ));
 
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) async {
         _logger.i('REQUEST[${options.method}] => PATH: ${options.path}');
+        _logger.i('REQUEST DATA: ${options.data}');
         final token = await getToken();
         if (token != null) {
           options.headers['Authorization'] = 'Bearer $token';
@@ -45,6 +51,7 @@ class ApiService {
       },
       onResponse: (response, handler) {
         _logger.i('RESPONSE[${response.statusCode}] => PATH: ${response.requestOptions.path}');
+        _logger.i('RESPONSE DATA: ${response.data}');
         return handler.next(response);
       },
       onError: (DioException e, handler) {
@@ -52,9 +59,19 @@ class ApiService {
           'ERROR[${e.response?.statusCode}] => PATH: ${e.requestOptions.path}',
           error: e.message
         );
+        _logger.e('ERROR RESPONSE: ${e.response?.data}');
         return handler.next(e);
       },
     ));
+    
+    // Add extra logging in debug mode
+    if (kDebugMode) {
+      _dio.interceptors.add(LogInterceptor(
+        requestBody: true,
+        responseBody: true,
+        logPrint: (obj) => debugPrint(obj.toString()),
+      ));
+    }
   }
 
   Future<String?> getToken() async {
@@ -77,15 +94,30 @@ class ApiService {
           headers: token != null ? {'Authorization': 'Bearer $token'} : null,
         ),
       );
-      return response.data;
+      
+      if (response.statusCode != null && response.statusCode! >= 400) {
+        return {'error': response.data.toString() ?? 'Request failed with status: ${response.statusCode}'};
+      }
+      
+      return response.data is Map<String, dynamic> 
+          ? response.data
+          : {'data': response.data, 'statusCode': response.statusCode};
     } on DioException catch (e) {
       _handleError(e);
-      return {'error': e.message};
+      if (e.response?.data is Map<String, dynamic>) {
+        return {'error': e.response?.data['message'] ?? e.message};
+      }
+      return {'error': e.message ?? 'Network error occurred'};
+    } catch (e) {
+      return {'error': e.toString()};
     }
   }
 
   Future<Map<String, dynamic>> post(String path, dynamic data, {String? token}) async {
     try {
+      _logger.i('Making POST request to: $path');
+      _logger.i('Request data: $data');
+      
       final response = await _dio.post(
         path,
         data: data,
@@ -93,10 +125,60 @@ class ApiService {
           headers: token != null ? {'Authorization': 'Bearer $token'} : null,
         ),
       );
-      return response.data;
+      
+      _logger.i('Response status code: ${response.statusCode}');
+      _logger.i('Response data: ${response.data}');
+      
+      if (response.statusCode != null && response.statusCode! >= 400) {
+        String errorMsg = '';
+        
+        // Handle different error formats
+        if (response.data is Map<String, dynamic>) {
+          errorMsg = response.data['message'] ?? response.data['error'] ?? response.data.toString();
+        } else if (response.data is String) {
+          errorMsg = response.data;
+        } else {
+          errorMsg = 'Request failed with status: ${response.statusCode}';
+        }
+        
+        _logger.e('Error response: $errorMsg');
+        return {'error': errorMsg};
+      }
+      
+      if (response.data is Map<String, dynamic>) {
+        return response.data;
+      } else if (response.data is String) {
+        // Try to parse string as JSON
+        try {
+          final jsonData = jsonDecode(response.data);
+          if (jsonData is Map<String, dynamic>) {
+            return jsonData;
+          }
+        } catch (e) {
+          // Not JSON, just return as data
+        }
+      }
+      
+      return {'data': response.data, 'statusCode': response.statusCode};
     } on DioException catch (e) {
       _handleError(e);
-      return {'error': e.message};
+      _logger.e('DioException: ${e.message}');
+      _logger.e('Response data: ${e.response?.data}');
+      
+      // Handle validation errors specially
+      if (e.response?.data is String && 
+          e.response!.data.toString().contains('Validation failed')) {
+        return {'error': e.response!.data};
+      }
+      
+      if (e.response?.data is Map<String, dynamic>) {
+        return {'error': e.response?.data['message'] ?? e.message};
+      }
+      
+      return {'error': e.message ?? 'Network error occurred'};
+    } catch (e) {
+      _logger.e('General error in POST request: $e');
+      return {'error': e.toString()};
     }
   }
 
@@ -109,10 +191,22 @@ class ApiService {
           headers: token != null ? {'Authorization': 'Bearer $token'} : null,
         ),
       );
-      return response.data;
+      
+      if (response.statusCode != null && response.statusCode! >= 400) {
+        return {'error': response.data.toString() ?? 'Request failed with status: ${response.statusCode}'};
+      }
+      
+      return response.data is Map<String, dynamic> 
+          ? response.data
+          : {'data': response.data, 'statusCode': response.statusCode};
     } on DioException catch (e) {
       _handleError(e);
-      return {'error': e.message};
+      if (e.response?.data is Map<String, dynamic>) {
+        return {'error': e.response?.data['message'] ?? e.message};
+      }
+      return {'error': e.message ?? 'Network error occurred'};
+    } catch (e) {
+      return {'error': e.toString()};
     }
   }
 
@@ -124,10 +218,22 @@ class ApiService {
           headers: token != null ? {'Authorization': 'Bearer $token'} : null,
         ),
       );
-      return response.data;
+      
+      if (response.statusCode != null && response.statusCode! >= 400) {
+        return {'error': response.data.toString() ?? 'Request failed with status: ${response.statusCode}'};
+      }
+      
+      return response.data is Map<String, dynamic> 
+          ? response.data
+          : {'data': response.data, 'statusCode': response.statusCode};
     } on DioException catch (e) {
       _handleError(e);
-      return {'error': e.message};
+      if (e.response?.data is Map<String, dynamic>) {
+        return {'error': e.response?.data['message'] ?? e.message};
+      }
+      return {'error': e.message ?? 'Network error occurred'};
+    } catch (e) {
+      return {'error': e.toString()};
     }
   }
 

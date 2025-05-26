@@ -14,14 +14,14 @@ import 'package:fintechnic/main.dart';
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Mock camera description
-    final mockCamera = CameraDescription(
+    const mockCamera = CameraDescription(
       name: 'mock_camera',
       lensDirection: CameraLensDirection.back,
       sensorOrientation: 90,
     );
 
     // Build our app and trigger a frame.
-    await tester.pumpWidget(MyApp(firstCamera: mockCamera));
+    await tester.pumpWidget(const MyApp(firstCamera: mockCamera));
 
     // Verify that our counter starts at 0.
     expect(find.text('0'), findsOneWidget);

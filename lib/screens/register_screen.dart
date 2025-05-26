@@ -52,6 +52,8 @@ class _RegisterScreenState extends State<RegisterScreen>
 
   final double _errorShakeAnimation = 0;
 
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
   @override
   void initState() {
     super.initState();
@@ -140,13 +142,9 @@ class _RegisterScreenState extends State<RegisterScreen>
 
     setState(() {
       _hasMinLength = password.length >= 8;
-
       _hasUppercase = password.contains(RegExp(r'[A-Z]'));
-
       _hasNumber = password.contains(RegExp(r'[0-9]'));
-
       _hasSpecialChar = password.contains(RegExp(r'[_!@#$%^&*(),.?":{}|<->]'));
-
       _passwordsMatch = password == confirmPassword && password.isNotEmpty;
     });
   }
@@ -248,316 +246,274 @@ class _RegisterScreenState extends State<RegisterScreen>
                         topRight: Radius.circular(30),
                       ),
                     ),
-                    child: ListView(
-                      padding: const EdgeInsets.all(24.0),
-                      children: [
-                        const SizedBox(height: 20),
-                        AnimatedBuilder(
-                          animation: _logoAnimation,
-                          builder: (context, child) {
-                            return Transform.scale(
-                              scale: _logoAnimation.value,
-                              child: child,
-                            );
-                          },
-                          child: const Center(
-                            child: SizedBox(
-                              width: 180,
-                              height: 180,
-                              child: FlutterLogo(size: 150),
+                    child: Form(
+                      key: _formKey,
+                      child: ListView(
+                        padding: const EdgeInsets.all(24.0),
+                        children: [
+                          const SizedBox(height: 20),
+                          AnimatedBuilder(
+                            animation: _logoAnimation,
+                            builder: (context, child) {
+                              return Transform.scale(
+                                scale: _logoAnimation.value,
+                                child: child,
+                              );
+                            },
+                            child: const Center(
+                              child: SizedBox(
+                                width: 180,
+                                height: 180,
+                                child: FlutterLogo(size: 150),
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 20),
-                        AnimatedBuilder(
-                          animation: _welcomeTextAnimation,
-                          builder: (context, child) {
-                            return Opacity(
-                              opacity: _welcomeTextAnimation.value,
-                              child: Transform.translate(
-                                offset: Offset(
-                                    0, 20 * (1 - _welcomeTextAnimation.value)),
-                                child: child,
-                              ),
-                            );
-                          },
-                          child: Column(
-                            children: [
-                              const Center(
-                                child: Text(
-                                  'Welcome to Fintechnic',
-                                  style: TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1A3A6B),
-                                  ),
+                          const SizedBox(height: 20),
+                          AnimatedBuilder(
+                            animation: _welcomeTextAnimation,
+                            builder: (context, child) {
+                              return Opacity(
+                                opacity: _welcomeTextAnimation.value,
+                                child: Transform.translate(
+                                  offset: Offset(
+                                      0, 20 * (1 - _welcomeTextAnimation.value)),
+                                  child: child,
                                 ),
-                              ),
-                              const SizedBox(height: 10),
-                              Center(
-                                child: Text(
-                                  'Please fill in the details to create your account',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey.shade600,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 30),
-
-                        ..._buildAnimatedFormFields(),
-                        const SizedBox(height: 20),
-
-                        AnimatedBuilder(
-                          animation: _passwordRequirementsAnimation,
-                          builder: (context, child) {
-                            return Transform.translate(
-                              offset: Offset(
-                                  300 *
-                                      (1 -
-                                          _passwordRequirementsAnimation.value),
-                                  0),
-                              child: Opacity(
-                                opacity: _passwordRequirementsAnimation.value,
-                                child: child,
-                              ),
-                            );
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(15),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF5F7FA),
-                              borderRadius: BorderRadius.circular(15),
-                              border: Border.all(color: Colors.grey.shade300),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.blue.withOpacity(0.05),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
+                              );
+                            },
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
-                                  'Password Requirements:',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1A3A6B),
+                                const Center(
+                                  child: Text(
+                                    'Welcome to Fintechnic',
+                                    style: TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF1A3A6B),
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(height: 10),
-                                _buildAnimatedRequirement(
-                                  'At least 8 characters',
-                                  _hasMinLength,
-                                  0.0,
-                                ),
-                                _buildAnimatedRequirement(
-                                  'Contains uppercase letters',
-                                  _hasUppercase,
-                                  0.1,
-                                ),
-                                _buildAnimatedRequirement(
-                                  'Contains numbers',
-                                  _hasNumber,
-                                  0.2,
-                                ),
-                                _buildAnimatedRequirement(
-                                  'Contains special characters',
-                                  _hasSpecialChar,
-                                  0.3,
+                                Center(
+                                  child: Text(
+                                    'Please fill in the details to create your account',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
                                 ),
                               ],
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 20),
+                          const SizedBox(height: 30),
 
-                        AnimatedBuilder(
-                          animation: _termsAnimation,
-                          builder: (context, child) {
-                            return Opacity(
-                              opacity: _termsAnimation.value,
-                              child: Transform.translate(
-                                offset:
-                                    Offset(0, 20 * (1 - _termsAnimation.value)),
-                                child: child,
-                              ),
-                            );
-                          },
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: Checkbox(
-                                  value: _agreeToTerms,
-                                  activeColor: const Color(0xFF5A8ED0),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _agreeToTerms = value ?? false;
-                                    });
-                                  },
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  'By creating an account, you agree to our Terms of Service and Privacy Policy',
-                                  style: TextStyle(
-                                    color: Colors.grey.shade700,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 30),
+                          ..._buildAnimatedFormFields(),
+                          const SizedBox(height: 20),
 
-                        AnimatedBuilder(
-                          animation: _buttonAnimation,
-                          builder: (context, child) {
-                            return Transform.scale(
-                              scale: _buttonAnimation.value,
-                              child: Opacity(
-                                opacity: _buttonAnimation.value,
-                                child: child,
-                              ),
-                            );
-                          },
-                          child: SizedBox(
-                            width: double.infinity,
-                            height: 56,
-                            child: ElevatedButton(
-                              onPressed: _isLoading || !_canCreateAccount
-                                  ? null
-                                  : () async {
-                                      if (!_agreeToTerms) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(
-                                            content: Text('Vui lòng đồng ý với điều khoản và điều kiện'),
-                                            backgroundColor: Colors.red,
-                                          ),
-                                        );
-                                        return;
-                                      }
-                                      
-                                      setState(() {
-                                        _isLoading = true;
-                                      });
-                                      
-                                      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-                                      
-                                      bool success = await authProvider.register(
-                                        _fullNameController.text,
-                                        _passwordController.text,
-                                        _emailController.text,
-                                        _phoneController.text,
-                                      );
-                                      
-                                      setState(() {
-                                        _isLoading = false;
-                                      });
-                                      
-                                      if (!context.mounted) return;
-                                      
-                                      if (success) {
-                                        _showSuccessDialog();
-                                      } else {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              authProvider.error ?? 'Đăng ký không thành công. Vui lòng thử lại.'
-                                            ),
-                                            backgroundColor: Colors.red,
-                                          ),
-                                        );
-                                      }
-                                    },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF1A3A6B),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30),
+                          AnimatedBuilder(
+                            animation: _passwordRequirementsAnimation,
+                            builder: (context, child) {
+                              return Transform.translate(
+                                offset: Offset(
+                                    300 *
+                                        (1 -
+                                            _passwordRequirementsAnimation.value),
+                                    0),
+                                child: Opacity(
+                                  opacity: _passwordRequirementsAnimation.value,
+                                  child: child,
                                 ),
-                                elevation: 2,
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(15),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF5F7FA),
+                                borderRadius: BorderRadius.circular(15),
+                                border: Border.all(color: Colors.grey.shade300),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.blue.withOpacity(0.05),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
                               ),
-                              child: _isLoading
-                                  ? const SizedBox(
-                                      height: 20,
-                                      width: 20,
-                                      child: CircularProgressIndicator(
-                                        color: Colors.white,
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : const Text(
-                                      'ĐĂNG KÝ',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        letterSpacing: 1,
-                                      ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Password Requirements:',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF1A3A6B),
                                     ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  _buildAnimatedRequirement(
+                                    'At least 8 characters',
+                                    _hasMinLength,
+                                    0.0,
+                                  ),
+                                  _buildAnimatedRequirement(
+                                    'Contains uppercase letters',
+                                    _hasUppercase,
+                                    0.1,
+                                  ),
+                                  _buildAnimatedRequirement(
+                                    'Contains numbers',
+                                    _hasNumber,
+                                    0.2,
+                                  ),
+                                  _buildAnimatedRequirement(
+                                    'Contains special characters',
+                                    _hasSpecialChar,
+                                    0.3,
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 30),
-                        // Already have an account with fade animation
-                        AnimatedBuilder(
-                          animation: _loginLinkAnimation,
-                          builder: (context, child) {
-                            return Opacity(
-                              opacity: _loginLinkAnimation.value,
-                              child: Transform.translate(
-                                offset: Offset(
-                                    0, 20 * (1 - _loginLinkAnimation.value)),
-                                child: child,
-                              ),
-                            );
-                          },
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Đã có tài khoản? ',
-                                style: TextStyle(color: Colors.grey.shade600),
-                              ),
-                              GestureDetector(
-                                onTap: () async {
-                                  // Animate out before navigation
-                                  await _animationController.reverse();
+                          const SizedBox(height: 20),
 
-                                  if (!context.mounted) return;
-
-                                  Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => const LoginScreen(),
+                          AnimatedBuilder(
+                            animation: _termsAnimation,
+                            builder: (context, child) {
+                              return Opacity(
+                                opacity: _termsAnimation.value,
+                                child: Transform.translate(
+                                  offset:
+                                      Offset(0, 20 * (1 - _termsAnimation.value)),
+                                  child: child,
+                                ),
+                              );
+                            },
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: Checkbox(
+                                    value: _agreeToTerms,
+                                    activeColor: const Color(0xFF5A8ED0),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(4),
                                     ),
-                                  );
-                                },
-                                child: const Text(
-                                  'Đăng nhập',
-                                  style: TextStyle(
-                                    color: Color(0xFF5A8ED0),
-                                    fontWeight: FontWeight.bold,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _agreeToTerms = value ?? false;
+                                      });
+                                    },
                                   ),
                                 ),
-                              ),
-                            ],
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    'By creating an account, you agree to our Terms of Service and Privacy Policy',
+                                    style: TextStyle(
+                                      color: Colors.grey.shade700,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 20),
-                      ],
+                          const SizedBox(height: 30),
+
+                          AnimatedBuilder(
+                            animation: _buttonAnimation,
+                            builder: (context, child) {
+                              return Opacity(
+                                opacity: _buttonAnimation.value,
+                                child: Transform.translate(
+                                  offset: Offset(0, 20 * (1 - _buttonAnimation.value)),
+                                  child: child,
+                                ),
+                              );
+                            },
+                            child: SizedBox(
+                              height: 56,
+                              child: ElevatedButton(
+                                onPressed: _isLoading ? null : _handleRegistration,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF1A3A6B),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(30),
+                                  ),
+                                  elevation: 2,
+                                ),
+                                child: _isLoading
+                                    ? const SizedBox(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : const Text(
+                                        'ĐĂNG KÝ',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          letterSpacing: 1,
+                                        ),
+                                      ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 30),
+                          // Already have an account with fade animation
+                          AnimatedBuilder(
+                            animation: _loginLinkAnimation,
+                            builder: (context, child) {
+                              return Opacity(
+                                opacity: _loginLinkAnimation.value,
+                                child: Transform.translate(
+                                  offset: Offset(
+                                      0, 20 * (1 - _loginLinkAnimation.value)),
+                                  child: child,
+                                ),
+                              );
+                            },
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'Đã có tài khoản? ',
+                                  style: TextStyle(color: Colors.grey.shade600),
+                                ),
+                                GestureDetector(
+                                  onTap: () async {
+                                    // Animate out before navigation
+                                    await _animationController.reverse();
+
+                                    if (!context.mounted) return;
+
+                                    Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const LoginScreen(),
+                                      ),
+                                    );
+                                  },
+                                  child: const Text(
+                                    'Đăng nhập',
+                                    style: TextStyle(
+                                      color: Color(0xFF5A8ED0),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -575,9 +531,15 @@ class _RegisterScreenState extends State<RegisterScreen>
       _buildAnimatedTextField(
         controller: _fullNameController,
         focusNode: _fullNameFocus,
-        labelText: 'Full Name',
+        labelText: 'Username',
         icon: Icons.person_outline,
         delay: 0.0,
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Username is required';
+          }
+          return null;
+        },
       ),
       const SizedBox(height: 16),
       _buildAnimatedTextField(
@@ -587,6 +549,15 @@ class _RegisterScreenState extends State<RegisterScreen>
         icon: Icons.email_outlined,
         keyboardType: TextInputType.emailAddress,
         delay: 0.1,
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Email is required';
+          }
+          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+            return 'Please enter a valid email';
+          }
+          return null;
+        },
       ),
       const SizedBox(height: 16),
       _buildAnimatedTextField(
@@ -596,6 +567,20 @@ class _RegisterScreenState extends State<RegisterScreen>
         icon: Icons.phone_android,
         keyboardType: TextInputType.phone,
         delay: 0.2,
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Phone number is required';
+          }
+          // Check that phone number starts with 0 and has correct length
+          if (!value.startsWith('0') || value.length < 10 || value.length > 11) {
+            return 'Please enter a valid phone number (starting with 0)';
+          }
+          // Check that phone number contains only digits
+          if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
+            return 'Phone number should only contain digits';
+          }
+          return null;
+        },
       ),
       const SizedBox(height: 16),
       _buildAnimatedTextField(
@@ -611,6 +596,15 @@ class _RegisterScreenState extends State<RegisterScreen>
           });
         },
         delay: 0.3,
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Password is required';
+          }
+          if (!_isPasswordValid) {
+            return 'Password does not meet requirements';
+          }
+          return null;
+        },
       ),
       const SizedBox(height: 16),
       _buildAnimatedTextField(
@@ -627,6 +621,15 @@ class _RegisterScreenState extends State<RegisterScreen>
         },
         isError: _confirmPasswordController.text.isNotEmpty && !_passwordsMatch,
         delay: 0.4,
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Please confirm your password';
+          }
+          if (!_passwordsMatch) {
+            return 'Passwords do not match';
+          }
+          return null;
+        },
       ),
     ];
 
@@ -645,6 +648,7 @@ class _RegisterScreenState extends State<RegisterScreen>
     VoidCallback? onToggleObscure,
     bool isError = false,
     required double delay,
+    String? Function(String?)? validator,
   }) {
     return AnimatedBuilder(
       animation: _formFieldsAnimation,
@@ -673,11 +677,12 @@ class _RegisterScreenState extends State<RegisterScreen>
           0,
           0,
         ),
-        child: TextField(
+        child: TextFormField(
           controller: controller,
           focusNode: focusNode,
           obscureText: isPassword ? obscureText : false,
           keyboardType: keyboardType,
+          validator: validator,
           decoration: InputDecoration(
             labelText: labelText,
             labelStyle: TextStyle(
@@ -801,6 +806,79 @@ class _RegisterScreenState extends State<RegisterScreen>
         );
       },
     );
+  }
+
+  void _handleRegistration() async {
+    // Validate form
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+    
+    // Check terms agreement
+    if (!_agreeToTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please agree to the Terms of Service and Privacy Policy'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    
+    // Dismiss keyboard
+    FocusScope.of(context).unfocus();
+    
+    setState(() {
+      _isLoading = true;
+    });
+    
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    
+    bool success = await authProvider.register(
+      _fullNameController.text.trim(),
+      _passwordController.text,
+      _emailController.text.trim(),
+      _phoneController.text.trim(),
+    );
+    
+    setState(() {
+      _isLoading = false;
+    });
+    
+    if (!context.mounted) return;
+    
+    if (success) {
+      _showSuccessDialog();
+    } else {
+      // Check if error message contains specific field errors
+      String errorMessage = authProvider.error ?? 'Registration failed. Please try again.';
+      
+      // Highlight fields that have errors
+      if (errorMessage.contains("phone number")) {
+        _phoneFocus.requestFocus();
+      } else if (errorMessage.contains("email")) {
+        _emailFocus.requestFocus();
+      } else if (errorMessage.contains("username")) {
+        _fullNameFocus.requestFocus();
+      } else if (errorMessage.contains("password")) {
+        _passwordFocus.requestFocus();
+      }
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 5),
+          action: SnackBarAction(
+            label: 'OK',
+            textColor: Colors.white,
+            onPressed: () {
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            },
+          ),
+        ),
+      );
+    }
   }
 
   void _showSuccessDialog() {

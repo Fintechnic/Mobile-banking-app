@@ -637,9 +637,9 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen>
                                     shadowColor: const Color(0xFF1A3A6B)
                                         .withOpacity(0.3),
                                   ),
-                                  child: Row(
+                                  child: const Row(
                                     mainAxisSize: MainAxisSize.min,
-                                    children: const [
+                                    children: [
                                       Icon(Icons.share),
                                       SizedBox(width: 8),
                                       Text(

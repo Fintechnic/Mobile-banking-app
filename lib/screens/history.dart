@@ -151,7 +151,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     });
 
     try {
-      final apiUrl = 'https://api.example.com/transactions';
+      const apiUrl = 'https://api.example.com/transactions';
 
       final queryParams = {
         'startDate': _startDate!.toIso8601String(),
@@ -1211,8 +1211,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
           Container(
             width: 50,
             height: 50,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF5F7FA),
+            decoration: const BoxDecoration(
+              color: Color(0xFFF5F7FA),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: const Color(0xFF1A3A6B), size: 24),

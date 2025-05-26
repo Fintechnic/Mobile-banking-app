@@ -533,9 +533,9 @@ class _NotificationSettingsScreenState
               size: 48,
             ),
             const SizedBox(height: 16),
-            Text(
+            const Text(
               'Failed to load notification settings',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: Colors.red,

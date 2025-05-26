@@ -4,8 +4,6 @@ import 'package:provider/provider.dart';
 // import 'package:http/http.dart' as http;
 import 'package:shimmer/shimmer.dart';
 import '../providers/auth_provider.dart';
-import 'login_screen.dart';
-import 'package:camera/camera.dart';
 
 void main() {
   runApp(

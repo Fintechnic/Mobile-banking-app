@@ -384,9 +384,9 @@ class _PaymentDetailsScreenState extends State<PaymentDetailsScreen> with Single
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Column(
+                      const Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
+                        children: [
                           Text(
                             'Thank You For',
                             style: TextStyle(
@@ -439,7 +439,7 @@ class _PaymentDetailsScreenState extends State<PaymentDetailsScreen> with Single
               AnimatedBuilder(
                 animation: _animationController,
                 builder: (context, child) {
-                  final delay = 0.8;
+                  const delay = 0.8;
                   final value = (_animationController.value - delay) / (1 - delay);
                   final opacity = value.clamp(0.0, 1.0);
                   
@@ -514,7 +514,7 @@ class _PaymentDetailsScreenState extends State<PaymentDetailsScreen> with Single
     return AnimatedBuilder(
       animation: _animationController,
       builder: (context, child) {
-        final delay = 0.9;
+        const delay = 0.9;
         final value = (_animationController.value - delay) / (1 - delay);
         final scale = value.clamp(0.0, 1.0);
         

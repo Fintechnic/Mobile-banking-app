@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../models/auth_response.dart';
 import 'api_service.dart';
 
 class AuthService {
@@ -10,6 +9,7 @@ class AuthService {
   /// Login user
   Future<Map<String, dynamic>?> login(String username, String password) async {
     try {
+      debugPrint("Logging in user: $username");
       final response = await _apiService.post(
         "/api/auth/login",
         {
@@ -19,9 +19,16 @@ class AuthService {
       );
 
       if (!response.containsKey("error")) {
+        debugPrint("Login successful: ${response["token"] != null}");
         await _apiService.saveToken(response["token"]);
+        // Store username and role in secure storage
+        await _storage.write(key: 'username', value: username);
+        if (response.containsKey("role")) {
+          await _storage.write(key: 'role', value: response["role"]);
+        }
         return response;
       }
+      debugPrint("Login response error: ${response["error"]}");
       return null;
     } catch (e) {
       debugPrint("Login error: $e");
@@ -37,6 +44,7 @@ class AuthService {
     required String phoneNumber,
   }) async {
     try {
+      debugPrint("Registering user: $username, email: $email, phone: $phoneNumber");
       final response = await _apiService.post(
         "/api/auth/register",
         {
@@ -48,12 +56,33 @@ class AuthService {
       );
 
       if (!response.containsKey("error")) {
+        debugPrint("Registration successful: $response");
         return response;
       }
-      return null;
+      
+      // Log the specific error
+      String errorMessage = response["error"] ?? "Unknown error";
+      debugPrint("Registration error: $errorMessage");
+      
+      // Extract specific validation errors if available
+      if (errorMessage.contains("Validation failed") && errorMessage.contains("propertyPath=")) {
+        // Try to extract the field and message from the validation error
+        RegExp regex = RegExp('propertyPath=(\\w+).*?interpolatedMessage=\'([^\']+)\'');
+        final match = regex.firstMatch(errorMessage);
+        if (match != null && match.groupCount >= 2) {
+          final field = match.group(1);
+          final message = match.group(2);
+          return {
+            "error": message ?? "Validation error",
+            "field": field ?? "unknown",
+          };
+        }
+      }
+      
+      return {"error": errorMessage};
     } catch (e) {
       debugPrint("Register error: $e");
-      return null;
+      return {"error": e.toString()};
     }
   }
 
@@ -91,6 +120,7 @@ class AuthService {
       if (!response.containsKey("error")) {
         return response;
       }
+      debugPrint("Get user data error: ${response["error"]}");
       return null;
     } catch (e) {
       debugPrint("Get user data error: $e");
@@ -208,7 +238,7 @@ class AuthService {
       if (token == null) return [];
 
       final response = await _apiService.post(
-        "/api/admin/user",
+        "/api/admin/users/search",
         {
           if (username != null) "username": username,
           if (email != null) "email": email,

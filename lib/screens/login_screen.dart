@@ -15,6 +15,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStateMixin {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
   bool _obscurePassword = true;
   bool _rememberMe = false;
   bool _isLoading = false;
@@ -269,349 +270,358 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                         topRight: Radius.circular(30),
                       ),
                     ),
-                    child: ListView(
-                      padding: const EdgeInsets.all(24.0),
-                      children: [
-                        const SizedBox(height: 30),
-                        
-                        Center(
-                          child: AnimatedBuilder(
-                            animation: _logoAnimation,
+                    child: Form(
+                      key: _formKey,
+                      child: ListView(
+                        padding: const EdgeInsets.all(24.0),
+                        children: [
+                          const SizedBox(height: 30),
+                          
+                          Center(
+                            child: AnimatedBuilder(
+                              animation: _logoAnimation,
+                              builder: (context, child) {
+                                return Transform.scale(
+                                  scale: _logoAnimation.value,
+                                  child: child,
+                                );
+                              },
+                              child: Container(
+                                width: 180,
+                                height: 180,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: const Color(0xFF93B5E1),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFF93B5E1).withOpacity(0.3),
+                                      blurRadius: 20,
+                                      offset: const Offset(0, 10),
+                                    ),
+                                  ],
+                                ),
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.person,
+                                    size: 100,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 30),
+                          
+                          AnimatedBuilder(
+                            animation: _usernameFieldAnimation,
                             builder: (context, child) {
-                              return Transform.scale(
-                                scale: _logoAnimation.value,
-                                child: child,
+                              return Transform.translate(
+                                offset: Offset(300 * (1 - _usernameFieldAnimation.value), 0),
+                                child: Opacity(
+                                  opacity: _usernameFieldAnimation.value,
+                                  child: child,
+                                ),
                               );
                             },
-                            child: Container(
-                              width: 180,
-                              height: 180,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: const Color(0xFF93B5E1),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: const Color(0xFF93B5E1).withOpacity(0.3),
-                                    blurRadius: 20,
-                                    offset: const Offset(0, 10),
-                                  ),
-                                ],
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              transform: Matrix4.translationValues(
+                                _usernameFocus.hasFocus ? 0 : _errorShakeAnimation,
+                                0,
+                                0,
                               ),
-                              child: const Center(
-                                child: Icon(
-                                  Icons.person,
-                                  size: 100,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 30),
-                        
-                        AnimatedBuilder(
-                          animation: _usernameFieldAnimation,
-                          builder: (context, child) {
-                            return Transform.translate(
-                              offset: Offset(300 * (1 - _usernameFieldAnimation.value), 0),
-                              child: Opacity(
-                                opacity: _usernameFieldAnimation.value,
-                                child: child,
-                              ),
-                            );
-                          },
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            transform: Matrix4.translationValues(
-                              _usernameFocus.hasFocus ? 0 : _errorShakeAnimation,
-                              0,
-                              0,
-                            ),
-                            child: TextField(
-                              controller: _usernameController,
-                              focusNode: _usernameFocus,
-                              decoration: InputDecoration(
-                                labelText: 'Username',
-                                labelStyle: TextStyle(
-                                  color: _usernameFocus.hasFocus
-                                      ? const Color(0xFF5A8ED0)
-                                      : Colors.grey.shade600,
-                                ),
-                                prefixIcon: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 200),
-                                  padding: EdgeInsets.all(_usernameFocus.hasFocus ? 0 : 0),
-                                  child: Icon(
-                                    Icons.person_outline,
+                              child: TextFormField(
+                                controller: _usernameController,
+                                focusNode: _usernameFocus,
+                                decoration: InputDecoration(
+                                  labelText: 'Username',
+                                  labelStyle: TextStyle(
                                     color: _usernameFocus.hasFocus
                                         ? const Color(0xFF5A8ED0)
-                                        : Colors.grey.shade400,
+                                        : Colors.grey.shade600,
+                                  ),
+                                  prefixIcon: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 200),
+                                    padding: EdgeInsets.all(_usernameFocus.hasFocus ? 0 : 0),
+                                    child: Icon(
+                                      Icons.person_outline,
+                                      color: _usernameFocus.hasFocus
+                                          ? const Color(0xFF5A8ED0)
+                                          : Colors.grey.shade400,
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(30),
+                                    borderSide: BorderSide(color: Colors.grey.shade300),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(30),
+                                    borderSide: const BorderSide(
+                                      color: Color(0xFF5A8ED0),
+                                      width: 2,
+                                    ),
+                                  ),
+                                  filled: true,
+                                  fillColor: _usernameFocus.hasFocus
+                                      ? Colors.blue.shade50.withOpacity(0.3)
+                                      : Colors.grey.shade50,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                    horizontal: 20,
                                   ),
                                 ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                  borderSide: BorderSide(color: Colors.grey.shade300),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                  borderSide: const BorderSide(
-                                    color: Color(0xFF5A8ED0),
-                                    width: 2,
-                                  ),
-                                ),
-                                filled: true,
-                                fillColor: _usernameFocus.hasFocus
-                                    ? Colors.blue.shade50.withOpacity(0.3)
-                                    : Colors.grey.shade50,
-                                contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 16,
-                                  horizontal: 20,
-                                ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Username is required';
+                                  }
+                                  return null;
+                                },
+                                onChanged: (value) {
+                                  setState(() {});
+                                },
                               ),
-                              onChanged: (value) {
-                                setState(() {});
-                              },
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 20),
-                        
-                        AnimatedBuilder(
-                          animation: _passwordFieldAnimation,
-                          builder: (context, child) {
-                            return Transform.translate(
-                              offset: Offset(300 * (1 - _passwordFieldAnimation.value), 0),
-                              child: Opacity(
-                                opacity: _passwordFieldAnimation.value,
-                                child: child,
-                              ),
-                            );
-                          },
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            transform: Matrix4.translationValues(
-                              _passwordFocus.hasFocus ? 0 : _errorShakeAnimation,
-                              0,
-                              0,
-                            ),
-                            child: TextField(
-                              controller: _passwordController,
-                              focusNode: _passwordFocus,
-                              obscureText: _obscurePassword,
-                              decoration: InputDecoration(
-                                labelText: 'Password',
-                                labelStyle: TextStyle(
-                                  color: _passwordFocus.hasFocus
-                                      ? const Color(0xFF5A8ED0)
-                                      : Colors.grey.shade600,
+                          const SizedBox(height: 20),
+                          
+                          AnimatedBuilder(
+                            animation: _passwordFieldAnimation,
+                            builder: (context, child) {
+                              return Transform.translate(
+                                offset: Offset(300 * (1 - _passwordFieldAnimation.value), 0),
+                                child: Opacity(
+                                  opacity: _passwordFieldAnimation.value,
+                                  child: child,
                                 ),
-                                prefixIcon: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 200),
-                                  padding: EdgeInsets.all(_passwordFocus.hasFocus ? 0 : 0),
-                                  child: Icon(
-                                    Icons.lock_outline,
+                              );
+                            },
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              transform: Matrix4.translationValues(
+                                _passwordFocus.hasFocus ? 0 : _errorShakeAnimation,
+                                0,
+                                0,
+                              ),
+                              child: TextFormField(
+                                controller: _passwordController,
+                                focusNode: _passwordFocus,
+                                obscureText: _obscurePassword,
+                                decoration: InputDecoration(
+                                  labelText: 'Password',
+                                  labelStyle: TextStyle(
                                     color: _passwordFocus.hasFocus
                                         ? const Color(0xFF5A8ED0)
-                                        : Colors.grey.shade400,
+                                        : Colors.grey.shade600,
                                   ),
-                                ),
-                                suffixIcon: IconButton(
-                                  icon: AnimatedSwitcher(
-                                    duration: const Duration(milliseconds: 300),
-                                    transitionBuilder: (Widget child, Animation<double> animation) {
-                                      return ScaleTransition(scale: animation, child: child);
-                                    },
+                                  prefixIcon: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 200),
+                                    padding: EdgeInsets.all(_passwordFocus.hasFocus ? 0 : 0),
                                     child: Icon(
-                                      _obscurePassword
-                                          ? Icons.visibility_off
-                                          : Icons.visibility,
-                                      key: ValueKey<bool>(_obscurePassword),
+                                      Icons.lock_outline,
                                       color: _passwordFocus.hasFocus
                                           ? const Color(0xFF5A8ED0)
-                                          : Colors.grey.shade600,
+                                          : Colors.grey.shade400,
                                     ),
                                   ),
-                                  onPressed: () {
-                                    setState(() {
-                                      _obscurePassword = !_obscurePassword;
-                                    });
-                                  },
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                  borderSide: BorderSide(color: Colors.grey.shade300),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                  borderSide: const BorderSide(
-                                    color: Color(0xFF5A8ED0),
-                                    width: 2,
+                                  suffixIcon: IconButton(
+                                    icon: AnimatedSwitcher(
+                                      duration: const Duration(milliseconds: 300),
+                                      transitionBuilder: (Widget child, Animation<double> animation) {
+                                        return ScaleTransition(scale: animation, child: child);
+                                      },
+                                      child: Icon(
+                                        _obscurePassword
+                                            ? Icons.visibility_off
+                                            : Icons.visibility,
+                                        key: ValueKey<bool>(_obscurePassword),
+                                        color: _passwordFocus.hasFocus
+                                            ? const Color(0xFF5A8ED0)
+                                            : Colors.grey.shade600,
+                                      ),
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        _obscurePassword = !_obscurePassword;
+                                      });
+                                    },
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(30),
+                                    borderSide: BorderSide(color: Colors.grey.shade300),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(30),
+                                    borderSide: const BorderSide(
+                                      color: Color(0xFF5A8ED0),
+                                      width: 2,
+                                    ),
+                                  ),
+                                  filled: true,
+                                  fillColor: _passwordFocus.hasFocus
+                                      ? Colors.blue.shade50.withOpacity(0.3)
+                                      : Colors.grey.shade50,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                    horizontal: 20,
                                   ),
                                 ),
-                                filled: true,
-                                fillColor: _passwordFocus.hasFocus
-                                    ? Colors.blue.shade50.withOpacity(0.3)
-                                    : Colors.grey.shade50,
-                                contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 16,
-                                  horizontal: 20,
-                                ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Password is required';
+                                  }
+                                  return null;
+                                },
+                                onChanged: (value) {
+                                  setState(() {});
+                                },
                               ),
-                              onChanged: (value) {
-                                setState(() {});
-                              },
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 16),
-                        
-                        AnimatedBuilder(
-                          animation: _optionsAnimation,
-                          builder: (context, child) {
-                            return Opacity(
-                              opacity: _optionsAnimation.value,
-                              child: Transform.translate(
-                                offset: Offset(0, 20 * (1 - _optionsAnimation.value)),
-                                child: child,
-                              ),
-                            );
-                          },
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: Checkbox(
-                                      value: _rememberMe,
-                                      activeColor: const Color(0xFF5A8ED0),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(4),
+                          const SizedBox(height: 16),
+                          
+                          AnimatedBuilder(
+                            animation: _optionsAnimation,
+                            builder: (context, child) {
+                              return Opacity(
+                                opacity: _optionsAnimation.value,
+                                child: Transform.translate(
+                                  offset: Offset(0, 20 * (1 - _optionsAnimation.value)),
+                                  child: child,
+                                ),
+                              );
+                            },
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: Checkbox(
+                                        value: _rememberMe,
+                                        activeColor: const Color(0xFF5A8ED0),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        onChanged: (value) {
+                                          setState(() {
+                                            _rememberMe = value ?? false;
+                                          });
+                                        },
                                       ),
-                                      onChanged: (value) {
-                                        setState(() {
-                                          _rememberMe = value ?? false;
-                                        });
-                                      },
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Nhớ mật khẩu',
+                                      style: TextStyle(
+                                        color: Colors.grey.shade700,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Chức năng đặt lại mật khẩu đang được phát triển'),
+                                        behavior: SnackBarBehavior.floating,
+                                      ),
+                                    );
+                                  },
+                                  style: ButtonStyle(
+                                    overlayColor: WidgetStateProperty.all(
+                                      Colors.blue.shade100.withOpacity(0.3),
+                                    ),
+                                    shape: WidgetStateProperty.all(
+                                      RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
                                     ),
                                   ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'Nhớ mật khẩu',
+                                  child: const Text(
+                                    'Quên mật khẩu?',
                                     style: TextStyle(
-                                      color: Colors.grey.shade700,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Chức năng đặt lại mật khẩu đang được phát triển'),
-                                      behavior: SnackBarBehavior.floating,
-                                    ),
-                                  );
-                                },
-                                style: ButtonStyle(
-                                  overlayColor: WidgetStateProperty.all(
-                                    Colors.blue.shade100.withOpacity(0.3),
-                                  ),
-                                  shape: WidgetStateProperty.all(
-                                    RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
+                                      color: Color(0xFF5A8ED0),
+                                      fontWeight: FontWeight.w500,
                                     ),
                                   ),
                                 ),
-                                child: const Text(
-                                  'Quên mật khẩu?',
-                                  style: TextStyle(
-                                    color: Color(0xFF5A8ED0),
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 30),
-                        
-                        AnimatedBuilder(
-                          animation: _buttonAnimation,
-                          builder: (context, child) {
-                            return Transform.scale(
-                              scale: _buttonAnimation.value,
-                              child: Opacity(
+                          const SizedBox(height: 30),
+                          
+                          AnimatedBuilder(
+                            animation: _buttonAnimation,
+                            builder: (context, child) {
+                              return Opacity(
                                 opacity: _buttonAnimation.value,
-                                child: child,
-                              ),
-                            );
-                          },
-                          child: Row(
-                            children: [
-                              
-                              Expanded(
-                                child: SizedBox(
-                                  height: 56,
+                                child: Transform.translate(
+                                  offset: Offset(0, 20 * (1 - _buttonAnimation.value)),
+                                  child: child,
+                                ),
+                              );
+                            },
+                            child: Row(
+                              children: [
+                                Expanded(
                                   child: ElevatedButton(
-                                    onPressed: _isLoading 
-                                      ? null 
-                                      : () async {
-                                          if (_usernameController.text.isEmpty || 
-                                              _passwordController.text.isEmpty) {
-                                            _showErrorAnimation();
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              const SnackBar(
-                                                content: Text('Vui lòng nhập đầy đủ thông tin đăng nhập'),
-                                                backgroundColor: Colors.red,
-                                              ),
+                                    onPressed: _isLoading
+                                        ? null
+                                        : () async {
+                                            // Validate login form
+                                            if (!_formKey.currentState!.validate()) {
+                                              _showErrorAnimation();
+                                              return;
+                                            }
+
+                                            // Dismiss keyboard
+                                            FocusScope.of(context).unfocus();
+                                            
+                                            setState(() {
+                                              _isLoading = true;
+                                            });
+                                            
+                                            // Attempt login
+                                            bool success = await authProvider.login(
+                                              _usernameController.text.trim(), 
+                                              _passwordController.text
                                             );
-                                            return;
-                                          }
-                                          
-                                          setState(() {
-                                            _isLoading = true;
-                                          });
-                                          
-                                          bool success = await authProvider.login(
-                                            _usernameController.text, 
-                                            _passwordController.text
-                                          );
-                                          
-                                          if (!context.mounted) return;
-                                          
-                                          setState(() {
-                                            _isLoading = false;
-                                          });
-                                          
-                                          if (success && authProvider.isAuthenticated) {
-                                            // Không cần hiển thị SnackBar vì sẽ chuyển màn hình ngay
+                                            
                                             if (!context.mounted) return;
                                             
-                                            // Chuyển sang màn hình chính
-                                            Navigator.of(context).pushAndRemoveUntil(
-                                              MaterialPageRoute(
-                                                builder: (context) => const HomeScreen(),
-                                              ),
-                                              (route) => false, // Xóa tất cả các màn hình trong stack
-                                            );
-                                          } else {
-                                            _showErrorAnimation();
+                                            setState(() {
+                                              _isLoading = false;
+                                            });
                                             
-                                            // Show error message
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(
-                                                content: Text(
-                                                  authProvider.error ?? 'Đăng nhập thất bại. Vui lòng kiểm tra thông tin đăng nhập.'
+                                            if (success && authProvider.isAuthenticated) {
+                                              // No need to show SnackBar as we're navigating away
+                                              if (!context.mounted) return;
+                                              
+                                              // Navigate to home screen
+                                              Navigator.of(context).pushAndRemoveUntil(
+                                                MaterialPageRoute(
+                                                  builder: (context) => const HomeScreen(),
                                                 ),
-                                                backgroundColor: Colors.red,
-                                              ),
-                                            );
-                                          }
-                                        },
+                                                (route) => false, // Remove all screens from stack
+                                              );
+                                            } else {
+                                              _showErrorAnimation();
+                                              
+                                              // Show error message
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    authProvider.error ?? 'Login failed. Please check your credentials.'
+                                                  ),
+                                                  backgroundColor: Colors.red,
+                                                ),
+                                              );
+                                            }
+                                          },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: const Color(0xFF1A3A6B),
                                       shape: RoundedRectangleBorder(
@@ -638,132 +648,132 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                         ),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(width: 16),
-                              
-                              Column(
-                                children: [
-                                  AnimatedBuilder(
-                                    animation: _fingerprintPulseAnimation,
-                                    builder: (context, child) {
-                                      return Container(
-                                        width: 56,
-                                        height: 56,
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFF93B5E1).withOpacity(0.2),
-                                          shape: BoxShape.circle,
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: const Color(0xFF1A3A6B).withOpacity(
-                                                0.3 * math.sin(_fingerprintPulseAnimation.value * math.pi),
+                                const SizedBox(width: 16),
+                                
+                                Column(
+                                  children: [
+                                    AnimatedBuilder(
+                                      animation: _fingerprintPulseAnimation,
+                                      builder: (context, child) {
+                                        return Container(
+                                          width: 56,
+                                          height: 56,
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFF93B5E1).withOpacity(0.2),
+                                            shape: BoxShape.circle,
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: const Color(0xFF1A3A6B).withOpacity(
+                                                  0.3 * math.sin(_fingerprintPulseAnimation.value * math.pi),
+                                                ),
+                                                blurRadius: 10 * _fingerprintPulseAnimation.value,
+                                                spreadRadius: 2 * _fingerprintPulseAnimation.value,
                                               ),
-                                              blurRadius: 10 * _fingerprintPulseAnimation.value,
-                                              spreadRadius: 2 * _fingerprintPulseAnimation.value,
-                                            ),
-                                          ],
-                                        ),
-                                        child: IconButton(
-                                          icon: const Icon(
-                                            Icons.fingerprint,
-                                            size: 30,
-                                            color: Color(0xFF1A3A6B),
+                                            ],
                                           ),
-                                          onPressed: () {
-                                            
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              const SnackBar(
-                                                content: Text('Tính năng đăng nhập bằng sinh trắc học đang được phát triển'),
-                                                behavior: SnackBarBehavior.floating,
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                  const SizedBox(height: 4),
-                                  const Text(
-                                    'Vân tay',
-                                    style: TextStyle(
-                                      color: Color(0xFF1A3A6B),
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 30),
-                        
-                        AnimatedBuilder(
-                          animation: _registerAnimation,
-                          builder: (context, child) {
-                            return Opacity(
-                              opacity: _registerAnimation.value,
-                              child: Transform.translate(
-                                offset: Offset(0, 20 * (1 - _registerAnimation.value)),
-                                child: child,
-                              ),
-                            );
-                          },
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                "Chưa có tài khoản? ",
-                                style: TextStyle(color: Colors.grey.shade600),
-                              ),
-                              GestureDetector(
-                                onTap: () async {
-                                  
-                                  await _animationController.reverse();
-                                  
-                                  if (!context.mounted) return;
-                                  
-                                  Navigator.push(
-                                    context, 
-                                    PageRouteBuilder(
-                                      pageBuilder: (context, animation, secondaryAnimation) => const RegisterScreen(),
-                                      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                        var begin = const Offset(1.0, 0.0);
-                                        var end = Offset.zero;
-                                        var curve = Curves.easeInOut;
-                                        var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                                        return SlideTransition(position: animation.drive(tween), child: child);
+                                          child: IconButton(
+                                            icon: const Icon(
+                                              Icons.fingerprint,
+                                              size: 30,
+                                              color: Color(0xFF1A3A6B),
+                                            ),
+                                            onPressed: () {
+                                              
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                const SnackBar(
+                                                  content: Text('Tính năng đăng nhập bằng sinh trắc học đang được phát triển'),
+                                                  behavior: SnackBarBehavior.floating,
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        );
                                       },
                                     ),
-                                  ).then((_) {
+                                    const SizedBox(height: 4),
+                                    const Text(
+                                      'Vân tay',
+                                      style: TextStyle(
+                                        color: Color(0xFF1A3A6B),
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 30),
+                          
+                          AnimatedBuilder(
+                            animation: _registerAnimation,
+                            builder: (context, child) {
+                              return Opacity(
+                                opacity: _registerAnimation.value,
+                                child: Transform.translate(
+                                  offset: Offset(0, 20 * (1 - _registerAnimation.value)),
+                                  child: child,
+                                ),
+                              );
+                            },
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  "Chưa có tài khoản? ",
+                                  style: TextStyle(color: Colors.grey.shade600),
+                                ),
+                                GestureDetector(
+                                  onTap: () async {
                                     
-                                    if (mounted) {
-                                      _animationController.forward();
-                                    }
-                                  });
-                                },
-                                child: TweenAnimationBuilder<double>(
-                                  tween: Tween<double>(begin: 1.0, end: 1.05),
-                                  duration: const Duration(milliseconds: 800),
-                                  curve: Curves.easeInOut,
-                                  builder: (context, value, child) {
-                                    return Transform.scale(
-                                      scale: value,
-                                      child: child,
-                                    );
+                                    await _animationController.reverse();
+                                    
+                                    if (!context.mounted) return;
+                                    
+                                    Navigator.push(
+                                      context, 
+                                      PageRouteBuilder(
+                                        pageBuilder: (context, animation, secondaryAnimation) => const RegisterScreen(),
+                                        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                          var begin = const Offset(1.0, 0.0);
+                                          var end = Offset.zero;
+                                          var curve = Curves.easeInOut;
+                                          var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                                          return SlideTransition(position: animation.drive(tween), child: child);
+                                        },
+                                      ),
+                                    ).then((_) {
+                                      
+                                      if (mounted) {
+                                        _animationController.forward();
+                                      }
+                                    });
                                   },
-                                  child: const Text(
-                                    'Đăng ký',
-                                    style: TextStyle(
-                                      color: Color(0xFF5A8ED0),
-                                      fontWeight: FontWeight.bold,
+                                  child: TweenAnimationBuilder<double>(
+                                    tween: Tween<double>(begin: 1.0, end: 1.05),
+                                    duration: const Duration(milliseconds: 800),
+                                    curve: Curves.easeInOut,
+                                    builder: (context, value, child) {
+                                      return Transform.scale(
+                                        scale: value,
+                                        child: child,
+                                      );
+                                    },
+                                    child: const Text(
+                                      'Đăng ký',
+                                      style: TextStyle(
+                                        color: Color(0xFF5A8ED0),
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),

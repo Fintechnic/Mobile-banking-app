@@ -308,7 +308,7 @@ class _TransactionDashboardState extends State<TransactionDashboard>
                   const SizedBox(height: 20),
 
                   // Bar Chart
-                  SizedBox(
+                  const SizedBox(
                     height: 200,
                     child: BarChartWidget(),
                   ),

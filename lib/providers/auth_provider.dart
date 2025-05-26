@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/api_service.dart';
 import '../models/auth_response.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart' as dotenv;
 
 
 class AuthProvider extends ChangeNotifier {
@@ -40,6 +39,7 @@ class AuthProvider extends ChangeNotifier {
         }
       }
     } catch (e) {
+      debugPrint("Auth status check error: $e");
       error = e.toString();
       await logout();
     } finally {
@@ -55,16 +55,22 @@ class AuthProvider extends ChangeNotifier {
       error = null;
       notifyListeners();
 
+      if (username.isEmpty || password.isEmpty) {
+        error = "Username and password cannot be empty";
+        return false;
+      }
+
       final response = await _authService.login(username, password);
       
       if (response != null) {
         _handleAuthSuccess(response);
         return true;
       } else {
-        error = 'Login failed';
+        error = 'Login failed. Please check your username and password.';
         return false;
       }
     } catch (e) {
+      debugPrint("Login provider error: $e");
       error = e.toString();
       return false;
     } finally {
@@ -80,6 +86,28 @@ class AuthProvider extends ChangeNotifier {
       error = null;
       notifyListeners();
 
+      // Basic validation
+      if (username.isEmpty || password.isEmpty || email.isEmpty || phoneNumber.isEmpty) {
+        error = "All fields are required";
+        return false;
+      }
+
+      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
+        error = "Please enter a valid email address";
+        return false;
+      }
+      
+      // Phone number validation
+      if (!phoneNumber.startsWith('0') || phoneNumber.length < 10 || phoneNumber.length > 11) {
+        error = "Please enter a valid phone number (starting with 0)";
+        return false;
+      }
+      
+      if (!RegExp(r'^[0-9]+$').hasMatch(phoneNumber)) {
+        error = "Phone number should only contain digits";
+        return false;
+      }
+
       final response = await _authService.register(
         username: username,
         password: password,
@@ -88,12 +116,33 @@ class AuthProvider extends ChangeNotifier {
       );
       
       if (response != null) {
+        // Check if there's an error in the response
+        if (response.containsKey("error")) {
+          error = response["error"];
+          
+          // If we have a specific field with an error, enhance the error message
+          if (response.containsKey("field")) {
+            String field = response["field"];
+            if (field == "phoneNumber") {
+              error = "Phone number validation failed: $error";
+            } else if (field == "email") {
+              error = "Email validation failed: $error";
+            } else if (field == "username") {
+              error = "Username validation failed: $error";
+            } else if (field == "password") {
+              error = "Password validation failed: $error";
+            }
+          }
+          
+          return false;
+        }
         return true;
       } else {
-        error = 'Registration failed';
+        error = 'Registration failed. Please check your information and try again.';
         return false;
       }
     } catch (e) {
+      debugPrint("Register provider error: $e");
       error = e.toString();
       return false;
     } finally {
@@ -112,6 +161,7 @@ class AuthProvider extends ChangeNotifier {
         await _authService.logout(username!);
       }
     } catch (e) {
+      debugPrint("Logout provider error: $e");
       error = e.toString();
     } finally {
       // Clear all auth data regardless of logout API success
@@ -144,6 +194,7 @@ class AuthProvider extends ChangeNotifier {
         error = 'Failed to get user data';
       }
     } catch (e) {
+      debugPrint("Get user data provider error: $e");
       error = e.toString();
     } finally {
       isLoading = false;
@@ -160,6 +211,7 @@ class AuthProvider extends ChangeNotifier {
 
       return await _authService.resetPassword(email);
     } catch (e) {
+      debugPrint("Reset password provider error: $e");
       error = e.toString();
       return false;
     } finally {
@@ -177,6 +229,7 @@ class AuthProvider extends ChangeNotifier {
 
       return await _authService.verifyResetToken(token);
     } catch (e) {
+      debugPrint("Verify reset token provider error: $e");
       error = e.toString();
       return false;
     } finally {
@@ -194,6 +247,7 @@ class AuthProvider extends ChangeNotifier {
 
       return await _authService.setNewPassword(token, newPassword);
     } catch (e) {
+      debugPrint("Set new password provider error: $e");
       error = e.toString();
       return false;
     } finally {
@@ -220,13 +274,19 @@ class AuthProvider extends ChangeNotifier {
 
   /// Handle successful authentication
   void _handleAuthSuccess(Map<String, dynamic> response) {
-    final authResponse = AuthResponse.fromJson(response);
-    token = authResponse.token;
-    role = authResponse.role;
-    username = authResponse.username;
-    userId = authResponse.userId;
-    userData = response;
-    isAuthenticated = true;
-    error = null;
+    try {
+      final authResponse = AuthResponse.fromJson(response);
+      token = authResponse.token;
+      role = authResponse.role;
+      username = authResponse.username;
+      userId = authResponse.userId;
+      userData = response;
+      isAuthenticated = true;
+      error = null;
+    } catch (e) {
+      debugPrint("Auth response parsing error: $e");
+      error = "Failed to parse authentication response";
+      isAuthenticated = false;
+    }
   }
 }
