@@ -7,7 +7,6 @@ class BankingDataProvider extends ChangeNotifier {
   final ApiService _apiService = ApiService();
   final NumberFormat _currencyFormatter = NumberFormat('#,###', 'en_US');
   String _balance = '0';
-  String _paylaterAmount = '0';
   String _username = '';
   List<QuickAccessItem> _quickAccessItems = [];
   List<PromoItem> _promos = [];
@@ -16,7 +15,6 @@ class BankingDataProvider extends ChangeNotifier {
   String _errorMessage = '';
 
   String get balance => _balance;
-  String get paylaterAmount => _paylaterAmount;
   String get username => _username;
   List<QuickAccessItem> get quickAccessItems => _quickAccessItems;
   List<PromoItem> get promos => _promos;
@@ -40,7 +38,7 @@ class BankingDataProvider extends ChangeNotifier {
       );
 
       if (!response.containsKey('error')) {
-        // Parse username, balance and paylater data
+        // Parse username, balance data
         _username = response['username'] ?? '';
         
         // Format balance with VND suffix if it's a number
@@ -54,8 +52,6 @@ class BankingDataProvider extends ChangeNotifier {
         } else {
           _balance = '0 VND';
         }
-        
-        _paylaterAmount = response['paylater'] ?? '0 VND';
         
         // Initialize quick access items
         _initializeQuickAccessItems();
@@ -75,7 +71,6 @@ class BankingDataProvider extends ChangeNotifier {
         // If there's an API error, use mock data
         _username = 'User';
         _balance = '1.000.000 VND';
-        _paylaterAmount = '500.000 VND';
         _initializeQuickAccessItems();
         _initializePromos();
         
@@ -89,7 +84,6 @@ class BankingDataProvider extends ChangeNotifier {
       // If there's an exception, use mock data and show error
       _username = 'User';
       _balance = '1.000.000 VND';
-      _paylaterAmount = '500.000 VND';
       _initializeQuickAccessItems();
       _initializePromos();
       
@@ -104,11 +98,11 @@ class BankingDataProvider extends ChangeNotifier {
     _quickAccessItems = [
       QuickAccessItem(type: "chat", label: "Top-up", isMultiLine: false),
       QuickAccessItem(type: "transfer", label: "Transfer", isMultiLine: false),
+      QuickAccessItem(type: "withdraw", label: "Withdraw", isMultiLine: false),
       QuickAccessItem(type: "ticket", label: "Ticket", isMultiLine: false),
       QuickAccessItem(
           type: "piggy", label: "Saving\nWallet", isMultiLine: true),
       QuickAccessItem(type: "data", label: "Datapack", isMultiLine: false),
-      QuickAccessItem(type: "wallet", label: "Paylater", isMultiLine: false),
       QuickAccessItem(type: "bill", label: "Bill\nPayment", isMultiLine: true),
       QuickAccessItem(type: "loan", label: "Loan\nPayment", isMultiLine: true),
     ];

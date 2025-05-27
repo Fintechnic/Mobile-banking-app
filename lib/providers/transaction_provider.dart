@@ -29,13 +29,13 @@ class TransactionProvider extends ChangeNotifier {
   }
   
   /// Chuyển tiền
-  Future<bool> transferMoney(String phoneNumber, double amount, String description) async {
+  Future<bool> transferMoney(String phoneNumber, double amount, {String? description}) async {
     try {
       isLoading = true;
       error = null;
       notifyListeners();
       
-      final success = await _transactionService.transferMoney(phoneNumber, amount, description);
+      final success = await _transactionService.transferMoney(phoneNumber, amount, description: description);
       
       if (success) {
         // Cập nhật lịch sử giao dịch

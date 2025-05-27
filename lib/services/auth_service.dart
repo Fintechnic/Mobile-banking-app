@@ -72,7 +72,7 @@ class AuthService {
         if (match != null && match.groupCount >= 2) {
           final field = match.group(1);
           final message = match.group(2);
-          return {
+          return { 
             "error": message ?? "Validation error",
             "field": field ?? "unknown",
           };

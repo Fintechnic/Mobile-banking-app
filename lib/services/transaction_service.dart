@@ -5,17 +5,22 @@ class TransactionService {
   final ApiService _apiService = ApiService();
 
   /// Chuyển tiền cho người dùng khác qua số điện thoại
-  Future<bool> transferMoney(String phoneNumber, double amount, String description) async {
+  Future<bool> transferMoney(String phoneNumber, double amount, {String? description}) async {
     final token = await _apiService.getToken();
     if (token == null) return false;
     
+    final Map<String, dynamic> requestBody = {
+      "phoneNumber": phoneNumber,
+      "amount": amount,
+    };
+    
+    if (description != null) {
+      requestBody["description"] = description;
+    }
+    
     final response = await _apiService.post(
       "/api/transaction/transfer",
-      {
-        "phoneNumber": phoneNumber,
-        "amount": amount,
-        "description": description
-      },
+      requestBody,
       token: token
     );
 
@@ -85,5 +90,19 @@ class TransactionService {
 
     debugPrint("Filter Transactions Response: $response");
     return response["data"] ?? [];
+  }
+
+  // Withdraw money from user's wallet
+  Future<Map<String, dynamic>> withdraw(double amount, {String? token}) async {
+    try {
+      final response = await _apiService.post(
+        '/api/transaction/withdraw',
+        {'amount': amount},
+        token: token,
+      );
+      return response;
+    } catch (e) {
+      rethrow;
+    }
   }
 }

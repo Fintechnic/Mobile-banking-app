@@ -32,101 +32,60 @@ class PaymentDetailsScreen extends StatefulWidget {
   State<PaymentDetailsScreen> createState() => _PaymentDetailsScreenState();
 }
 
-class _PaymentDetailsScreenState extends State<PaymentDetailsScreen> with SingleTickerProviderStateMixin {
-  
+class _PaymentDetailsScreenState extends State<PaymentDetailsScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
-  
-  
-  late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
-  late Animation<double> _scaleAnimation;
-  
-  
+
   late Animation<double> _successCardAnimation;
   late Animation<double> _transactionDetailsAnimation;
   late Animation<double> _userDetailsAnimation;
   late Animation<double> _noteAnimation;
   late Animation<double> _thankYouAnimation;
-  
-  
+
   late Animation<double> _checkIconAnimation;
-  
-  
-  late Animation<double> _amountAnimation;
-  
+
   @override
   void initState() {
     super.initState();
-    
-    
+
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
     );
-    
-    
-    _fadeAnimation = CurvedAnimation(
-      parent: _animationController,
-      curve: const Interval(0.0, 0.5, curve: Curves.easeIn),
-    );
-    
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
-    ));
-    
-    _scaleAnimation = Tween<double>(
-      begin: 0.8,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
-    ));
-    
-    
+
     _successCardAnimation = CurvedAnimation(
       parent: _animationController,
       curve: const Interval(0.0, 0.3, curve: Curves.easeOut),
     );
-    
+
     _transactionDetailsAnimation = CurvedAnimation(
       parent: _animationController,
       curve: const Interval(0.15, 0.45, curve: Curves.easeOut),
     );
-    
+
     _userDetailsAnimation = CurvedAnimation(
       parent: _animationController,
       curve: const Interval(0.3, 0.6, curve: Curves.easeOut),
     );
-    
+
     _noteAnimation = CurvedAnimation(
       parent: _animationController,
       curve: const Interval(0.45, 0.75, curve: Curves.easeOut),
     );
-    
+
     _thankYouAnimation = CurvedAnimation(
       parent: _animationController,
       curve: const Interval(0.6, 0.9, curve: Curves.easeOut),
     );
-    
-   
+
     _checkIconAnimation = CurvedAnimation(
       parent: _animationController,
       curve: const Interval(0.7, 1.0, curve: Curves.elasticOut),
     );
-    
-    _amountAnimation = CurvedAnimation(
-      parent: _animationController,
-      curve: const Interval(0.1, 0.4, curve: Curves.easeOutBack),
-    );
-    
-    
+
     _animationController.forward();
   }
-  
+
   @override
   void dispose() {
     _animationController.dispose();
@@ -162,7 +121,6 @@ class _PaymentDetailsScreenState extends State<PaymentDetailsScreen> with Single
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              
               AnimatedBuilder(
                 animation: _successCardAnimation,
                 builder: (context, child) {
@@ -183,7 +141,7 @@ class _PaymentDetailsScreenState extends State<PaymentDetailsScreen> with Single
                     border: Border.all(color: Colors.green.shade200),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.green.withOpacity(0.1),
+                        color: Colors.green.withAlpha(26),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
@@ -199,7 +157,6 @@ class _PaymentDetailsScreenState extends State<PaymentDetailsScreen> with Single
                         ),
                       ),
                       const SizedBox(height: 4),
-                      
                       TweenAnimationBuilder<double>(
                         tween: Tween<double>(begin: 0, end: 100000),
                         duration: const Duration(milliseconds: 1500),
@@ -218,15 +175,13 @@ class _PaymentDetailsScreenState extends State<PaymentDetailsScreen> with Single
                   ),
                 ),
               ),
-
               const SizedBox(height: 16),
-
-              
               AnimatedBuilder(
                 animation: _transactionDetailsAnimation,
                 builder: (context, child) {
                   return Transform.translate(
-                    offset: Offset(0, 50 * (1 - _transactionDetailsAnimation.value)),
+                    offset: Offset(
+                        0, 50 * (1 - _transactionDetailsAnimation.value)),
                     child: Opacity(
                       opacity: _transactionDetailsAnimation.value,
                       child: child,
@@ -241,7 +196,7 @@ class _PaymentDetailsScreenState extends State<PaymentDetailsScreen> with Single
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withAlpha(13),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
@@ -271,9 +226,7 @@ class _PaymentDetailsScreenState extends State<PaymentDetailsScreen> with Single
                   ),
                 ),
               ),
-
               const SizedBox(height: 16),
-
               AnimatedBuilder(
                 animation: _userDetailsAnimation,
                 builder: (context, child) {
@@ -293,7 +246,7 @@ class _PaymentDetailsScreenState extends State<PaymentDetailsScreen> with Single
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.red.withOpacity(0.05),
+                        color: Colors.red.withAlpha(13),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
@@ -301,7 +254,8 @@ class _PaymentDetailsScreenState extends State<PaymentDetailsScreen> with Single
                   ),
                   child: Column(
                     children: [
-                      _buildDetailRow('User\'s name', const Text('Nguyen Van A')),
+                      _buildDetailRow(
+                          'User\'s name', const Text('Nguyen Van A')),
                       const Divider(),
                       _buildDetailRow('Nickname', const Text('MessAI')),
                       const Divider(),
@@ -310,10 +264,7 @@ class _PaymentDetailsScreenState extends State<PaymentDetailsScreen> with Single
                   ),
                 ),
               ),
-
               const SizedBox(height: 16),
-
-              
               AnimatedBuilder(
                 animation: _noteAnimation,
                 builder: (context, child) {
@@ -330,7 +281,8 @@ class _PaymentDetailsScreenState extends State<PaymentDetailsScreen> with Single
                   children: [
                     const Text(
                       'Note',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                     const SizedBox(height: 8),
                     Container(
@@ -341,7 +293,7 @@ class _PaymentDetailsScreenState extends State<PaymentDetailsScreen> with Single
                         borderRadius: BorderRadius.circular(8),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withAlpha(13),
                             blurRadius: 5,
                             offset: const Offset(0, 2),
                           ),
@@ -352,10 +304,7 @@ class _PaymentDetailsScreenState extends State<PaymentDetailsScreen> with Single
                   ],
                 ),
               ),
-
               const SizedBox(height: 24),
-
-              
               AnimatedBuilder(
                 animation: _thankYouAnimation,
                 builder: (context, child) {
@@ -375,7 +324,7 @@ class _PaymentDetailsScreenState extends State<PaymentDetailsScreen> with Single
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.blue.withOpacity(0.2),
+                        color: Colors.blue.withAlpha(51),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
@@ -410,7 +359,6 @@ class _PaymentDetailsScreenState extends State<PaymentDetailsScreen> with Single
                           ),
                         ],
                       ),
-                      
                       AnimatedBuilder(
                         animation: _checkIconAnimation,
                         builder: (context, child) {
@@ -433,16 +381,15 @@ class _PaymentDetailsScreenState extends State<PaymentDetailsScreen> with Single
                   ),
                 ),
               ),
-              
-              
               const SizedBox(height: 30),
               AnimatedBuilder(
                 animation: _animationController,
                 builder: (context, child) {
                   const delay = 0.8;
-                  final value = (_animationController.value - delay) / (1 - delay);
+                  final value =
+                      (_animationController.value - delay) / (1 - delay);
                   final opacity = value.clamp(0.0, 1.0);
-                  
+
                   return Opacity(
                     opacity: opacity,
                     child: Transform.translate(
@@ -456,7 +403,6 @@ class _PaymentDetailsScreenState extends State<PaymentDetailsScreen> with Single
                     Expanded(
                       child: ElevatedButton.icon(
                         onPressed: () {
-                          
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text('Sharing payment details...'),
@@ -479,7 +425,6 @@ class _PaymentDetailsScreenState extends State<PaymentDetailsScreen> with Single
                     Expanded(
                       child: ElevatedButton.icon(
                         onPressed: () {
-                          
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text('Downloading receipt...'),
@@ -505,7 +450,6 @@ class _PaymentDetailsScreenState extends State<PaymentDetailsScreen> with Single
           ),
         ),
       ),
-      
       floatingActionButton: _buildPulsingFAB(),
     );
   }
@@ -517,7 +461,7 @@ class _PaymentDetailsScreenState extends State<PaymentDetailsScreen> with Single
         const delay = 0.9;
         final value = (_animationController.value - delay) / (1 - delay);
         final scale = value.clamp(0.0, 1.0);
-        
+
         return Transform.scale(
           scale: scale,
           child: TweenAnimationBuilder<double>(
@@ -533,7 +477,6 @@ class _PaymentDetailsScreenState extends State<PaymentDetailsScreen> with Single
             },
             child: FloatingActionButton(
               onPressed: () {
-                
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('Starting new transaction...'),

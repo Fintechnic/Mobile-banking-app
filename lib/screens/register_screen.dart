@@ -8,10 +8,10 @@ class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
   @override
-  _RegisterScreenState createState() => _RegisterScreenState();
+  RegisterScreenState createState() => RegisterScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen>
+class RegisterScreenState extends State<RegisterScreen>
     with SingleTickerProviderStateMixin {
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -153,15 +153,6 @@ class _RegisterScreenState extends State<RegisterScreen>
     return _hasMinLength && _hasUppercase && _hasNumber && _hasSpecialChar;
   }
 
-  bool get _canCreateAccount {
-    return _agreeToTerms &&
-        _isPasswordValid &&
-        _passwordsMatch &&
-        _fullNameController.text.isNotEmpty &&
-        _emailController.text.isNotEmpty &&
-        _phoneController.text.isNotEmpty;
-  }
-
   @override
   void dispose() {
     _fullNameController.dispose();
@@ -275,8 +266,8 @@ class _RegisterScreenState extends State<RegisterScreen>
                               return Opacity(
                                 opacity: _welcomeTextAnimation.value,
                                 child: Transform.translate(
-                                  offset: Offset(
-                                      0, 20 * (1 - _welcomeTextAnimation.value)),
+                                  offset: Offset(0,
+                                      20 * (1 - _welcomeTextAnimation.value)),
                                   child: child,
                                 ),
                               );
@@ -318,7 +309,8 @@ class _RegisterScreenState extends State<RegisterScreen>
                                 offset: Offset(
                                     300 *
                                         (1 -
-                                            _passwordRequirementsAnimation.value),
+                                            _passwordRequirementsAnimation
+                                                .value),
                                     0),
                                 child: Opacity(
                                   opacity: _passwordRequirementsAnimation.value,
@@ -334,7 +326,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                                 border: Border.all(color: Colors.grey.shade300),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.blue.withOpacity(0.05),
+                                    color: Colors.blue.withAlpha(13),
                                     blurRadius: 10,
                                     offset: const Offset(0, 4),
                                   ),
@@ -383,8 +375,8 @@ class _RegisterScreenState extends State<RegisterScreen>
                               return Opacity(
                                 opacity: _termsAnimation.value,
                                 child: Transform.translate(
-                                  offset:
-                                      Offset(0, 20 * (1 - _termsAnimation.value)),
+                                  offset: Offset(
+                                      0, 20 * (1 - _termsAnimation.value)),
                                   child: child,
                                 ),
                               );
@@ -429,7 +421,8 @@ class _RegisterScreenState extends State<RegisterScreen>
                               return Opacity(
                                 opacity: _buttonAnimation.value,
                                 child: Transform.translate(
-                                  offset: Offset(0, 20 * (1 - _buttonAnimation.value)),
+                                  offset: Offset(
+                                      0, 20 * (1 - _buttonAnimation.value)),
                                   child: child,
                                 ),
                               );
@@ -437,7 +430,8 @@ class _RegisterScreenState extends State<RegisterScreen>
                             child: SizedBox(
                               height: 56,
                               child: ElevatedButton(
-                                onPressed: _isLoading ? null : _handleRegistration,
+                                onPressed:
+                                    _isLoading ? null : _handleRegistration,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xFF1A3A6B),
                                   shape: RoundedRectangleBorder(
@@ -496,7 +490,8 @@ class _RegisterScreenState extends State<RegisterScreen>
                                     Navigator.pushReplacement(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => const LoginScreen(),
+                                        builder: (context) =>
+                                            const LoginScreen(),
                                       ),
                                     );
                                   },
@@ -572,7 +567,9 @@ class _RegisterScreenState extends State<RegisterScreen>
             return 'Phone number is required';
           }
           // Check that phone number starts with 0 and has correct length
-          if (!value.startsWith('0') || value.length < 10 || value.length > 11) {
+          if (!value.startsWith('0') ||
+              value.length < 10 ||
+              value.length > 11) {
             return 'Please enter a valid phone number (starting with 0)';
           }
           // Check that phone number contains only digits
@@ -735,7 +732,7 @@ class _RegisterScreenState extends State<RegisterScreen>
             ),
             filled: true,
             fillColor: focusNode.hasFocus
-                ? Colors.blue.shade50.withOpacity(0.3)
+                ? Colors.blue.shade50.withAlpha(76)
                 : Colors.grey.shade50,
             contentPadding: const EdgeInsets.symmetric(
               vertical: 16,
@@ -813,46 +810,48 @@ class _RegisterScreenState extends State<RegisterScreen>
     if (!_formKey.currentState!.validate()) {
       return;
     }
-    
+
     // Check terms agreement
     if (!_agreeToTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please agree to the Terms of Service and Privacy Policy'),
+          content:
+              Text('Please agree to the Terms of Service and Privacy Policy'),
           backgroundColor: Colors.red,
         ),
       );
       return;
     }
-    
+
     // Dismiss keyboard
     FocusScope.of(context).unfocus();
-    
+
     setState(() {
       _isLoading = true;
     });
-    
+
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    
+
     bool success = await authProvider.register(
       _fullNameController.text.trim(),
       _passwordController.text,
       _emailController.text.trim(),
       _phoneController.text.trim(),
     );
-    
+
+    if (!mounted) return;
+
     setState(() {
       _isLoading = false;
     });
-    
-    if (!context.mounted) return;
-    
+
     if (success) {
       _showSuccessDialog();
     } else {
       // Check if error message contains specific field errors
-      String errorMessage = authProvider.error ?? 'Registration failed. Please try again.';
-      
+      String errorMessage =
+          authProvider.error ?? 'Registration failed. Please try again.';
+
       // Highlight fields that have errors
       if (errorMessage.contains("phone number")) {
         _phoneFocus.requestFocus();
@@ -863,21 +862,23 @@ class _RegisterScreenState extends State<RegisterScreen>
       } else if (errorMessage.contains("password")) {
         _passwordFocus.requestFocus();
       }
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(errorMessage),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 5),
-          action: SnackBarAction(
-            label: 'OK',
-            textColor: Colors.white,
-            onPressed: () {
-              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-            },
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+            action: SnackBarAction(
+              label: 'OK',
+              textColor: Colors.white,
+              onPressed: () {
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              },
+            ),
           ),
-        ),
-      );
+        );
+      }
     }
   }
 
@@ -931,7 +932,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.green.withOpacity(0.3),
+                          color: Colors.green.withAlpha(77),
                           blurRadius: 10,
                           spreadRadius: 2,
                         ),

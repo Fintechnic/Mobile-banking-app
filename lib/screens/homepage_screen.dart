@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 import '../providers/auth_provider.dart';
 import '../providers/banking_data_provider.dart';
+import '../screens/transfer.dart';
+import '../screens/withdraw.dart';
 
 void main() {
   runApp(
@@ -191,7 +193,7 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildHeader(
       AuthProvider authProvider, BankingDataProvider bankingDataProvider) {
     // Get username from BankingDataProvider instead of AuthProvider
-    final username = bankingDataProvider.username.isNotEmpty 
+    final username = bankingDataProvider.username.isNotEmpty
         ? bankingDataProvider.username
         : authProvider.userData?['username'] ?? 'User';
 
@@ -210,7 +212,7 @@ class _HomeScreenState extends State<HomeScreen>
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withAlpha(26),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -232,7 +234,7 @@ class _HomeScreenState extends State<HomeScreen>
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
+                          color: Colors.black.withAlpha(26),
                           blurRadius: 4,
                           offset: const Offset(0, 2),
                         ),
@@ -351,86 +353,30 @@ class _HomeScreenState extends State<HomeScreen>
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withAlpha(26),
             blurRadius: 5,
             offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // MY BALANCE Section
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'MY BALANCE',
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  bankingDataProvider.balance,
-                  style: const TextStyle(
-                    color: Colors.black,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
+          const Text(
+            'MY BALANCE',
+            style: TextStyle(
+              color: Colors.grey,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
             ),
           ),
-          // Vertical Divider
-          Container(
-            height: 40,
-            width: 1,
-            color: Colors.grey.withOpacity(0.3),
-            margin: const EdgeInsets.symmetric(horizontal: 10),
-          ),
-          // PAYLATER Section
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(2),
-                      decoration: BoxDecoration(
-                        color: Colors.blue,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: const Icon(
-                        Icons.account_balance_wallet,
-                        size: 10,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(width: 5),
-                    const Text(
-                      'PAYLATER',
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  bankingDataProvider.paylaterAmount,
-                  style: const TextStyle(
-                    color: Colors.black,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
+          const SizedBox(height: 5),
+          Text(
+            bankingDataProvider.balance,
+            style: const TextStyle(
+              color: Colors.black,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ],
@@ -542,13 +488,15 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildQuickAccessItems(BankingDataProvider bankingDataProvider) {
+    const int firstRowCount = 4;
+
     return Column(
       children: [
         // First row of quick access items
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: bankingDataProvider.quickAccessItems
-              .sublist(0, 4)
+              .sublist(0, firstRowCount)
               .map((item) => _buildQuickAccessItem(
                     _buildCustomIcon(item.type, Icons.help_outline),
                     item.label,
@@ -561,7 +509,8 @@ class _HomeScreenState extends State<HomeScreen>
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: bankingDataProvider.quickAccessItems
-              .sublist(4, 8)
+              .sublist(
+                  firstRowCount, bankingDataProvider.quickAccessItems.length)
               .map((item) => _buildQuickAccessItem(
                     _buildCustomIcon(item.type, Icons.help_outline),
                     item.label,
@@ -610,6 +559,12 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ],
         );
+      case "withdraw":
+        return Icon(
+          Icons.account_balance_wallet_outlined,
+          color: Colors.blue.shade700,
+          size: 24,
+        );
       case "ticket":
         return CustomPaint(
           size: const Size(24, 24),
@@ -625,12 +580,6 @@ class _HomeScreenState extends State<HomeScreen>
         return CustomPaint(
           size: const Size(24, 24),
           painter: DatapackPainter(Colors.blue.shade700),
-        );
-      case "wallet":
-        return Icon(
-          Icons.account_balance_wallet_outlined,
-          color: Colors.blue.shade700,
-          size: 24,
         );
       case "bill":
         return Icon(
@@ -664,10 +613,23 @@ class _HomeScreenState extends State<HomeScreen>
       },
       child: GestureDetector(
         onTap: () {
-          // Handle Quick Access item tap with animation
+          // Handle navigation based on item label
+          if (label == "Transfer") {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const TransferScreen()),
+            );
+          } else if (label == "Withdraw") {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const WithdrawScreen()),
+            );
+          } else {
+            // Default behavior for other items
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Bạn đã chọn: $label')),
           );
+          }
         },
         child: SizedBox(
           width: 70, // Fixed width for all items
@@ -681,7 +643,7 @@ class _HomeScreenState extends State<HomeScreen>
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.blue.withOpacity(0.1),
+                      color: Colors.blue.withAlpha(26),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
@@ -839,7 +801,7 @@ class _HomeScreenState extends State<HomeScreen>
           borderRadius: BorderRadius.circular(10),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withAlpha(13),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -959,7 +921,7 @@ class _HomeScreenState extends State<HomeScreen>
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withAlpha(26),
             blurRadius: 10,
             offset: const Offset(0, -1),
           ),
@@ -1086,7 +1048,7 @@ class _HomeScreenState extends State<HomeScreen>
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.blue.withOpacity(0.3),
+                    color: Colors.blue.withAlpha(77),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
