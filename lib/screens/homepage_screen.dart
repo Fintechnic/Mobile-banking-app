@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 // import 'package:http/http.dart' as http;
 import 'package:shimmer/shimmer.dart';
 import '../providers/auth_provider.dart';
+import '../providers/banking_data_provider.dart';
 
 void main() {
   runApp(
@@ -40,91 +41,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// Provider to manage banking data
-class BankingDataProvider extends ChangeNotifier {
-  String _balance = '0';
-  String _paylaterAmount = '0';
-  List<QuickAccessItem> _quickAccessItems = [];
-  List<PromoItem> _promos = [];
-  bool _isLoading = true;
-  bool _hasError = false;
-  String _errorMessage = '';
-
-  String get balance => _balance;
-  String get paylaterAmount => _paylaterAmount;
-  List<QuickAccessItem> get quickAccessItems => _quickAccessItems;
-  List<PromoItem> get promos => _promos;
-  bool get isLoading => _isLoading;
-  bool get hasError => _hasError;
-  String get errorMessage => _errorMessage;
-
-  Future<void> fetchData() async {
-    _isLoading = true;
-    _hasError = false;
-    notifyListeners();
-
-    try {
-      // Simulate API call with delay
-      await Future.delayed(const Duration(seconds: 2));
-
-      // In a real app, you would fetch data from your API
-      // final response = await http.get(Uri.parse('https://your-api.com/banking-data'));
-      // if (response.statusCode == 200) {
-      //   final data = json.decode(response.body);
-      //   _balance = data['balance'];
-      //   _paylaterAmount = data['paylater'];
-      // } else {
-      //   throw Exception('Failed to load data');
-      // }
-
-      // Mock data for demonstration
-      _balance = '1.000.000 VND';
-      _paylaterAmount = '500.000 VND';
-      _initializeQuickAccessItems();
-      _initializePromos();
-
-      _isLoading = false;
-      notifyListeners();
-    } catch (e) {
-      _isLoading = false;
-      _hasError = true;
-      _errorMessage = e.toString();
-      notifyListeners();
-    }
-  }
-
-  void _initializeQuickAccessItems() {
-    _quickAccessItems = [
-      QuickAccessItem(type: "chat", label: "Top-up", isMultiLine: false),
-      QuickAccessItem(type: "transfer", label: "Transfer", isMultiLine: false),
-      QuickAccessItem(type: "ticket", label: "Ticket", isMultiLine: false),
-      QuickAccessItem(
-          type: "piggy", label: "Saving\nWallet", isMultiLine: true),
-      QuickAccessItem(type: "data", label: "Datapack", isMultiLine: false),
-      QuickAccessItem(type: "wallet", label: "Paylater", isMultiLine: false),
-      QuickAccessItem(type: "bill", label: "Bill\nPayment", isMultiLine: true),
-      QuickAccessItem(type: "loan", label: "Loan\nPayment", isMultiLine: true),
-    ];
-  }
-
-  void _initializePromos() {
-    _promos = [
-      PromoItem(
-        title: 'Giảm 50% phí chuyển tiền',
-        description:
-            'Áp dụng cho tất cả các giao dịch chuyển tiền đến hết 30/04/2025',
-        expiry: '30/04/2025',
-        backgroundColor: Colors.blue.shade50,
-      ),
-      PromoItem(
-        title: 'Hoàn tiền 10%',
-        description: 'Cho các giao dịch thanh toán hóa đơn lần đầu',
-        expiry: '15/05/2025',
-        backgroundColor: Colors.green.shade50,
-      ),
-    ];
-  }
-}
+// Provider definition moved to lib/providers/banking_data_provider.dart
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -273,8 +190,10 @@ class _HomeScreenState extends State<HomeScreen>
 
   Widget _buildHeader(
       AuthProvider authProvider, BankingDataProvider bankingDataProvider) {
-    // Get username from AuthProvider
-    final username = authProvider.userData?['username'] ?? 'Mr.A';
+    // Get username from BankingDataProvider instead of AuthProvider
+    final username = bankingDataProvider.username.isNotEmpty 
+        ? bankingDataProvider.username
+        : authProvider.userData?['username'] ?? 'User';
 
     return Container(
       padding: const EdgeInsets.only(top: 40, left: 20, right: 20, bottom: 20),
@@ -1190,32 +1109,6 @@ class _HomeScreenState extends State<HomeScreen>
       ),
     );
   }
-}
-
-class QuickAccessItem {
-  final String type;
-  final String label;
-  final bool isMultiLine;
-
-  QuickAccessItem({
-    required this.type,
-    required this.label,
-    required this.isMultiLine,
-  });
-}
-
-class PromoItem {
-  final String title;
-  final String description;
-  final String expiry;
-  final Color backgroundColor;
-
-  PromoItem({
-    required this.title,
-    required this.description,
-    required this.expiry,
-    required this.backgroundColor,
-  });
 }
 
 class TicketPainter extends CustomPainter {

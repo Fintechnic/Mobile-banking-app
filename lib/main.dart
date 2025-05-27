@@ -12,7 +12,6 @@ import 'package:fintechnic/screens/user_management.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:fintechnic/utils/package_wrapper.dart';
 
 // Import providers
 import 'package:fintechnic/providers/auth_provider.dart';
@@ -22,9 +21,11 @@ import 'package:fintechnic/providers/wallet_provider.dart';
 import 'package:fintechnic/providers/qrcode_provider.dart';
 import 'package:fintechnic/providers/user_provider.dart';
 import 'package:fintechnic/providers/stats_provider.dart';
+import 'package:fintechnic/providers/banking_data_provider.dart';
 
 // Import services and utils
 import 'package:fintechnic/services/api_service.dart';
+import 'package:fintechnic/utils/api_constants.dart';
 import 'package:fintechnic/utils/app_logger.dart';
 import 'package:fintechnic/utils/env_config.dart';
 import 'package:fintechnic/utils/network_utils.dart';
@@ -32,13 +33,11 @@ import 'package:fintechnic/utils/network_utils.dart';
 // Other screen imports
 import 'screens/bank_slip.dart';
 import 'screens/loan.dart';
-import 'screens/register_screen.dart';
 import 'screens/editprofile.dart';
 import 'screens/history.dart';
 import 'screens/notification.dart';
 import 'screens/paybill.dart';
 import 'screens/transfer.dart';
-import 'screens/splash_screen.dart';
 
 final appLogger = AppLogger();
 
@@ -46,6 +45,9 @@ Future<void> main() async {
   try {
     WidgetsFlutterBinding.ensureInitialized();
     await EnvConfig.load();
+    
+    // Load the API token from shared preferences
+    await ApiConstants.loadToken();
     
     final hasConnection = await NetworkUtils.checkConnection();
     if (!hasConnection) {
@@ -76,6 +78,7 @@ Future<void> main() async {
           ChangeNotifierProvider(create: (_) => QRCodeProvider()),
           ChangeNotifierProvider(create: (_) => UserProvider()),
           ChangeNotifierProvider(create: (_) => StatsProvider()),
+          ChangeNotifierProvider(create: (_) => BankingDataProvider()),
         ],
         child: MyApp(firstCamera: firstCamera),
       ),

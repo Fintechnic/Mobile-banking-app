@@ -96,7 +96,7 @@ class ApiService {
       );
       
       if (response.statusCode != null && response.statusCode! >= 400) {
-        return {'error': response.data.toString() ?? 'Request failed with status: ${response.statusCode}'};
+        return {'error': response.data?.toString() ?? 'Request failed with status: ${response.statusCode}'};
       }
       
       return response.data is Map<String, dynamic> 
@@ -193,7 +193,7 @@ class ApiService {
       );
       
       if (response.statusCode != null && response.statusCode! >= 400) {
-        return {'error': response.data.toString() ?? 'Request failed with status: ${response.statusCode}'};
+        return {'error': response.data?.toString() ?? 'Request failed with status: ${response.statusCode}'};
       }
       
       return response.data is Map<String, dynamic> 
@@ -220,7 +220,7 @@ class ApiService {
       );
       
       if (response.statusCode != null && response.statusCode! >= 400) {
-        return {'error': response.data.toString() ?? 'Request failed with status: ${response.statusCode}'};
+        return {'error': response.data?.toString() ?? 'Request failed with status: ${response.statusCode}'};
       }
       
       return response.data is Map<String, dynamic> 
