@@ -578,6 +578,12 @@
       "languageVersion": "3.2"
     },
     {
+      "name": "mobile_scanner",
+      "rootUri": "file:///C:/Users/phamc/AppData/Local/Pub/Cache/hosted/pub.dev/mobile_scanner-3.5.7",
+      "packageUri": "lib/",
+      "languageVersion": "2.17"
+    },
+    {
       "name": "mockito",
       "rootUri": "file:///C:/Users/phamc/AppData/Local/Pub/Cache/hosted/pub.dev/mockito-5.4.6",
       "packageUri": "lib/",
