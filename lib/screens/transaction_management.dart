@@ -386,7 +386,7 @@ class _TransactionManagementScreenState
                                 child: CustomPaint(
                                   painter: CircularChartPainter(
                                     segments: _categories
-                                        .map((category) => _ChartSegment(
+                                        .map((category) => ChartSegment(
                                               startAngle:
                                                   0, // Will be calculated in the painter
                                               endAngle: category.percentage,
@@ -647,7 +647,7 @@ class CategoryItem extends StatelessWidget {
 }
 
 class CircularChartPainter extends CustomPainter {
-  final List<_ChartSegment> segments;
+  final List<ChartSegment> segments;
   final double animationValue;
 
   CircularChartPainter({
@@ -694,12 +694,12 @@ class CircularChartPainter extends CustomPainter {
   }
 }
 
-class _ChartSegment {
+class ChartSegment {
   final double startAngle;
   final double endAngle;
   final Color color;
 
-  _ChartSegment({
+  ChartSegment({
     required this.startAngle,
     required this.endAngle,
     required this.color,
@@ -766,7 +766,7 @@ class CustomBarChart extends StatelessWidget {
                             right: 0,
                             child: Container(
                               height: 1,
-                              color: Colors.grey.withOpacity(0.1),
+                              color: Colors.grey.withValues(alpha: 0.1),
                             ),
                           );
                         }),

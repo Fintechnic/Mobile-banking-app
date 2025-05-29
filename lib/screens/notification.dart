@@ -275,7 +275,7 @@ class NotificationSettingsScreen extends StatefulWidget {
   const NotificationSettingsScreen({super.key});
 
   @override
-  _NotificationSettingsScreenState createState() =>
+  State<NotificationSettingsScreen> createState() =>
       _NotificationSettingsScreenState();
 }
 
@@ -322,12 +322,13 @@ class _NotificationSettingsScreenState
     });
 
     try {
-      final success =
-          await NotificationService.saveNotificationSettings(_categories);
+      final success = await NotificationService.saveNotificationSettings(_categories);
       setState(() {
         _isSaving = false;
         _hasChanges = false;
       });
+
+      if (!mounted) return;
 
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -348,6 +349,9 @@ class _NotificationSettingsScreenState
       setState(() {
         _isSaving = false;
       });
+      
+      if (!mounted) return;
+      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error: ${e.toString()}'),
@@ -633,7 +637,7 @@ class _NotificationSettingsScreenState
         borderRadius: BorderRadius.circular(12.0),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             offset: const Offset(0, 2),
             blurRadius: 6.0,
           ),
@@ -656,7 +660,7 @@ class _NotificationSettingsScreenState
                   padding: const EdgeInsets.only(left: 64.0),
                   child: Divider(
                     height: 1,
-                    color: Colors.grey.withOpacity(0.2),
+                    color: Colors.grey.withValues(alpha: 0.2),
                   ),
                 ),
             ],
@@ -680,7 +684,7 @@ class _NotificationSettingsScreenState
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: const Color(0xFF1A3A6B).withOpacity(0.1),
+              color: const Color(0xFF1A3A6B).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8.0),
             ),
             child: Icon(setting.icon, size: 20, color: const Color(0xFF1A3A6B)),
@@ -714,7 +718,7 @@ class _NotificationSettingsScreenState
               activeColor: Colors.white,
               activeTrackColor: const Color(0xFF1A3A6B),
               inactiveThumbColor: Colors.white,
-              inactiveTrackColor: Colors.grey.withOpacity(0.5),
+              inactiveTrackColor: Colors.grey.withValues(alpha: 0.5),
             ),
           ),
         ],

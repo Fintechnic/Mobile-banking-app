@@ -153,7 +153,7 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
                   onPressed: _isLoading ? null : _processWithdrawal,
                   style: ElevatedButton.styleFrom(
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(30),
                     ),
                   ),
                   child: _isLoading

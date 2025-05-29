@@ -254,13 +254,15 @@ class _BillPaymentScreenState extends State<BillPaymentScreen> {
 
   Future<void> _addNewBill(String serviceId) async {
     try {
-      
       _showLoadingDialog();
       
       final success = await BillService.addNewBill(serviceId);
       
-     
+      if (!mounted) return; // Check if widget is still mounted
+      
       Navigator.of(context).pop();
+      
+      if (!mounted) return; // Check if widget is still mounted
       
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -269,7 +271,6 @@ class _BillPaymentScreenState extends State<BillPaymentScreen> {
             backgroundColor: Color(0xFF1A3A6B),
           ),
         );
-        
         
         _loadBills();
       } else {
@@ -281,8 +282,11 @@ class _BillPaymentScreenState extends State<BillPaymentScreen> {
         );
       }
     } catch (e) {
+      if (!mounted) return; // Check if widget is still mounted
       
       Navigator.of(context).pop();
+      
+      if (!mounted) return; // Check if widget is still mounted
       
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -681,7 +685,7 @@ class _BillPaymentScreenState extends State<BillPaymentScreen> {
         borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 5,
             offset: const Offset(0, 2),
           ),
@@ -693,7 +697,7 @@ class _BillPaymentScreenState extends State<BillPaymentScreen> {
             width: 60,
             height: double.infinity,
             decoration: BoxDecoration(
-              color: const Color(0xFF1A3A6B).withOpacity(0.1),
+              color: const Color(0xFF1A3A6B).withValues(alpha: 0.1),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(10),
                 bottomLeft: Radius.circular(10),
@@ -769,7 +773,7 @@ class _BillPaymentScreenState extends State<BillPaymentScreen> {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 5,
                   offset: const Offset(0, 2),
                 ),
