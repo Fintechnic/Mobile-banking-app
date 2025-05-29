@@ -587,10 +587,17 @@ class _HomeScreenState extends State<HomeScreen>
           color: Colors.blue.shade700,
           size: 24,
         );
-      case "loan":
-        return CustomPaint(
-          size: const Size(24, 24),
-          painter: CoinStackPainter(Colors.blue.shade700),
+      case "qr":
+        return Icon(
+          Icons.qr_code,
+          color: Colors.blue.shade700,
+          size: 24,
+        );
+      case "qr_scan":
+        return Icon(
+          Icons.qr_code_scanner,
+          color: Colors.blue.shade700,
+          size: 24,
         );
       default:
         return Icon(
@@ -624,11 +631,17 @@ class _HomeScreenState extends State<HomeScreen>
               context,
               MaterialPageRoute(builder: (context) => const WithdrawScreen()),
             );
+          } else if (label == "Bill") {
+            Navigator.pushNamed(context, '/bill-payment');
+          } else if (label == "QR") {
+            Navigator.pushNamed(context, '/qr-show');
+          } else if (label == "Scan QR") {
+            Navigator.pushNamed(context, '/qr-scan');
           } else {
             // Default behavior for other items
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Bạn đã chọn: $label')),
-          );
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Bạn đã chọn: $label')),
+            );
           }
         },
         child: SizedBox(
@@ -932,7 +945,7 @@ class _HomeScreenState extends State<HomeScreen>
         children: [
           _buildNavItem(Icons.home, 'Home', true),
           _buildNavItem(Icons.history, 'History', false),
-          _buildCircleNavItem(Icons.qr_code_scanner, 'Account & Card'),
+          _buildCircleNavItem(Icons.qr_code_scanner),
           _buildNavItem(Icons.credit_card, 'Cards', false),
           _buildNavItem(Icons.settings, 'Setting', false),
         ],
@@ -969,63 +982,11 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget _buildCircleNavItem(IconData icon, String label) {
+  Widget _buildCircleNavItem(IconData icon) {
     return GestureDetector(
       onTap: () {
-        // Handle QR code button tap with animation
-        showModalBottomSheet(
-          context: context,
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          builder: (context) => Container(
-            height: 300,
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              children: [
-                const Text(
-                  'Quét mã QR',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade200,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.qr_code_scanner,
-                        size: 100,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    child: const Text('Đóng'),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
+        // Navigate directly to QR scanner screen
+        Navigator.pushNamed(context, '/qr-scan');
       },
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -1058,13 +1019,6 @@ class _HomeScreenState extends State<HomeScreen>
                 Icons.qr_code_scanner,
                 color: Colors.white,
               ),
-            ),
-          ),
-          const Text(
-            'Account & Card',
-            style: TextStyle(
-              fontSize: 10,
-              color: Colors.blue,
             ),
           ),
         ],
