@@ -104,7 +104,6 @@ class BankingDataProvider extends ChangeNotifier {
           type: "piggy", label: "Saving\nWallet", isMultiLine: true),
       QuickAccessItem(type: "data", label: "Datapack", isMultiLine: false),
       QuickAccessItem(type: "bill", label: "Bill\nPayment", isMultiLine: true),
-      QuickAccessItem(type: "loan", label: "Loan\nPayment", isMultiLine: true),
     ];
   }
 
