@@ -944,10 +944,21 @@ class _HomeScreenState extends State<HomeScreen>
     return InkWell(
       onTap: () {
         if (!isActive) {
-          // Simulate page navigation with animation
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Chuyển đến màn hình: $label')),
-          );
+          if (label == 'History') {
+            // Navigate to transaction history screen
+            Navigator.of(context).pushNamed('/transaction-history');
+          } else if (label == 'Cards') {
+            // Navigate to account and cards screen
+            Navigator.of(context).pushNamed('/account-card');
+          } else if (label == 'Setting') {
+            // Navigate to profile settings screen
+            Navigator.of(context).pushNamed('/profile-settings');
+          } else {
+            // Fallback for other menu items
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Chuyển đến màn hình: $label')),
+            );
+          }
         }
       },
       child: Column(
@@ -972,60 +983,8 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildCircleNavItem(IconData icon, String label) {
     return GestureDetector(
       onTap: () {
-        // Handle QR code button tap with animation
-        showModalBottomSheet(
-          context: context,
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          builder: (context) => Container(
-            height: 300,
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              children: [
-                const Text(
-                  'Quét mã QR',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade200,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.qr_code_scanner,
-                        size: 100,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    child: const Text('Đóng'),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
+        // Navigate to QR code scanner screen
+        Navigator.of(context).pushNamed('/qr-scan');
       },
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,

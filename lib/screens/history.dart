@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:fintechnic/services/transaction_service.dart';
+import 'package:fintechnic/models/transaction.dart' as app_transaction;
 
 void main() {
   runApp(const MyApp());
@@ -122,6 +124,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   bool _isCustomDateRange = false;
   bool _isLoading = false;
   String? _errorMessage;
+  final TransactionService _transactionService = TransactionService();
 
   final List<String> _periodOptions = [
     'Last 7 days',
@@ -143,61 +146,123 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   }
 
   Future<void> _fetchTransactions() async {
-    if (_startDate == null || _endDate == null) return;
-
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
 
     try {
-      const apiUrl = 'https://api.example.com/transactions';
-
-      final queryParams = {
-        'startDate': _startDate!.toIso8601String(),
-        'endDate': _endDate!.toIso8601String(),
-        'type': _selectedFilter != TransactionType.ALL
-            ? _selectedFilter.toString().split('.').last
-            : null,
-        'search':
-            _searchController.text.isNotEmpty ? _searchController.text : null,
-      };
-
-      queryParams.removeWhere((key, value) => value == null);
-
-      final uri = Uri.parse(apiUrl).replace(queryParameters: queryParams);
-
-      final response = await http.get(
-        uri,
-        headers: {
-          'Authorization': 'Bearer YOUR_ACCESS_TOKEN',
-          'Content-Type': 'application/json',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-
-        final transactions =
-            data.map((item) => Transaction.fromJson(item)).toList();
-
-        setState(() {
-          _transactions = transactions;
-          _isLoading = false;
-        });
+      debugPrint("Fetching transaction history...");
+      
+      List<dynamic> transactionData;
+      
+      // Use search API if search text is provided
+      if (_searchController.text.isNotEmpty) {
+        debugPrint("Searching for: ${_searchController.text}");
+        transactionData = await _transactionService.searchTransactionHistory(_searchController.text);
       } else {
+        transactionData = await _transactionService.getTransactionHistory();
+      }
+      
+      debugPrint("Transaction data received: ${transactionData.length} items");
+      
+      if (transactionData.isEmpty) {
+        debugPrint("Transaction data is empty");
         setState(() {
-          _errorMessage = 'Failed to load transactions: ${response.statusCode}';
+          _transactions = [];
           _isLoading = false;
         });
+        return;
       }
+
+      final List<Transaction> transactions = [];
+      
+      for (var i = 0; i < transactionData.length; i++) {
+        var item = transactionData[i];
+        debugPrint("Processing transaction item $i: $item");
+        try {
+          final appTransaction = app_transaction.Transaction.fromJson(item);
+          debugPrint("Successfully converted to app transaction: ${appTransaction.id}, ${appTransaction.type}, ${appTransaction.amount}");
+          
+          transactions.add(Transaction(
+            id: appTransaction.id.toString(),
+            title: appTransaction.type.toUpperCase(),
+            description: appTransaction.description ?? '',
+            amount: appTransaction.amount,
+            date: DateTime.parse(appTransaction.createdAt),
+            isExpense: ['withdraw', 'transfer'].contains(appTransaction.type.toLowerCase()),
+            category: appTransaction.type,
+            status: 'completed',
+            type: _mapTransactionType(appTransaction.type),
+          ));
+        } catch (e) {
+          debugPrint("Error processing transaction item $i: $e");
+          debugPrint("Problematic fields might be:");
+          _debugCheckField(item, 'id');
+          _debugCheckField(item, 'type');
+          _debugCheckField(item, 'transaction_code');
+          _debugCheckField(item, 'amount');
+          _debugCheckField(item, 'description');
+          _debugCheckField(item, 'createdAt');
+          _debugCheckField(item, 'created_at');
+        }
+      }
+      
+      debugPrint("Processed ${transactions.length} transactions successfully");
+      
+      if (transactions.isEmpty && transactionData.isNotEmpty) {
+        setState(() {
+          _errorMessage = 'Could not process any transactions. Check log for details.';
+          _isLoading = false;
+        });
+        _loadMockData();
+        return;
+      }
+      
+      final filteredTransactions = transactions.where((transaction) {
+        final isInDateRange = transaction.date.isAfter(_startDate!) && 
+                              transaction.date.isBefore(_endDate!.add(const Duration(days: 1)));
+                              
+        final matchesFilter = _selectedFilter == TransactionType.ALL || 
+                              transaction.type == _selectedFilter;
+        
+        // If we already searched on the server, no need to filter by search text again
+        return isInDateRange && matchesFilter;
+      }).toList();
+
+      debugPrint("Filtered to ${filteredTransactions.length} transactions");
+
+      setState(() {
+        _transactions = filteredTransactions;
+        _isLoading = false;
+      });
     } catch (e) {
+      debugPrint("Error in _fetchTransactions: $e");
       setState(() {
         _errorMessage = 'Error: ${e.toString()}';
         _isLoading = false;
       });
 
       _loadMockData();
+    }
+  }
+  
+  TransactionType _mapTransactionType(String apiType) {
+    switch (apiType.toLowerCase()) {
+      case 'deposit':
+        return TransactionType.DEPOSIT;
+      case 'withdraw':
+        return TransactionType.WITHDRAW;
+      case 'transfer':
+        return TransactionType.TRANSFER;
+      case 'bill_payment':
+        return TransactionType.BILL_PAYMENT;
+      case 'top_up':
+        return TransactionType.TOP_UP;
+      default:
+        return apiType.toLowerCase().contains('expense') 
+            ? TransactionType.EXPENSE 
+            : TransactionType.INCOME;
     }
   }
 
@@ -482,7 +547,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                     child: TextField(
                       controller: _searchController,
                       onChanged: (value) {
-                        setState(() {});
+                        // Don't refresh on every change
                       },
                       onSubmitted: (value) {
                         _fetchTransactions();
@@ -1225,5 +1290,15 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         ],
       ),
     );
+  }
+
+  // Helper method to debug field values
+  void _debugCheckField(Map<String, dynamic> item, String fieldName) {
+    try {
+      final value = item[fieldName];
+      debugPrint("  $fieldName = ${value} (${value?.runtimeType})");
+    } catch (e) {
+      debugPrint("  Error accessing $fieldName: $e");
+    }
   }
 }

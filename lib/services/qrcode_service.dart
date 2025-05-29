@@ -95,4 +95,25 @@ class QRCodeService {
       return null;
     }
   }
+  
+  /// Scan QR code data (new scanner endpoint)
+  Future<Map<String, dynamic>> scanQRCodeData(String qrData) async {
+    try {
+      final token = await _apiService.getToken();
+      if (token == null) return {"error": "No token found"};
+      
+      final response = await _apiService.post(
+        "/api/qrcode/scanner",
+        {"qrData": qrData},
+        token: token,
+      );
+      
+      debugPrint("Scan QR code response: $response");
+      
+      return response;
+    } catch (e) {
+      debugPrint("Scan QR code data error: $e");
+      return {"error": e.toString()};
+    }
+  }
 }

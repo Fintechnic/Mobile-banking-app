@@ -8,6 +8,18 @@ class TransactionProvider extends ChangeNotifier {
   bool isLoading = false;
   String? error;
   
+  // Filter parameters
+  String sortBy = "createdAt";
+  String sortDirection = "DESC";
+  int page = 0;
+  int size = 10;
+  String? selectedType;
+  String? selectedStatus;
+  double? minAmount;
+  double? maxAmount;
+  DateTime? startDate;
+  DateTime? endDate;
+  
   List<dynamic> get transactions => _transactions;
   
   /// Lấy lịch sử giao dịch
@@ -100,21 +112,45 @@ class TransactionProvider extends ChangeNotifier {
   
   /// Lọc giao dịch (Admin)
   Future<void> filterTransactions({
-    String sortBy = "createdAt",
-    String sortDirection = "DESC",
-    int page = 0,
-    int size = 10
+    String? sortBy,
+    String? sortDirection,
+    int? page,
+    int? size,
+    String? type,
+    String? status,
+    DateTime? startDate,
+    DateTime? endDate,
+    double? minAmount,
+    double? maxAmount
   }) async {
     try {
       isLoading = true;
       error = null;
       notifyListeners();
       
+      // Update filter parameters with new values if provided
+      this.sortBy = sortBy ?? this.sortBy;
+      this.sortDirection = sortDirection ?? this.sortDirection;
+      this.page = page ?? this.page;
+      this.size = size ?? this.size;
+      this.selectedType = type ?? this.selectedType;
+      this.selectedStatus = status ?? this.selectedStatus;
+      this.startDate = startDate ?? this.startDate;
+      this.endDate = endDate ?? this.endDate;
+      this.minAmount = minAmount ?? this.minAmount;
+      this.maxAmount = maxAmount ?? this.maxAmount;
+      
       _transactions = await _transactionService.filterTransactions(
-        sortBy: sortBy,
-        sortDirection: sortDirection,
-        page: page,
-        size: size
+        sortBy: this.sortBy,
+        sortDirection: this.sortDirection,
+        page: this.page,
+        size: this.size,
+        type: this.selectedType,
+        status: this.selectedStatus,
+        startDate: this.startDate,
+        endDate: this.endDate,
+        minAmount: this.minAmount,
+        maxAmount: this.maxAmount
       );
       
       isLoading = false;
@@ -124,6 +160,21 @@ class TransactionProvider extends ChangeNotifier {
       error = e.toString();
       notifyListeners();
     }
+  }
+  
+  /// Reset all filters to default values
+  void resetFilters() {
+    sortBy = "createdAt";
+    sortDirection = "DESC";
+    page = 0;
+    size = 10;
+    selectedType = null;
+    selectedStatus = null;
+    startDate = null;
+    endDate = null;
+    minAmount = null;
+    maxAmount = null;
+    notifyListeners();
   }
   
   /// Xóa thông báo lỗi
