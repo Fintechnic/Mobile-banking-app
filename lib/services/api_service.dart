@@ -12,7 +12,7 @@ class ApiService {
   final _logger = AppLogger();
 
   // Development configuration
-  static const defaultHost = '192.168.100.221'; // Android Emulator localhost
+  static const defaultHost = '192.168.31.181'; // Android Emulator localhost
   static const defaultPort = '8080';     // Spring Boot default port
   
   factory ApiService() {
@@ -86,10 +86,11 @@ class ApiService {
     await _storage.delete(key: 'token');
   }
 
-  Future<Map<String, dynamic>> get(String path, {String? token}) async {
+  Future<Map<String, dynamic>> get(String path, {String? token, Map<String, dynamic>? queryParams}) async {
     try {
       final response = await _dio.get(
         path,
+        queryParameters: queryParams,
         options: Options(
           headers: token != null ? {'Authorization': 'Bearer $token'} : null,
         ),

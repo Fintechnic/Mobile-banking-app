@@ -95,6 +95,58 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
     );
   }
 
+  Future<void> _processQRCode(String? qrData) async {
+    if (qrData == null || _isProcessing) return;
+    
+    setState(() {
+      _isProcessing = true;
+      _errorMessage = null;
+    });
+
+    try {
+      debugPrint("QR Code detected: $qrData");
+      final result = await _qrCodeService.scanQRCodeData(qrData);
+      
+      if (result.containsKey("error")) {
+        setState(() {
+          _errorMessage = result["error"];
+          _isProcessing = false;
+        });
+        _showErrorDialog(result["error"]);
+      } else {
+        // Navigate back with the result or to another page
+        Navigator.pop(context, result);
+      }
+    } catch (e) {
+      debugPrint("Error processing QR code: $e");
+      setState(() {
+        _errorMessage = e.toString();
+        _isProcessing = false;
+      });
+      _showErrorDialog(e.toString());
+    }
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Error'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              // Resume scanning
+              _controller.start();
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

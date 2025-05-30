@@ -957,10 +957,21 @@ class _HomeScreenState extends State<HomeScreen>
     return InkWell(
       onTap: () {
         if (!isActive) {
-          // Simulate page navigation with animation
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Chuyển đến màn hình: $label')),
-          );
+          if (label == 'History') {
+            // Navigate to transaction history screen
+            Navigator.of(context).pushNamed('/transaction-history');
+          } else if (label == 'Cards') {
+            // Navigate to account and cards screen
+            Navigator.of(context).pushNamed('/account-card');
+          } else if (label == 'Setting') {
+            // Navigate to profile settings screen
+            Navigator.of(context).pushNamed('/profile-settings');
+          } else {
+            // Fallback for other menu items
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Chuyển đến màn hình: $label')),
+            );
+          }
         }
       },
       child: Column(
