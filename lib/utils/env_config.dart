@@ -1,11 +1,12 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart' as dot_env;
+import 'package:flutter/foundation.dart';
 
 class EnvConfig {
   static Future<void> load() async {
     try {
       await dot_env.dotenv.load(fileName: '.env.development');
     } catch (e) {
-      print('Error loading .env file: $e');
+      debugPrint('Error loading .env file: $e');
     }
   }
 
@@ -13,7 +14,7 @@ class EnvConfig {
     try {
       return dot_env.dotenv.get(key, fallback: fallback);
     } catch (e) {
-      print('Error getting env value for $key: $e');
+      debugPrint('Error getting env value for $key: $e');
       return fallback;
     }
   }

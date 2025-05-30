@@ -1,54 +1,98 @@
 import 'package:flutter/material.dart';
-import 'package:camera/camera.dart';
-import 'package:flutter/services.dart';
-import 'package:fintechnic/services/qrcode_service.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  // Lấy danh sách camera có sẵn trên thiết bị
-  final cameras = await availableCameras();
-  // Sử dụng camera sau mặc định
-  final firstCamera = cameras.first;
-
-  runApp(QRScannerApp(camera: firstCamera));
-}
-
-class QRScannerApp extends StatelessWidget {
-  final CameraDescription camera;
-  const QRScannerApp({super.key, required this.camera});
-  @override
-  Widget build(BuildContext context) {
-    // Cài đặt chế độ toàn màn hình và chiều dọc
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
-    );
-
-    return MaterialApp(
-      theme: ThemeData.dark(),
-      home: QRScannerScreen(camera: camera),
-      debugShowCheckedModeBanner: false,
-    );
-  }
-}
+import '../services/qrcode_service.dart';
+import 'transfer.dart';
+import 'qr_screen.dart';
 
 class QRScannerScreen extends StatefulWidget {
-  final CameraDescription camera;
-  const QRScannerScreen({super.key, required this.camera});
+  const QRScannerScreen({super.key});
+
   @override
-  _QRScannerScreenState createState() => _QRScannerScreenState();
+  State<QRScannerScreen> createState() => _QRScannerScreenState();
 }
 
 class _QRScannerScreenState extends State<QRScannerScreen> {
-  final MobileScannerController _controller = MobileScannerController();
-  final QRCodeService _qrCodeService = QRCodeService();
   bool _isProcessing = false;
-  String? _errorMessage;
+  String? _error;
+  final QRCodeService _qrService = QRCodeService();
+  final ImagePicker _imagePicker = ImagePicker();
+  final MobileScannerController _scannerController = MobileScannerController();
 
   @override
   void dispose() {
-    _controller.dispose();
+    _scannerController.dispose();
     super.dispose();
+  }
+
+  Future<void> _processQRCode(String qrData) async {
+    if (_isProcessing) return;
+    
+    setState(() {
+      _isProcessing = true;
+      _error = null;
+    });
+    
+    try {
+      // Stop scanner while processing
+      await _scannerController.stop();
+      
+      // Process the QR code data
+      final result = await _qrService.scanQRCode(qrData);
+      
+      if (result != null) {
+        // Navigate to transfer screen with data
+        if (!mounted) return;
+        
+        Navigator.pushReplacement(
+          context, 
+          MaterialPageRoute(
+            builder: (context) => TransferScreen(
+              receiverId: result['userId'],
+              receiverPhone: result['phoneNumber'],
+              fromQRScan: true,
+            ),
+          ),
+        );
+      } else {
+        setState(() {
+          _error = "Invalid QR code";
+          _isProcessing = false;
+        });
+        await _scannerController.start();
+      }
+    } catch (e) {
+      setState(() {
+        _error = "Error processing QR code: $e";
+        _isProcessing = false;
+      });
+      await _scannerController.start();
+    }
+  }
+
+  Future<void> _scanFromGallery() async {
+    try {
+      final XFile? pickedFile = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+      );
+      
+      if (pickedFile != null) {
+        // In a real app, we would scan the QR code from the image
+        // For now, just simulate a scan
+        _processQRCode("encrypted_data_placeholder"); 
+      }
+    } catch (e) {
+      setState(() {
+        _error = "Error selecting image: $e";
+      });
+    }
+  }
+
+  void _showMyQRCode() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const QRCodeScreen()),
+    );
   }
 
   Future<void> _processQRCode(String? qrData) async {
@@ -109,43 +153,77 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // QR Scanner
+          // Real camera scanner
           MobileScanner(
-            controller: _controller,
-            onDetect: (BarcodeCapture capture) {
+            controller: _scannerController,
+            onDetect: (capture) {
               final List<Barcode> barcodes = capture.barcodes;
-              if (barcodes.isNotEmpty && !_isProcessing) {
-                final qrData = barcodes.first.rawValue;
-                _processQRCode(qrData);
-                // Pause scanning while processing
-                _controller.stop();
+              for (final barcode in barcodes) {
+                if (barcode.rawValue != null) {
+                  _processQRCode(barcode.rawValue!);
+                  return;
+                }
               }
             },
           ),
-          
-          // Top bar with back button - Thanh trên cùng với nút quay lại
+
+          // Scanner overlay
+          Center(
+            child: Container(
+              width: 250,
+              height: 250,
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Colors.green.shade300,
+                  width: 2,
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+
+          // Top bar with back button and QR generation button
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
-                    child: const Icon(
-                      Icons.arrow_back,
-                      color: Colors.white,
-                      size: 24,
-                    ),
+                  Row(
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Icon(
+                          Icons.arrow_back,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      const Text(
+                        'Scan QR code',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 16),
-                  const Text(
-                    'Scan QR code',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
+                  // QR Generation button
+                  ElevatedButton.icon(
+                    onPressed: _showMyQRCode,
+                    icon: const Icon(Icons.qr_code, size: 18),
+                    label: const Text('My QR'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     ),
                   ),
                 ],
@@ -153,60 +231,69 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
             ),
           ),
 
-          // Main QR frame - Khung quét QR chính
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // QR scanning frame - Khung quét QR
-                Container(
-                  width: 250,
-                  height: 250,
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: _isProcessing ? Colors.blue.shade300 : Colors.green.shade300,
-                      width: 2,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+          // Error message if any
+          if (_error != null)
+            Positioned(
+              top: 100,
+              left: 0,
+              right: 0,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                margin: const EdgeInsets.symmetric(horizontal: 50),
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.8),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                const SizedBox(height: 20),
-                // Instruction text - Hướng dẫn quét
+                child: Text(
+                  _error!,
+                  style: const TextStyle(color: Colors.white),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+
+          // Loading indicator when processing
+          if (_isProcessing)
+            const Center(
+              child: CircularProgressIndicator(color: Colors.white),
+            ),
+
+          // Instruction text
+          const Positioned(
+            bottom: 100,
+            left: 0,
+            right: 0,
+            child: Column(
+              children: [
                 Text(
-                  _isProcessing 
-                      ? 'Processing QR code...' 
-                      : 'Move the camera to the QR code',
-                  style: const TextStyle(
+                  'Move the camera to the QR code',
+                  style: TextStyle(
                     color: Colors.white,
                     fontSize: 14,
                     fontWeight: FontWeight.w400,
                   ),
                 ),
-                if (_errorMessage != null) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    'Error: $_errorMessage',
-                    style: TextStyle(
-                      color: Colors.red.shade300,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w400,
-                    ),
+                SizedBox(height: 8),
+                Text(
+                  'to scan it',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w400,
                   ),
-                ],
+                ),
               ],
             ),
           ),
 
-          // Bottom option - Tùy chọn phía dưới
+          // Bottom option
           Positioned(
             bottom: 40,
             left: 0,
             right: 0,
             child: Center(
               child: TextButton.icon(
-                onPressed: _isProcessing ? null : () {
-                  // Handle gallery picking
-                },
+                onPressed: _scanFromGallery,
                 icon: const Icon(
                   Icons.photo_library_outlined,
                   color: Colors.white,
@@ -217,21 +304,14 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 14,
-                    fontWeight: FontWeight.w400,
                   ),
+                ),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 ),
               ),
             ),
           ),
-          
-          // Loading indicator
-          if (_isProcessing)
-            Container(
-              color: Colors.black.withOpacity(0.3),
-              child: const Center(
-                child: CircularProgressIndicator(),
-              ),
-            ),
         ],
       ),
     );

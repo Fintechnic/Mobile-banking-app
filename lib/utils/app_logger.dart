@@ -11,29 +11,29 @@ class AppLogger {
   
   void d(String message, {Object? error, StackTrace? stackTrace}) {
     if (kDebugMode) {
-      print('DEBUG: $message');
-      if (error != null) print('ERROR: $error');
-      if (stackTrace != null) print('STACK: $stackTrace');
+      debugPrint('DEBUG: $message');
+      if (error != null) debugPrint('ERROR: $error');
+      if (stackTrace != null) debugPrint('STACK: $stackTrace');
     }
   }
   
   void i(String message, {Object? error, StackTrace? stackTrace}) {
     if (kDebugMode) {
-      print('INFO: $message');
-      if (error != null) print('ERROR: $error');
-      if (stackTrace != null) print('STACK: $stackTrace');
+      debugPrint('INFO: $message');
+      if (error != null) debugPrint('ERROR: $error');
+      if (stackTrace != null) debugPrint('STACK: $stackTrace');
     }
   }
   
   void w(String message, {Object? error, StackTrace? stackTrace}) {
-    print('WARNING: $message');
-    if (error != null) print('ERROR: $error');
-    if (stackTrace != null) print('STACK: $stackTrace');
+    debugPrint('WARNING: $message');
+    if (error != null) debugPrint('ERROR: $error');
+    if (stackTrace != null) debugPrint('STACK: $stackTrace');
   }
   
   void e(String message, {Object? error, StackTrace? stackTrace}) {
-    print('ERROR: $message');
-    if (error != null) print('ERROR: $error');
-    if (stackTrace != null) print('STACK: $stackTrace');
+    debugPrint('ERROR: $message');
+    if (error != null) debugPrint('ERROR: $error');
+    if (stackTrace != null) debugPrint('STACK: $stackTrace');
   }
 } 

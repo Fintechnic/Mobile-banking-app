@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 void main() {
   runApp(const MyApp());
@@ -763,5 +764,38 @@ class TransactionItem extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class AuthService {
+  static const _storage = FlutterSecureStorage();
+  static const _tokenKey = 'jwt_token';
+  static const _refreshTokenKey = 'refresh_token';
+
+  // Save tokens
+  static Future<void> saveTokens({
+    required String accessToken,
+    String? refreshToken,
+  }) async {
+    await _storage.write(key: _tokenKey, value: accessToken);
+    if (refreshToken != null) {
+      await _storage.write(key: _refreshTokenKey, value: refreshToken);
+    }
+  }
+
+  // Get token
+  static Future<String?> getAccessToken() async {
+    return await _storage.read(key: _tokenKey);
+  }
+
+  // Check if user is logged in
+  static Future<bool> isLoggedIn() async {
+    return await getAccessToken() != null;
+  }
+
+  // Clear tokens on logout
+  static Future<void> logout() async {
+    await _storage.delete(key: _tokenKey);
+    await _storage.delete(key: _refreshTokenKey);
   }
 }

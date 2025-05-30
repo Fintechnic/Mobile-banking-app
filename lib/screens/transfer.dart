@@ -156,17 +156,6 @@ class TransferService {
     try {
       // Simulate API delay
       await Future.delayed(const Duration(milliseconds: 800));
-
-      // In a real app, you would make an actual API call:
-      // final response = await http.get(Uri.parse('$baseUrl/accounts'));
-      // if (response.statusCode == 200) {
-      //   final List<dynamic> data = json.decode(response.body);
-      //   return data.map((json) => Account.fromJson(json)).toList();
-      // } else {
-      //   throw Exception('Failed to load accounts');
-      // }
-
-      // Mock data for demonstration
       return [
         Account(
           id: 'acc1',
@@ -197,16 +186,6 @@ class TransferService {
     try {
       // Simulate API delay
       await Future.delayed(const Duration(milliseconds: 1000));
-
-      // In a real app, you would make an actual API call:
-      // final response = await http.get(Uri.parse('$baseUrl/recipients'));
-      // if (response.statusCode == 200) {
-      //   final List<dynamic> data = json.decode(response.body);
-      //   return data.map((json) => Recipient.fromJson(json)).toList();
-      // } else {
-      //   throw Exception('Failed to load recipients');
-      // }
-
       // Mock data for demonstration
       return [
         Recipient(
@@ -244,16 +223,6 @@ class TransferService {
     try {
       // Simulate API delay
       await Future.delayed(const Duration(milliseconds: 1200));
-
-      // In a real app, you would make an actual API call:
-      // final response = await http.get(Uri.parse('$baseUrl/transactions/recent'));
-      // if (response.statusCode == 200) {
-      //   final List<dynamic> data = json.decode(response.body);
-      //   return data.map((json) => Transaction.fromJson(json)).toList();
-      // } else {
-      //   throw Exception('Failed to load transactions');
-      // }
-
       // Mock data for demonstration
       return [
         Transaction(
@@ -318,13 +287,22 @@ class TransferService {
 }
 
 class TransferScreen extends StatefulWidget {
-  const TransferScreen({super.key});
+  final String? receiverId;
+  final String? receiverPhone;
+  final bool fromQRScan;
+  
+  const TransferScreen({
+    super.key, 
+    this.receiverId,
+    this.receiverPhone,
+    this.fromQRScan = false,
+  });
 
   @override
-  TransferScreenState createState() => TransferScreenState();
+  State<TransferScreen> createState() => _TransferScreenState();
 }
 
-class TransferScreenState extends State<TransferScreen> {
+class _TransferScreenState extends State<TransferScreen> {
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _noteController = TextEditingController();
   final TextEditingController _phoneNumberController = TextEditingController();
@@ -337,7 +315,10 @@ class TransferScreenState extends State<TransferScreen> {
   @override
   void initState() {
     super.initState();
-    // Do not set username in initState, it will be set in build method
+    // Fill in receiver phone number from QR scan if available
+    if (widget.fromQRScan && widget.receiverPhone != null) {
+      _phoneNumberController.text = widget.receiverPhone!;
+    }
   }
 
   Future<void> _submitTransfer() async {

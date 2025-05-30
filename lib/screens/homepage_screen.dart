@@ -587,10 +587,17 @@ class _HomeScreenState extends State<HomeScreen>
           color: Colors.blue.shade700,
           size: 24,
         );
-      case "loan":
-        return CustomPaint(
-          size: const Size(24, 24),
-          painter: CoinStackPainter(Colors.blue.shade700),
+      case "qr":
+        return Icon(
+          Icons.qr_code,
+          color: Colors.blue.shade700,
+          size: 24,
+        );
+      case "qr_scan":
+        return Icon(
+          Icons.qr_code_scanner,
+          color: Colors.blue.shade700,
+          size: 24,
         );
       default:
         return Icon(
@@ -624,11 +631,17 @@ class _HomeScreenState extends State<HomeScreen>
               context,
               MaterialPageRoute(builder: (context) => const WithdrawScreen()),
             );
+          } else if (label == "Bill") {
+            Navigator.pushNamed(context, '/bill-payment');
+          } else if (label == "QR") {
+            Navigator.pushNamed(context, '/qr-show');
+          } else if (label == "Scan QR") {
+            Navigator.pushNamed(context, '/qr-scan');
           } else {
             // Default behavior for other items
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Bạn đã chọn: $label')),
-          );
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Bạn đã chọn: $label')),
+            );
           }
         },
         child: SizedBox(
@@ -932,7 +945,7 @@ class _HomeScreenState extends State<HomeScreen>
         children: [
           _buildNavItem(Icons.home, 'Home', true),
           _buildNavItem(Icons.history, 'History', false),
-          _buildCircleNavItem(Icons.qr_code_scanner, 'Account & Card'),
+          _buildCircleNavItem(Icons.qr_code_scanner),
           _buildNavItem(Icons.credit_card, 'Cards', false),
           _buildNavItem(Icons.settings, 'Setting', false),
         ],
@@ -980,11 +993,11 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget _buildCircleNavItem(IconData icon, String label) {
+  Widget _buildCircleNavItem(IconData icon) {
     return GestureDetector(
       onTap: () {
-        // Navigate to QR code scanner screen
-        Navigator.of(context).pushNamed('/qr-scan');
+        // Navigate directly to QR scanner screen
+        Navigator.pushNamed(context, '/qr-scan');
       },
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -1017,13 +1030,6 @@ class _HomeScreenState extends State<HomeScreen>
                 Icons.qr_code_scanner,
                 color: Colors.white,
               ),
-            ),
-          ),
-          const Text(
-            'Account & Card',
-            style: TextStyle(
-              fontSize: 10,
-              color: Colors.blue,
             ),
           ),
         ],

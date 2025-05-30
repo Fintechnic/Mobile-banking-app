@@ -433,7 +433,7 @@ class _UserProfilePageState extends State<UserProfilePage>
       String text, String time, IconData icon, Color color) {
     return ListTile(
       leading: CircleAvatar(
-        backgroundColor: color.withOpacity(0.2),
+        backgroundColor: color.withValues(alpha: 0.2),
         child: Icon(icon, color: color, size: 20),
       ),
       title: Text(text),
@@ -494,7 +494,7 @@ class _UserProfilePageState extends State<UserProfilePage>
           // Loading overlay
           if (_isLoading)
             Container(
-              color: Colors.black.withOpacity(0.3),
+              color: Colors.black.withValues(alpha: 0.3),
               child: const Center(
                 child: CircularProgressIndicator(),
               ),
@@ -623,7 +623,7 @@ class _UserProfilePageState extends State<UserProfilePage>
                           border: Border.all(color: Colors.white, width: 3),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
+                              color: Colors.black.withValues(alpha: 0.1),
                               blurRadius: 8,
                               offset: const Offset(0, 4),
                             ),

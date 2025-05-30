@@ -1,5 +1,4 @@
-import 'package:camera/camera.dart';
-import 'package:fintechnic/screens/Details.dart';
+import 'package:fintechnic/screens/details.dart';
 import 'package:fintechnic/screens/account_and_card1.dart';
 import 'package:fintechnic/screens/app_information.dart';
 import 'package:fintechnic/screens/change_password.dart';
@@ -18,7 +17,7 @@ import 'package:fintechnic/providers/auth_provider.dart';
 import 'package:fintechnic/providers/bill_provider.dart';
 import 'package:fintechnic/providers/transaction_provider.dart';
 import 'package:fintechnic/providers/wallet_provider.dart';
-import 'package:fintechnic/providers/qrcode_provider.dart';
+import 'package:fintechnic/providers/qr_code_provider.dart';
 import 'package:fintechnic/providers/user_provider.dart';
 import 'package:fintechnic/providers/stats_provider.dart';
 import 'package:fintechnic/providers/banking_data_provider.dart';
@@ -32,7 +31,6 @@ import 'package:fintechnic/utils/network_utils.dart';
 
 // Other screen imports
 import 'screens/bank_slip.dart';
-import 'screens/loan.dart';
 import 'screens/editprofile.dart';
 import 'screens/history.dart';
 import 'screens/notification.dart';
@@ -45,17 +43,14 @@ Future<void> main() async {
   try {
     WidgetsFlutterBinding.ensureInitialized();
     await EnvConfig.load();
-    
+
     // Load the API token from shared preferences
     await ApiConstants.loadToken();
-    
+
     final hasConnection = await NetworkUtils.checkConnection();
     if (!hasConnection) {
       appLogger.w('No internet connection');
     }
-
-    final cameras = await availableCameras();
-    final firstCamera = cameras.isNotEmpty ? cameras.first : null;
 
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
@@ -80,11 +75,12 @@ Future<void> main() async {
           ChangeNotifierProvider(create: (_) => StatsProvider()),
           ChangeNotifierProvider(create: (_) => BankingDataProvider()),
         ],
-        child: MyApp(firstCamera: firstCamera),
+        child: const MyApp(),
       ),
     );
   } catch (e, stackTrace) {
-    appLogger.e('Error during app initialization', error: e, stackTrace: stackTrace);
+    appLogger.e('Error during app initialization',
+        error: e, stackTrace: stackTrace);
     runApp(ErrorApp(error: e.toString()));
   }
 }
@@ -140,9 +136,7 @@ class ErrorApp extends StatelessWidget {
 }
 
 class MyApp extends StatelessWidget {
-  final CameraDescription? firstCamera;
-
-  const MyApp({super.key, required this.firstCamera});
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -167,15 +161,13 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
-      home: AuthWrapper(firstCamera: firstCamera),
+      home: const AuthWrapper(),
     );
   }
 }
 
 class AuthWrapper extends StatelessWidget {
-  final CameraDescription? firstCamera;
-
-  const AuthWrapper({super.key, required this.firstCamera});
+  const AuthWrapper({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -184,7 +176,7 @@ class AuthWrapper extends StatelessWidget {
         if (authProvider.isLoading) {
           return const SplashScreen();
         }
-        
+
         if (!authProvider.isAuthenticated) {
           return const LoginScreen();
         }
@@ -197,13 +189,7 @@ class AuthWrapper extends StatelessWidget {
             Widget page;
             switch (settings.name) {
               case '/qr-scan':
-                page = firstCamera != null 
-                    ? QRScannerScreen(camera: firstCamera!) 
-                    : const Scaffold(
-                        body: Center(
-                          child: Text('Camera not available'),
-                        ),
-                      );
+                page = const QRScannerScreen();
                 break;
               case '/qr-show':
                 page = const QRCodeScreen();
@@ -229,9 +215,6 @@ class AuthWrapper extends StatelessWidget {
               case '/payment-confirmation':
                 page = const PaymentConfirmationScreen();
                 break;
-              case '/loan':
-                page = const LoansScreen();
-                break;
               case '/profile-settings':
                 page = const ProfileSettingsScreen();
                 break;
@@ -246,6 +229,12 @@ class AuthWrapper extends StatelessWidget {
                 break;
               case '/transfer':
                 page = const TransferScreen();
+                break;
+              case '/history':
+                page = const TransactionHistoryScreen();
+                break;
+              case '/login':
+                page = const LoginScreen();
                 break;
               default:
                 page = const HomeScreen();

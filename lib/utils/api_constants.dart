@@ -1,10 +1,9 @@
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ApiConstants {
-  static final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  static const FlutterSecureStorage _storage = FlutterSecureStorage();
 
   // Base URL for API calls - get from environment or use default
   static String get baseUrl {
@@ -18,7 +17,7 @@ class ApiConstants {
   }
 
   // Headers for API calls
-  static Map<String, String> get headers => {
+  static Map<String, String> get headers => const {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   };
