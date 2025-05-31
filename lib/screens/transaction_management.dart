@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'dart:async';
+import 'package:Mobile-banking-app/services/transaction_service.dart';
+import 'package:Mobile-banking-app/services/wallet_service.dart';
+import 'package:Mobile-banking-app/services/user_service.dart';
 
 void main() {
   runApp(const MyApp());
@@ -75,12 +78,38 @@ class _TransactionManagementScreenState
   int _totalUsers = 0;
   List<TransactionCategory> _categories = [];
   List<DailyData> _dailyData = [];
+  List<dynamic> _adminTransactions = [];
 
   // Animation controllers
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
   late Animation<double> _chartAnimation;
+
+  final TextEditingController _searchController = TextEditingController();
+  Map<String, dynamic>? _searchedWallet;
+  bool _isSearchingWallet = false;
+  String? _searchError;
+  // Thêm controller cho form nạp tiền
+  final TextEditingController _topUpPhoneController = TextEditingController();
+  final TextEditingController _topUpAmountController = TextEditingController();
+  final TextEditingController _topUpDescController = TextEditingController();
+  bool _isToppingUp = false;
+  String? _topUpResult;
+
+  // Biến cho lọc giao dịch
+  String _filterSortBy = 'createdAt';
+  String _filterSortDirection = 'DESC';
+  final TextEditingController _filterPageController = TextEditingController(text: '0');
+  final TextEditingController _filterSizeController = TextEditingController(text: '10');
+  bool _isFiltering = false;
+  List<dynamic> _filteredTransactions = [];
+  String? _filterError;
+
+  // Biến cho danh sách người dùng
+  List<dynamic> _users = [];
+  bool _isLoadingUsers = false;
+  String? _userListError;
 
   @override
   void initState() {
@@ -115,11 +144,20 @@ class _TransactionManagementScreenState
 
     // Load data
     _loadData();
+    _fetchAdminTransactions();
   }
 
   @override
   void dispose() {
     _animationController.dispose();
+    _searchController.dispose();
+    // Giải phóng controller nạp tiền
+    _topUpPhoneController.dispose();
+    _topUpAmountController.dispose();
+    _topUpDescController.dispose();
+    // Giải phóng controller lọc giao dịch
+    _filterPageController.dispose();
+    _filterSizeController.dispose();
     super.dispose();
   }
 
@@ -197,6 +235,15 @@ class _TransactionManagementScreenState
     }
   }
 
+  Future<void> _fetchAdminTransactions() async {
+    final transactions = await TransactionService.getAdminTransactionHistory();
+    if (mounted) {
+      setState(() {
+        _adminTransactions = transactions;
+      });
+    }
+  }
+
   // Change year
   void _changeYear(int delta) {
     setState(() {
@@ -270,6 +317,101 @@ class _TransactionManagementScreenState
         ),
       ),
     );
+  }
+
+  Future<void> _handleSearchWallet() async {
+    setState(() {
+      _isSearchingWallet = true;
+      _searchError = null;
+      _searchedWallet = null;
+    });
+    final username = _searchController.text.trim();
+    if (username.isEmpty) {
+      setState(() {
+        _isSearchingWallet = false;
+        _searchError = 'Vui lòng nhập username';
+      });
+      return;
+    }
+    final wallet = await WalletService.searchWallet(username);
+    setState(() {
+      _isSearchingWallet = false;
+      if (wallet != null) {
+        _searchedWallet = wallet;
+      } else {
+        _searchError = 'Không tìm thấy ví hoặc lỗi.';
+      }
+    });
+  }
+
+  Future<void> _handleTopUp() async {
+    setState(() {
+      _isToppingUp = true;
+      _topUpResult = null;
+    });
+    final phone = _topUpPhoneController.text.trim();
+    final amountText = _topUpAmountController.text.trim();
+    final desc = _topUpDescController.text.trim();
+    if (phone.isEmpty || amountText.isEmpty) {
+      setState(() {
+        _isToppingUp = false;
+        _topUpResult = 'Vui lòng nhập đủ số điện thoại và số tiền.';
+      });
+      return;
+    }
+    final amount = double.tryParse(amountText);
+    if (amount == null || amount <= 0) {
+      setState(() {
+        _isToppingUp = false;
+        _topUpResult = 'Số tiền không hợp lệ.';
+      });
+      return;
+    }
+    final success = await WalletService.topUpAgentWallet(phone, amount, desc);
+    setState(() {
+      _isToppingUp = false;
+      _topUpResult = success ? 'Nạp tiền thành công!' : 'Nạp tiền thất bại.';
+    });
+  }
+
+  Future<void> _handleFilterTransactions() async {
+    setState(() {
+      _isFiltering = true;
+      _filterError = null;
+      _filteredTransactions = [];
+    });
+    final page = int.tryParse(_filterPageController.text.trim()) ?? 0;
+    final size = int.tryParse(_filterSizeController.text.trim()) ?? 10;
+    final txs = await TransactionService.filterTransactions(
+      sortBy: _filterSortBy,
+      sortDirection: _filterSortDirection,
+      page: page,
+      size: size,
+    );
+    setState(() {
+      _isFiltering = false;
+      _filteredTransactions = txs;
+      if (txs.isEmpty) {
+        _filterError = 'Không có giao dịch phù hợp.';
+      }
+    });
+  }
+
+  Future<void> _fetchUsers() async {
+    setState(() {
+      _isLoadingUsers = true;
+      _userListError = null;
+      _users = [];
+    });
+    final users = await UserService.searchUsers();
+    setState(() {
+      _isLoadingUsers = false;
+      if (users.isNotEmpty) {
+        _users = users;
+      } else {
+        _userListError = 'Không có người dùng hoặc lỗi.';
+      }
+    });
   }
 
   @override
@@ -572,6 +714,210 @@ class _TransactionManagementScreenState
                   },
                 ),
               ),
+
+              Expanded(
+                child: ListView(
+                  children: [
+                    if (_adminTransactions.isNotEmpty) ...[
+                      const SizedBox(height: 24),
+                      const Text(
+                        'Admin Transaction History',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        itemCount: _adminTransactions.length,
+                        itemBuilder: (context, index) {
+                          final tx = _adminTransactions[index];
+                          return ListTile(
+                            title: Text(tx['description']?.toString() ?? 'No description'),
+                            subtitle: Text(tx['createdAt']?.toString() ?? ''),
+                            trailing: Text(tx['amount']?.toString() ?? ''),
+                          );
+                        },
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+
+              // Widget tìm kiếm ví trước khi nạp tiền
+              const SizedBox(height: 16),
+              const Text('Tìm kiếm ví (trước khi nạp tiền):', style: TextStyle(fontWeight: FontWeight.bold)),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _searchController,
+                      decoration: const InputDecoration(
+                        hintText: 'Nhập username',
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: _isSearchingWallet ? null : _handleSearchWallet,
+                    child: _isSearchingWallet
+                        ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                        : const Text('Tìm'),
+                  ),
+                ],
+              ),
+              if (_searchError != null) ...[
+                const SizedBox(height: 8),
+                Text(_searchError!, style: const TextStyle(color: Colors.red)),
+              ],
+              if (_searchedWallet != null) ...[
+                const SizedBox(height: 8),
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Username:  9${_searchedWallet!['username'] ?? ''}'),
+                        Text('Số dư:  9${_searchedWallet!['balance'] ?? ''}'),
+                        Text('Số điện thoại:  9${_searchedWallet!['phoneNumber'] ?? ''}'),
+                        // Thêm các trường khác nếu cần
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+              // Form nạp tiền
+              const SizedBox(height: 24),
+              const Text('Nạp tiền vào ví:', style: TextStyle(fontWeight: FontWeight.bold)),
+              TextField(
+                controller: _topUpPhoneController,
+                decoration: const InputDecoration(hintText: 'Số điện thoại'),
+                keyboardType: TextInputType.phone,
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _topUpAmountController,
+                decoration: const InputDecoration(hintText: 'Số tiền'),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _topUpDescController,
+                decoration: const InputDecoration(hintText: 'Mô tả (tuỳ chọn)'),
+              ),
+              const SizedBox(height: 8),
+              ElevatedButton(
+                onPressed: _isToppingUp ? null : _handleTopUp,
+                child: _isToppingUp
+                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Text('Nạp tiền'),
+              ),
+              if (_topUpResult != null) ...[
+                const SizedBox(height: 8),
+                Text(_topUpResult!, style: TextStyle(color: _topUpResult == 'Nạp tiền thành công!' ? Colors.green : Colors.red)),
+              ],
+              // Form lọc giao dịch
+              const SizedBox(height: 24),
+              const Text('Lọc giao dịch:', style: TextStyle(fontWeight: FontWeight.bold)),
+              Row(
+                children: [
+                  const Text('Sắp xếp theo: '),
+                  DropdownButton<String>(
+                    value: _filterSortBy,
+                    items: const [
+                      DropdownMenuItem(value: 'createdAt', child: Text('Ngày tạo')),
+                      DropdownMenuItem(value: 'amount', child: Text('Số tiền')),
+                      // Thêm các trường khác nếu cần
+                    ],
+                    onChanged: (v) => setState(() => _filterSortBy = v!),
+                  ),
+                  const SizedBox(width: 8),
+                  DropdownButton<String>(
+                    value: _filterSortDirection,
+                    items: const [
+                      DropdownMenuItem(value: 'DESC', child: Text('Giảm dần')),
+                      DropdownMenuItem(value: 'ASC', child: Text('Tăng dần')),
+                    ],
+                    onChanged: (v) => setState(() => _filterSortDirection = v!),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _filterPageController,
+                      decoration: const InputDecoration(hintText: 'Trang (page)'),
+                      keyboardType: TextInputType.number,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextField(
+                      controller: _filterSizeController,
+                      decoration: const InputDecoration(hintText: 'Số lượng (size)'),
+                      keyboardType: TextInputType.number,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: _isFiltering ? null : _handleFilterTransactions,
+                    child: _isFiltering
+                        ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                        : const Text('Lọc'),
+                  ),
+                ],
+              ),
+              if (_filterError != null) ...[
+                const SizedBox(height: 8),
+                Text(_filterError!, style: const TextStyle(color: Colors.red)),
+              ],
+              if (_filteredTransactions.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                const Text('Kết quả lọc:', style: TextStyle(fontWeight: FontWeight.bold)),
+                SizedBox(
+                  height: 200,
+                  child: ListView.builder(
+                    itemCount: _filteredTransactions.length,
+                    itemBuilder: (context, index) {
+                      final tx = _filteredTransactions[index];
+                      return ListTile(
+                        title: Text(tx['description']?.toString() ?? 'No description'),
+                        subtitle: Text(tx['createdAt']?.toString() ?? ''),
+                        trailing: Text(tx['amount']?.toString() ?? ''),
+                      );
+                    },
+                  ),
+                ),
+              ],
+              // Demo lấy danh sách người dùng
+              const SizedBox(height: 24),
+              const Text('Danh sách người dùng:', style: TextStyle(fontWeight: FontWeight.bold)),
+              ElevatedButton(
+                onPressed: _isLoadingUsers ? null : _fetchUsers,
+                child: _isLoadingUsers
+                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Text('Lấy danh sách người dùng'),
+              ),
+              if (_userListError != null) ...[
+                const SizedBox(height: 8),
+                Text(_userListError!, style: const TextStyle(color: Colors.red)),
+              ],
+              if (_users.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                SizedBox(
+                  height: 200,
+                  child: ListView.builder(
+                    itemCount: _users.length,
+                    itemBuilder: (context, index) {
+                      final user = _users[index];
+                      return ListTile(
+                        title: Text(user['username']?.toString() ?? ''),
+                        subtitle: Text(user['email']?.toString() ?? ''),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ],
           ),
         ),
