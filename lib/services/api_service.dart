@@ -2,7 +2,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class ApiService {
-  static const String baseUrl = "http://192.168.1.6:8080";
+  static const String baseUrl = "http://192.168.0.25:8080";
 
   /// Hàm POST chung,có thể truyền hoặc không truyền token
   static Future<Map<String, dynamic>> post(String endpoint, Map<String, dynamic> data, {String? token}) async {

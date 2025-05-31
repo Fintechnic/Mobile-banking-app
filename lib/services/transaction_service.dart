@@ -4,7 +4,7 @@ import 'api_service.dart';
 
 class TransactionService {
   /// Transfer money to another user by phone number
-  static Future<bool> transferMoney(String phoneNumber, double amount, String description) async {
+  static Future<bool> transferMoney(String phoneNumber, double amount, {String? description}) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final token = prefs.getString("token");
     if (token == null) return false;
