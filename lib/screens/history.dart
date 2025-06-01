@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:fintechnic/services/transaction_service.dart';
 import 'package:fintechnic/models/transaction.dart' as app_transaction;
 
@@ -26,40 +24,40 @@ class MyApp extends StatelessWidget {
 }
 
 enum TransactionType {
-  ALL,
-  INCOME,
-  EXPENSE,
-  DEPOSIT,
-  WITHDRAW,
-  TRANSFER,
-  BILL_PAYMENT,
-  TOP_UP,
-  INVESTMENT,
-  SAVING,
+  all,
+  income,
+  expense,
+  deposit,
+  withdraw,
+  transfer,
+  billPayment,
+  topUp,
+  investment,
+  saving,
 }
 
 extension TransactionTypeExtension on TransactionType {
   String get displayName {
     switch (this) {
-      case TransactionType.ALL:
+      case TransactionType.all:
         return 'All';
-      case TransactionType.INCOME:
+      case TransactionType.income:
         return 'Income';
-      case TransactionType.EXPENSE:
+      case TransactionType.expense:
         return 'Expense';
-      case TransactionType.DEPOSIT:
+      case TransactionType.deposit:
         return 'Deposit';
-      case TransactionType.WITHDRAW:
+      case TransactionType.withdraw:
         return 'Withdraw';
-      case TransactionType.TRANSFER:
+      case TransactionType.transfer:
         return 'Transfer';
-      case TransactionType.BILL_PAYMENT:
+      case TransactionType.billPayment:
         return 'Bill Payment';
-      case TransactionType.TOP_UP:
+      case TransactionType.topUp:
         return 'Top Up';
-      case TransactionType.INVESTMENT:
+      case TransactionType.investment:
         return 'Investment';
-      case TransactionType.SAVING:
+      case TransactionType.saving:
         return 'Saving';
     }
   }
@@ -71,10 +69,10 @@ class Transaction {
   final String description;
   final double amount;
   final DateTime date;
-  final bool isExpense;
   final String category;
   final String status;
   final TransactionType type;
+  final String? counterparty;
 
   Transaction({
     required this.id,
@@ -82,27 +80,92 @@ class Transaction {
     required this.description,
     required this.amount,
     required this.date,
-    required this.isExpense,
     required this.category,
     required this.status,
     required this.type,
+    this.counterparty,
   });
+
+  bool get isExpense => amount < 0;
 
   factory Transaction.fromJson(Map<String, dynamic> json) {
     return Transaction(
-      id: json['id'],
-      title: json['title'],
-      description: json['description'],
-      amount: json['amount'].toDouble(),
-      date: DateTime.parse(json['date']),
-      isExpense: json['isExpense'],
-      category: json['category'],
-      status: json['status'],
-      type: TransactionType.values.firstWhere(
-        (e) => e.toString().split('.').last == json['type'],
-        orElse: () => TransactionType.EXPENSE,
-      ),
+      id: json['id']?.toString() ?? '',
+      title: json['counterparty'] ?? 'Transaction',
+      description: json['description'] ?? '',
+      amount: _parseAmount(json['amount']),
+      date: _parseDate(json['createdAt']),
+      category: _getCategoryFromType(json['type']),
+      status: json['status'] ?? 'Completed',
+      type: _mapTransactionType(json['type']),
+      counterparty: json['counterparty'],
     );
+  }
+
+  static double _parseAmount(dynamic amount) {
+    if (amount == null) return 0.0;
+    if (amount is double) return amount;
+    if (amount is int) return amount.toDouble();
+    try {
+      return double.parse(amount.toString());
+    } catch (e) {
+      return 0.0;
+    }
+  }
+
+  static DateTime _parseDate(dynamic date) {
+    if (date == null) return DateTime.now();
+    try {
+      return DateTime.parse(date);
+    } catch (e) {
+      return DateTime.now();
+    }
+  }
+
+  static String _getCategoryFromType(String? type) {
+    if (type == null) return 'Other';
+    
+    switch (type.toLowerCase()) {
+      case 'deposit':
+        return 'Deposit';
+      case 'withdraw':
+        return 'Withdrawal';
+      case 'transfer':
+        return 'Transfer';
+      case 'bill_payment':
+        return 'Bill Payment';
+      case 'top_up':
+        return 'Top Up';
+      case 'expense':
+        return 'Expense';
+      case 'income':
+        return 'Income';
+      default:
+        return 'Other';
+    }
+  }
+
+  static TransactionType _mapTransactionType(String? type) {
+    if (type == null) return TransactionType.expense;
+    
+    switch (type.toLowerCase()) {
+      case 'deposit':
+        return TransactionType.deposit;
+      case 'withdraw':
+        return TransactionType.withdraw;
+      case 'transfer':
+        return TransactionType.transfer;
+      case 'bill_payment':
+        return TransactionType.billPayment;
+      case 'top_up':
+        return TransactionType.topUp;
+      case 'income':
+        return TransactionType.income;
+      case 'expense':
+        return TransactionType.expense;
+      default:
+        return TransactionType.expense;
+    }
   }
 }
 
@@ -110,12 +173,12 @@ class TransactionHistoryScreen extends StatefulWidget {
   const TransactionHistoryScreen({super.key});
 
   @override
-  _TransactionHistoryScreenState createState() =>
+  State<TransactionHistoryScreen> createState() =>
       _TransactionHistoryScreenState();
 }
 
 class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
-  TransactionType _selectedFilter = TransactionType.ALL;
+  TransactionType _selectedFilter = TransactionType.all;
   String _selectedPeriod = 'Last 30 days';
   final TextEditingController _searchController = TextEditingController();
   bool _isSearching = false;
@@ -174,56 +237,41 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         });
         return;
       }
-
-      final List<Transaction> transactions = [];
+      
+      List<Transaction> transactions = [];
       
       for (var i = 0; i < transactionData.length; i++) {
-        var item = transactionData[i];
-        debugPrint("Processing transaction item $i: $item");
         try {
-          final appTransaction = app_transaction.Transaction.fromJson(item);
-          debugPrint("Successfully converted to app transaction: ${appTransaction.id}, ${appTransaction.type}, ${appTransaction.amount}");
+          var data = transactionData[i];
+          debugPrint("Processing transaction $i: $data");
+          
+          // Convert from API format to UI format
+          final appTransaction = app_transaction.Transaction.fromJson(data);
           
           transactions.add(Transaction(
             id: appTransaction.id.toString(),
-            title: appTransaction.type.toUpperCase(),
+            title: appTransaction.counterparty ?? 'Transaction',
             description: appTransaction.description ?? '',
             amount: appTransaction.amount,
             date: DateTime.parse(appTransaction.createdAt),
-            isExpense: ['withdraw', 'transfer'].contains(appTransaction.type.toLowerCase()),
             category: appTransaction.type,
-            status: 'completed',
+            status: appTransaction.status ?? 'Completed',
             type: _mapTransactionType(appTransaction.type),
+            counterparty: appTransaction.counterparty,
           ));
         } catch (e) {
-          debugPrint("Error processing transaction item $i: $e");
-          debugPrint("Problematic fields might be:");
-          _debugCheckField(item, 'id');
-          _debugCheckField(item, 'type');
-          _debugCheckField(item, 'transaction_code');
-          _debugCheckField(item, 'amount');
-          _debugCheckField(item, 'description');
-          _debugCheckField(item, 'createdAt');
-          _debugCheckField(item, 'created_at');
+          debugPrint("Error processing transaction: $e");
         }
       }
       
-      debugPrint("Processed ${transactions.length} transactions successfully");
+      debugPrint("Processed ${transactions.length} transactions");
       
-      if (transactions.isEmpty && transactionData.isNotEmpty) {
-        setState(() {
-          _errorMessage = 'Could not process any transactions. Check log for details.';
-          _isLoading = false;
-        });
-        _loadMockData();
-        return;
-      }
-      
+      // Apply date filters
       final filteredTransactions = transactions.where((transaction) {
         final isInDateRange = transaction.date.isAfter(_startDate!) && 
                               transaction.date.isBefore(_endDate!.add(const Duration(days: 1)));
                               
-        final matchesFilter = _selectedFilter == TransactionType.ALL || 
+        final matchesFilter = _selectedFilter == TransactionType.all || 
                               transaction.type == _selectedFilter;
         
         // If we already searched on the server, no need to filter by search text again
@@ -250,19 +298,19 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   TransactionType _mapTransactionType(String apiType) {
     switch (apiType.toLowerCase()) {
       case 'deposit':
-        return TransactionType.DEPOSIT;
+        return TransactionType.deposit;
       case 'withdraw':
-        return TransactionType.WITHDRAW;
+        return TransactionType.withdraw;
       case 'transfer':
-        return TransactionType.TRANSFER;
+        return TransactionType.transfer;
       case 'bill_payment':
-        return TransactionType.BILL_PAYMENT;
+        return TransactionType.billPayment;
       case 'top_up':
-        return TransactionType.TOP_UP;
+        return TransactionType.topUp;
       default:
         return apiType.toLowerCase().contains('expense') 
-            ? TransactionType.EXPENSE 
-            : TransactionType.INCOME;
+            ? TransactionType.expense 
+            : TransactionType.income;
     }
   }
 
@@ -274,43 +322,43 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         description: 'Monthly salary payment',
         amount: 25000000,
         date: DateTime.now().subtract(const Duration(days: 2)),
-        isExpense: false,
         category: 'Income',
         status: 'Completed',
-        type: TransactionType.INCOME,
+        type: TransactionType.income,
+        counterparty: null,
       ),
       Transaction(
         id: '2',
         title: 'Electricity Bill',
         description: 'EVN - Monthly payment',
-        amount: 1250000,
+        amount: -1250000,
         date: DateTime.now().subtract(const Duration(days: 5)),
-        isExpense: true,
         category: 'Utilities',
         status: 'Completed',
-        type: TransactionType.BILL_PAYMENT,
+        type: TransactionType.billPayment,
+        counterparty: 'EVN',
       ),
       Transaction(
         id: '3',
         title: 'Transfer to Nguyen Van A',
         description: 'Personal transfer',
-        amount: 5000000,
+        amount: -5000000,
         date: DateTime.now().subtract(const Duration(days: 7)),
-        isExpense: true,
         category: 'Transfer',
         status: 'Completed',
-        type: TransactionType.TRANSFER,
+        type: TransactionType.transfer,
+        counterparty: 'Nguyen Van A',
       ),
       Transaction(
         id: '4',
         title: 'ATM Withdrawal',
         description: 'ATM Transaction',
-        amount: 2000000,
+        amount: -2000000,
         date: DateTime.now().subtract(const Duration(days: 12)),
-        isExpense: true,
         category: 'Withdrawal',
         status: 'Completed',
-        type: TransactionType.WITHDRAW,
+        type: TransactionType.withdraw,
+        counterparty: null,
       ),
       Transaction(
         id: '5',
@@ -318,43 +366,43 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         description: 'Cash deposit',
         amount: 10000000,
         date: DateTime.now().subtract(const Duration(days: 15)),
-        isExpense: false,
         category: 'Deposit',
         status: 'Completed',
-        type: TransactionType.DEPOSIT,
+        type: TransactionType.deposit,
+        counterparty: null,
       ),
       Transaction(
         id: '6',
         title: 'Mobile Top Up',
         description: 'Viettel prepaid',
-        amount: 100000,
+        amount: -100000,
         date: DateTime.now().subtract(const Duration(days: 18)),
-        isExpense: true,
         category: 'Top Up',
         status: 'Completed',
-        type: TransactionType.TOP_UP,
+        type: TransactionType.topUp,
+        counterparty: 'Viettel',
       ),
       Transaction(
         id: '7',
         title: 'Investment Fund',
         description: 'Monthly investment',
-        amount: 5000000,
+        amount: -5000000,
         date: DateTime.now().subtract(const Duration(days: 22)),
-        isExpense: true,
         category: 'Investment',
         status: 'Completed',
-        type: TransactionType.INVESTMENT,
+        type: TransactionType.investment,
+        counterparty: 'Investment Fund',
       ),
       Transaction(
         id: '8',
         title: 'Savings Deposit',
         description: 'Term deposit',
-        amount: 20000000,
+        amount: -20000000,
         date: DateTime.now().subtract(const Duration(days: 25)),
-        isExpense: true,
         category: 'Saving',
         status: 'Completed',
-        type: TransactionType.SAVING,
+        type: TransactionType.saving,
+        counterparty: 'Savings Account',
       ),
     ];
   }
@@ -443,7 +491,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   List<Transaction> get filteredTransactions {
     List<Transaction> result = List.from(_transactions);
 
-    if (_selectedFilter != TransactionType.ALL) {
+    if (_selectedFilter != TransactionType.all) {
       result = result
           .where((transaction) => transaction.type == _selectedFilter)
           .toList();
@@ -489,7 +537,12 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
                   children: [
-                    const Icon(Icons.arrow_back, color: Colors.white),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pop(context);
+                      },
+                      child: const Icon(Icons.arrow_back, color: Colors.white),
+                    ),
                     const SizedBox(width: 16),
                     const Text(
                       'Transaction History',
@@ -538,7 +591,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                       borderRadius: BorderRadius.circular(25),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
+                          color: Colors.black.withAlpha(13),
                           blurRadius: 10,
                           offset: const Offset(0, 2),
                         ),
@@ -685,7 +738,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                       vertical: 8,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withAlpha(51),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
@@ -833,7 +886,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
           ElevatedButton(
             onPressed: () {
               setState(() {
-                _selectedFilter = TransactionType.ALL;
+                _selectedFilter = TransactionType.all;
                 _selectedPeriod = 'Last 30 days';
                 _updateDateRange(_selectedPeriod);
                 _searchController.clear();
@@ -923,7 +976,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
           borderRadius: BorderRadius.circular(15),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withAlpha(13),
               blurRadius: 10,
               offset: const Offset(0, 2),
             ),
@@ -974,9 +1027,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: _getStatusColor(
-                            transaction.status,
-                          ).withOpacity(0.1),
+                          color: const Color(0xFFF5F7FA),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Text(
@@ -1006,7 +1057,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
               children: [
                 Text(
                   transaction.isExpense
-                      ? '-$formattedAmount'
+                      ? formattedAmount 
                       : '+$formattedAmount',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
@@ -1041,23 +1092,23 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
 
   IconData _getCategoryIcon(TransactionType type) {
     switch (type) {
-      case TransactionType.INCOME:
+      case TransactionType.income:
         return Icons.account_balance_wallet;
-      case TransactionType.EXPENSE:
+      case TransactionType.expense:
         return Icons.shopping_cart;
-      case TransactionType.DEPOSIT:
+      case TransactionType.deposit:
         return Icons.savings;
-      case TransactionType.WITHDRAW:
+      case TransactionType.withdraw:
         return Icons.atm;
-      case TransactionType.TRANSFER:
+      case TransactionType.transfer:
         return Icons.swap_horiz;
-      case TransactionType.BILL_PAYMENT:
+      case TransactionType.billPayment:
         return Icons.receipt_long;
-      case TransactionType.TOP_UP:
+      case TransactionType.topUp:
         return Icons.phone_android;
-      case TransactionType.INVESTMENT:
+      case TransactionType.investment:
         return Icons.trending_up;
-      case TransactionType.SAVING:
+      case TransactionType.saving:
         return Icons.account_balance;
       default:
         return Icons.receipt;
@@ -1140,7 +1191,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                   children: [
                     Text(
                       transaction.isExpense
-                          ? '-$formattedAmount'
+                          ? formattedAmount 
                           : '+$formattedAmount',
                       style: TextStyle(
                         fontSize: 28,
@@ -1159,7 +1210,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                       decoration: BoxDecoration(
                         color: _getStatusColor(
                           transaction.status,
-                        ).withOpacity(0.1),
+                        ).withAlpha(26),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
@@ -1178,10 +1229,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                 child: ListView(
                   padding: const EdgeInsets.all(20),
                   children: [
-                    _buildDetailItem('Transaction ID', transaction.id),
                     _buildDetailItem('Date & Time', dateStr),
                     _buildDetailItem('Type', transaction.type.displayName),
-                    _buildDetailItem('Category', transaction.category),
                     _buildDetailItem('Description', transaction.description),
                     const SizedBox(height: 30),
                     Row(
@@ -1290,15 +1339,5 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         ],
       ),
     );
-  }
-
-  // Helper method to debug field values
-  void _debugCheckField(Map<String, dynamic> item, String fieldName) {
-    try {
-      final value = item[fieldName];
-      debugPrint("  $fieldName = ${value} (${value?.runtimeType})");
-    } catch (e) {
-      debugPrint("  Error accessing $fieldName: $e");
-    }
   }
 }

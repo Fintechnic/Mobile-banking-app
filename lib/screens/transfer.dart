@@ -315,9 +315,15 @@ class _TransferScreenState extends State<TransferScreen> {
   @override
   void initState() {
     super.initState();
+    
+    // Get current user's name
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    _usernameController.text = auth.username ?? 'My Account';
+    
     // Fill in receiver phone number from QR scan if available
     if (widget.fromQRScan && widget.receiverPhone != null) {
       _phoneNumberController.text = widget.receiverPhone!;
+      debugPrint("Auto-filled phone number from QR scan: ${widget.receiverPhone}");
     }
   }
 

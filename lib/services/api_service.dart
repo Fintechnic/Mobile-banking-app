@@ -12,7 +12,7 @@ class ApiService {
   final _logger = AppLogger();
 
   // Development configuration
-  static const defaultHost = '192.168.31.181'; // Android Emulator localhost
+  static const defaultHost = '192.168.100.221'; // Android Emulator localhost
   static const defaultPort = '8080';     // Spring Boot default port
   
   factory ApiService() {
@@ -78,8 +78,21 @@ class ApiService {
     return await _storage.read(key: 'token');
   }
 
+  Future<String?> getUserId() async {
+    return await _storage.read(key: 'user_id');
+  }
+
+  Future<String?> getPhoneNumber() async {
+    return await _storage.read(key: 'phone_number');
+  }
+
   Future<void> saveToken(String token) async {
     await _storage.write(key: 'token', value: token);
+  }
+
+  Future<void> saveUserData(String userId, String phoneNumber) async {
+    await _storage.write(key: 'user_id', value: userId);
+    await _storage.write(key: 'phone_number', value: phoneNumber);
   }
 
   Future<void> deleteToken() async {

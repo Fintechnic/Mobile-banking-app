@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -721,12 +723,18 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> with Sing
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Logged out successfully'),
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
+                  // Call the logout API through AuthProvider
+                  final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                  authProvider.logout().then((_) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Logged out successfully'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                    // Navigate to login screen after logout
+                    Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+                  });
                 },
                 child: const Text('Logout'),
               ),

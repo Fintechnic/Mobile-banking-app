@@ -4,6 +4,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import '../services/qrcode_service.dart';
 import 'transfer.dart';
 import 'qr_screen.dart';
+import 'dart:convert';
 
 class QRScannerScreen extends StatefulWidget {
   const QRScannerScreen({super.key});
@@ -37,12 +38,66 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
       // Stop scanner while processing
       await _scannerController.stop();
       
+      // Log the raw scanned data for debugging
+      debugPrint("------ QR SCAN DEBUG ------");
+      debugPrint("Raw QR data: ${qrData.length > 50 ? '${qrData.substring(0, 50)}...' : qrData}");
+      
+      // Try to sanitize the data if it looks like JSON
+      String processedQrData = qrData;
+      try {
+        if (qrData.trim().startsWith('{') && qrData.trim().endsWith('}')) {
+          final Map<String, dynamic> jsonData = jsonDecode(qrData);
+          debugPrint("QR JSON parsed successfully: ${jsonData.keys.join(', ')}");
+          
+          if (jsonData.containsKey('data') && jsonData['data'] is String) {
+            // This is likely our QR format, sanitize it
+            debugPrint("Detected QR data in expected format: contains 'data' field");
+            
+            // Sanitize base64 string before proceeding
+            String sanitizedBase64 = jsonData['data'];
+            
+            // Check if data contains problematic characters
+            final bool containsUnderscore = sanitizedBase64.contains('_');
+            final bool containsDash = sanitizedBase64.contains('-');
+            final bool properlyPadded = sanitizedBase64.length % 4 == 0;
+            
+            debugPrint("Base64 stats - Length: ${sanitizedBase64.length}, " 
+                "Contains '_': $containsUnderscore, "
+                "Contains '-': $containsDash, "
+                "Properly padded: $properlyPadded");
+            
+            // Fix URL-safe base64 characters
+            sanitizedBase64 = sanitizedBase64.replaceAll('-', '+').replaceAll('_', '/');
+            
+            // Add padding if needed
+            while (sanitizedBase64.length % 4 != 0) {
+              sanitizedBase64 += '=';
+            }
+            
+            // Replace with sanitized version
+            jsonData['data'] = sanitizedBase64;
+            processedQrData = jsonEncode(jsonData);
+            
+            debugPrint("Sanitized QR data: ${processedQrData.length > 50 ? '${processedQrData.substring(0, 50)}...' : processedQrData}");
+          }
+        }
+      } catch (e) {
+        debugPrint("Error pre-processing QR data: $e");
+        // Continue with original data
+      }
+      
       // Process the QR code data
-      final result = await _qrService.scanQRCode(qrData);
+      debugPrint("Sending to QRCodeService.scanQRCode...");
+      final result = await _qrService.scanQRCode(processedQrData);
       
       if (result != null) {
         // Navigate to transfer screen with data
         if (!mounted) return;
+        
+        debugPrint("Successfully decoded QR code, navigating to transfer screen");
+        debugPrint("Receiver ID: ${result['userId']}");
+        debugPrint("Receiver Phone: ${result['phoneNumber']}");
+        debugPrint("------ QR SCAN SUCCESS ------");
         
         Navigator.pushReplacement(
           context, 
@@ -55,17 +110,23 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
           ),
         );
       } else {
+        debugPrint("QR scan failed: Invalid QR code");
+        debugPrint("------ QR SCAN FAILED ------");
         setState(() {
           _error = "Invalid QR code";
           _isProcessing = false;
         });
+        _showErrorDialog("Invalid QR code");
         await _scannerController.start();
       }
     } catch (e) {
+      debugPrint("QR scan error: $e");
+      debugPrint("------ QR SCAN ERROR ------");
       setState(() {
         _error = "Error processing QR code: $e";
         _isProcessing = false;
       });
+      _showErrorDialog("Error processing QR code: $e");
       await _scannerController.start();
     }
   }
@@ -85,6 +146,85 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
       setState(() {
         _error = "Error selecting image: $e";
       });
+      _showErrorDialog("Error selecting image: $e");
+    }
+  }
+  
+  Future<void> _testQRScanning() async {
+    try {
+      setState(() {
+        _error = null;
+      });
+      
+      debugPrint("Starting QR test...");
+      final testQRData = await _qrService.createTestQRCode();
+      debugPrint("Test QR data generated: ${testQRData.substring(0, min(20, testQRData.length))}...");
+      
+      // Show a dialog with test options
+      if (!mounted) return;
+      
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Test QR Code Options'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Choose a test scenario:'),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  _processQRCode(testQRData);
+                },
+                child: const Text('Standard Base64'),
+              ),
+              const SizedBox(height: 8),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                
+                  // Create a data field with underscores to simulate URL-safe base64
+                  final urlSafeQR = jsonEncode({
+                    'data': 'SGVsbG9fV29ybGQ_IVRoaXNfaXNfdGVzdF9kYXRhX3dpdGhfdW5kZXJzY29yZXM=',
+                    'sig': '12345678'
+                  });
+                  _processQRCode(urlSafeQR);
+                },
+                child: const Text('URL-safe Base64 (with _)'),
+              ),
+              const SizedBox(height: 8),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  // Create and process unpadded base64 test
+                  // We can't directly access private methods, so create the unpadded QR manually
+                  final unpaddedQR = jsonEncode({
+                    'data': 'SGVsbG9Xb3JsZCFUaGlzaXN0ZXN0ZGF0YXdpdGhvdXRwYWRkaW5n',
+                    'sig': '12345678'
+                  });
+                  _processQRCode(unpaddedQR);
+                },
+                child: const Text('Unpadded Base64'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      setState(() {
+        _error = "Error generating test QR: $e";
+      });
+      _showErrorDialog("Error generating test QR: $e");
     }
   }
 
@@ -93,38 +233,6 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
       context,
       MaterialPageRoute(builder: (context) => const QRCodeScreen()),
     );
-  }
-
-  Future<void> _processQRCode(String? qrData) async {
-    if (qrData == null || _isProcessing) return;
-    
-    setState(() {
-      _isProcessing = true;
-      _errorMessage = null;
-    });
-
-    try {
-      debugPrint("QR Code detected: $qrData");
-      final result = await _qrCodeService.scanQRCodeData(qrData);
-      
-      if (result.containsKey("error")) {
-        setState(() {
-          _errorMessage = result["error"];
-          _isProcessing = false;
-        });
-        _showErrorDialog(result["error"]);
-      } else {
-        // Navigate back with the result or to another page
-        Navigator.pop(context, result);
-      }
-    } catch (e) {
-      debugPrint("Error processing QR code: $e");
-      setState(() {
-        _errorMessage = e.toString();
-        _isProcessing = false;
-      });
-      _showErrorDialog(e.toString());
-    }
   }
 
   void _showErrorDialog(String message) {
@@ -138,7 +246,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
             onPressed: () {
               Navigator.of(context).pop();
               // Resume scanning
-              _controller.start();
+              _scannerController.start();
             },
             child: const Text('OK'),
           ),
@@ -146,6 +254,8 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
       ),
     );
   }
+  
+  int min(int a, int b) => a < b ? a : b;
 
   @override
   Widget build(BuildContext context) {
@@ -241,7 +351,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                 padding: const EdgeInsets.all(8),
                 margin: const EdgeInsets.symmetric(horizontal: 50),
                 decoration: BoxDecoration(
-                  color: Colors.red.withValues(alpha: 0.8),
+                  color: Colors.red.withAlpha(204),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -286,30 +396,52 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
             ),
           ),
 
-          // Bottom option
+          // Bottom options
           Positioned(
             bottom: 40,
             left: 0,
             right: 0,
-            child: Center(
-              child: TextButton.icon(
-                onPressed: _scanFromGallery,
-                icon: const Icon(
-                  Icons.photo_library_outlined,
-                  color: Colors.white,
-                  size: 20,
-                ),
-                label: const Text(
-                  'Select from photo library',
-                  style: TextStyle(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                TextButton.icon(
+                  onPressed: _scanFromGallery,
+                  icon: const Icon(
+                    Icons.photo_library_outlined,
                     color: Colors.white,
-                    fontSize: 14,
+                    size: 20,
+                  ),
+                  label: const Text(
+                    'From gallery',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                    ),
+                  ),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   ),
                 ),
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                const SizedBox(width: 20),
+                TextButton.icon(
+                  onPressed: _testQRScanning,
+                  icon: const Icon(
+                    Icons.bug_report_outlined,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                  label: const Text(
+                    'Test QR',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                    ),
+                  ),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
         ],

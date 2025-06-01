@@ -77,8 +77,8 @@ class _TransactionManagementScreenState
   // Filter parameters
   String _sortBy = "createdAt";
   String _sortDirection = "DESC";
-  int _page = 0;
-  int _size = 20;
+  final int _page = 0;
+  final int _size = 20;
   String? _selectedType;
   String? _selectedStatus;
   double? _minAmount;
@@ -263,7 +263,7 @@ class _TransactionManagementScreenState
       }
       
       // Set total users
-      _totalUsers = uniqueUsers.length > 0 ? uniqueUsers.length : 162387;
+      _totalUsers = uniqueUsers.isNotEmpty ? uniqueUsers.length : 162387;
       
       // Create categories data
       final total = categoryCounts.values.fold(0, (sum, count) => sum + count);
@@ -422,13 +422,13 @@ class _TransactionManagementScreenState
               DropdownButtonFormField<String>(
                 decoration: const InputDecoration(labelText: 'Transaction Type'),
                 value: _selectedType,
-                items: [
-                  const DropdownMenuItem(value: null, child: Text('All Types')),
-                  const DropdownMenuItem(value: 'deposit', child: Text('Deposit')),
-                  const DropdownMenuItem(value: 'withdraw', child: Text('Withdraw')),
-                  const DropdownMenuItem(value: 'transfer', child: Text('Transfer')),
-                  const DropdownMenuItem(value: 'bill_payment', child: Text('Bill Payment')),
-                  const DropdownMenuItem(value: 'top_up', child: Text('Top Up')),
+                items: const [
+                  DropdownMenuItem(value: null, child: Text('All Types')),
+                  DropdownMenuItem(value: 'deposit', child: Text('Deposit')),
+                  DropdownMenuItem(value: 'withdraw', child: Text('Withdraw')),
+                  DropdownMenuItem(value: 'transfer', child: Text('Transfer')),
+                  DropdownMenuItem(value: 'bill_payment', child: Text('Bill Payment')),
+                  DropdownMenuItem(value: 'top_up', child: Text('Top Up')),
                 ],
                 onChanged: (value) {
                   setState(() {

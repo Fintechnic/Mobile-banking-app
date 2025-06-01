@@ -6,6 +6,8 @@ class Transaction {
   final String createdAt;
   final String? senderPhoneNumber;
   final String? receiverPhoneNumber;
+  final String? counterparty;
+  final String? status;
 
   Transaction({
     required this.id,
@@ -15,6 +17,8 @@ class Transaction {
     required this.createdAt,
     this.senderPhoneNumber,
     this.receiverPhoneNumber,
+    this.counterparty,
+    this.status,
   });
 
   factory Transaction.fromJson(Map<String, dynamic> json) {
@@ -29,6 +33,8 @@ class Transaction {
       createdAt: json['createdAt'] ?? json['created_at'] ?? DateTime.now().toIso8601String(),
       senderPhoneNumber: json['senderPhoneNumber'],
       receiverPhoneNumber: json['receiverPhoneNumber'],
+      counterparty: json['counterparty'],
+      status: json['status'],
     );
   }
   
@@ -70,4 +76,7 @@ class Transaction {
     
     return 'transfer'; // Default type
   }
+  
+  // Check if transaction is an expense based on amount (negative = expense)
+  bool get isExpense => amount < 0;
 }

@@ -129,28 +129,28 @@ class TransactionProvider extends ChangeNotifier {
       notifyListeners();
       
       // Update filter parameters with new values if provided
-      this.sortBy = sortBy ?? this.sortBy;
-      this.sortDirection = sortDirection ?? this.sortDirection;
-      this.page = page ?? this.page;
-      this.size = size ?? this.size;
-      this.selectedType = type ?? this.selectedType;
-      this.selectedStatus = status ?? this.selectedStatus;
-      this.startDate = startDate ?? this.startDate;
-      this.endDate = endDate ?? this.endDate;
-      this.minAmount = minAmount ?? this.minAmount;
-      this.maxAmount = maxAmount ?? this.maxAmount;
+      sortBy = sortBy ?? this.sortBy;
+      sortDirection = sortDirection ?? this.sortDirection;
+      page = page ?? this.page;
+      size = size ?? this.size;
+      selectedType = type ?? selectedType;
+      selectedStatus = status ?? selectedStatus;
+      startDate = startDate ?? this.startDate;
+      endDate = endDate ?? this.endDate;
+      minAmount = minAmount ?? this.minAmount;
+      maxAmount = maxAmount ?? this.maxAmount;
       
       _transactions = await _transactionService.filterTransactions(
-        sortBy: this.sortBy,
-        sortDirection: this.sortDirection,
-        page: this.page,
-        size: this.size,
-        type: this.selectedType,
-        status: this.selectedStatus,
-        startDate: this.startDate,
-        endDate: this.endDate,
-        minAmount: this.minAmount,
-        maxAmount: this.maxAmount
+        sortBy: sortBy,
+        sortDirection: sortDirection,
+        page: page,
+        size: size,
+        type: selectedType,
+        status: selectedStatus,
+        startDate: startDate,
+        endDate: endDate,
+        minAmount: minAmount,
+        maxAmount: maxAmount
       );
       
       isLoading = false;
