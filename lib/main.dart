@@ -8,6 +8,12 @@ import 'package:fintechnic/screens/qr_scan_screen.dart';
 import 'package:fintechnic/screens/qr_screen.dart';
 import 'package:fintechnic/screens/transaction_management.dart';
 import 'package:fintechnic/screens/user_management.dart';
+import 'package:fintechnic/screens/admin_dashboard.dart';
+import 'package:fintechnic/screens/admin_topup.dart';
+import 'package:fintechnic/screens/admin_user_list.dart';
+import 'package:fintechnic/screens/admin_user_details.dart';
+import 'package:fintechnic/screens/admin_transaction_screen.dart';
+import 'package:fintechnic/utils/role_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -21,6 +27,7 @@ import 'package:fintechnic/providers/qr_code_provider.dart';
 import 'package:fintechnic/providers/user_provider.dart';
 import 'package:fintechnic/providers/stats_provider.dart';
 import 'package:fintechnic/providers/banking_data_provider.dart';
+import 'package:fintechnic/providers/admin_transaction_provider.dart';
 
 // Import services and utils
 import 'package:fintechnic/services/api_service.dart';
@@ -74,6 +81,7 @@ Future<void> main() async {
           ChangeNotifierProvider(create: (_) => UserProvider()),
           ChangeNotifierProvider(create: (_) => StatsProvider()),
           ChangeNotifierProvider(create: (_) => BankingDataProvider()),
+          ChangeNotifierProvider(create: (_) => AdminTransactionProvider()),
         ],
         child: const MyApp(),
       ),
@@ -181,10 +189,13 @@ class AuthWrapper extends StatelessWidget {
           return const LoginScreen();
         }
 
+        // Check if user has admin role
+        final isAdmin = RoleConstants.isAdmin(authProvider.userRole);
+
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           theme: Theme.of(context),
-          home: const HomeScreen(),
+          home: isAdmin ? const AdminDashboard() : const HomeScreen(),
           onGenerateRoute: (settings) {
             Widget page;
             switch (settings.name) {
@@ -202,6 +213,28 @@ class AuthWrapper extends StatelessWidget {
                 break;
               case '/user-management':
                 page = const UserProfilePage();
+                break;
+              case '/admin-dashboard':
+                page = const AdminDashboard();
+                break;
+              case '/admin-topup':
+                page = const AdminTopupScreen();
+                break;
+              case '/admin-user-list':
+                page = const AdminUserListScreen();
+                break;
+              case '/admin-user-details':
+                // Extract userId parameter
+                final args = settings.arguments as Map<String, dynamic>?;
+                final userId = args != null ? args['userId'] as int? : null;
+                if (userId != null) {
+                  page = AdminUserDetailsScreen(userId: userId);
+                } else {
+                  page = const AdminUserListScreen();
+                }
+                break;
+              case '/admin-transactions':
+                page = const AdminTransactionScreen();
                 break;
               case '/details':
                 page = const TransactionDashboard();
@@ -237,10 +270,9 @@ class AuthWrapper extends StatelessWidget {
                 page = const LoginScreen();
                 break;
               default:
-                page = const HomeScreen();
+                page = isAdmin ? const AdminDashboard() : const HomeScreen();
             }
-
-            return MaterialPageRoute(builder: (_) => page);
+            return MaterialPageRoute(builder: (context) => page);
           },
         );
       },

@@ -52,6 +52,12 @@ class ApiService {
       onResponse: (response, handler) {
         _logger.i('RESPONSE[${response.statusCode}] => PATH: ${response.requestOptions.path}');
         _logger.i('RESPONSE DATA: ${response.data}');
+        
+        // Handle empty responses
+        if (response.data == null || (response.data is String && response.data.toString().isEmpty)) {
+          response.data = {"success": true};
+        }
+        
         return handler.next(response);
       },
       onError: (DioException e, handler) {
@@ -60,6 +66,17 @@ class ApiService {
           error: e.message
         );
         _logger.e('ERROR RESPONSE: ${e.response?.data}');
+        
+        // Convert empty error responses to a success response if status code is success
+        if (e.response != null && 
+            e.response!.statusCode != null && 
+            e.response!.statusCode! < 400 &&
+            (e.response!.data == null || (e.response!.data is String && e.response!.data.toString().isEmpty))) {
+          final response = e.response!;
+          response.data = {"success": true};
+          return handler.resolve(response);
+        }
+        
         return handler.next(e);
       },
     ));
@@ -101,48 +118,51 @@ class ApiService {
 
   Future<Map<String, dynamic>> get(String path, {String? token, Map<String, dynamic>? queryParams}) async {
     try {
+      _logger.i('Making GET request to: $path');
+      _logger.i('Query parameters: $queryParams');
+      
       final response = await _dio.get(
         path,
         queryParameters: queryParams,
         options: Options(
           headers: token != null ? {'Authorization': 'Bearer $token'} : null,
-        ),
-      );
-      
-      if (response.statusCode != null && response.statusCode! >= 400) {
-        return {'error': response.data?.toString() ?? 'Request failed with status: ${response.statusCode}'};
-      }
-      
-      return response.data is Map<String, dynamic> 
-          ? response.data
-          : {'data': response.data, 'statusCode': response.statusCode};
-    } on DioException catch (e) {
-      _handleError(e);
-      if (e.response?.data is Map<String, dynamic>) {
-        return {'error': e.response?.data['message'] ?? e.message};
-      }
-      return {'error': e.message ?? 'Network error occurred'};
-    } catch (e) {
-      return {'error': e.toString()};
-    }
-  }
-
-  Future<Map<String, dynamic>> post(String path, dynamic data, {String? token}) async {
-    try {
-      _logger.i('Making POST request to: $path');
-      _logger.i('Request data: $data');
-      
-      final response = await _dio.post(
-        path,
-        data: data,
-        options: Options(
-          headers: token != null ? {'Authorization': 'Bearer $token'} : null,
+          responseType: ResponseType.plain, // Get raw response to handle empty responses better
         ),
       );
       
       _logger.i('Response status code: ${response.statusCode}');
       _logger.i('Response data: ${response.data}');
       
+      // Handle empty responses immediately
+      final rawData = response.data;
+      if (rawData == null || (rawData is String && rawData.toString().isEmpty)) {
+        _logger.i('Empty response detected, returning success');
+        return {'success': true, 'statusCode': response.statusCode};
+      }
+
+      // Handle non-empty string data by trying to parse as JSON
+      if (rawData is String && rawData.isNotEmpty) {
+        try {
+          _logger.i('Attempting to parse response as JSON');
+          final Map<String, dynamic> parsedJson = jsonDecode(rawData);
+          return parsedJson;
+        } catch (e) {
+          _logger.w('JSON parse error: $e');
+          // If not valid JSON, but status is success, return success object
+          if (response.statusCode != null && response.statusCode! < 400) {
+            return {'success': true, 'statusCode': response.statusCode, 'data': rawData};
+          }
+          // For error statuses, return the error
+          return {'error': 'Invalid JSON response: $rawData'};
+        }
+      }
+      
+      // Handle successful status code but non-JSON response
+      if (response.statusCode != null && response.statusCode! < 400) {
+        return {'success': true, 'statusCode': response.statusCode};
+      }
+      
+      // Default error handling
       if (response.statusCode != null && response.statusCode! >= 400) {
         String errorMsg = '';
         
@@ -159,25 +179,137 @@ class ApiService {
         return {'error': errorMsg};
       }
       
-      if (response.data is Map<String, dynamic>) {
-        return response.data;
-      } else if (response.data is String) {
-        // Try to parse string as JSON
-        try {
-          final jsonData = jsonDecode(response.data);
-          if (jsonData is Map<String, dynamic>) {
-            return jsonData;
-          }
-        } catch (e) {
-          // Not JSON, just return as data
+      return {'data': response.data, 'statusCode': response.statusCode};
+    } on DioException catch (e) {
+      _logger.e('DioException in get request: ${e.message}');
+      _logger.e('Response data: ${e.response?.data}');
+      
+      // Special case: Empty response with successful status code
+      if (e.response != null && e.response!.statusCode != null && e.response!.statusCode! < 400) {
+        final responseData = e.response!.data;
+        if (responseData == null || (responseData is String && responseData.toString().isEmpty)) {
+          return {'success': true, 'statusCode': e.response!.statusCode};
         }
+        
+        // Try to parse as JSON if it's a string
+        if (responseData is String && responseData.isNotEmpty) {
+          try {
+            final Map<String, dynamic> parsedJson = jsonDecode(responseData);
+            return parsedJson;
+          } catch (parseError) {
+            // Return success on format exception for success status codes
+            return {'success': true, 'statusCode': e.response!.statusCode, 'data': responseData};
+          }
+        }
+      }
+      
+      if (e.response?.data is Map<String, dynamic>) {
+        return {'error': e.response?.data['message'] ?? e.message};
+      }
+      
+      return {'error': e.message ?? 'Network error occurred'};
+    } catch (e) {
+      _logger.e('General error in GET request: $e');
+      if (e is FormatException) {
+        _logger.w('This is a FormatException, likely from empty response');
+        return {'success': true};
+      }
+      return {'error': e.toString()};
+    }
+  }
+
+  Future<Map<String, dynamic>> post(String path, dynamic data, {String? token}) async {
+    try {
+      _logger.i('Making POST request to: $path');
+      _logger.i('Request data: $data');
+      
+      // Ensure the data is properly converted to JSON
+      final jsonData = data is String ? data : jsonEncode(data);
+      
+      final response = await _dio.post(
+        path,
+        data: jsonData,
+        options: Options(
+          headers: token != null ? {'Authorization': 'Bearer $token'} : null,
+          contentType: 'application/json',
+          responseType: ResponseType.plain, // Get raw response to handle empty responses better
+        ),
+      );
+      
+      _logger.i('Response status code: ${response.statusCode}');
+      _logger.i('Response data: ${response.data}');
+      
+      // Handle empty responses immediately
+      final rawData = response.data;
+      if (rawData == null || (rawData is String && rawData.toString().isEmpty)) {
+        _logger.i('Empty response detected, returning success');
+        return {'success': true, 'statusCode': response.statusCode};
+      }
+
+      // Handle non-empty string data by trying to parse as JSON
+      if (rawData is String && rawData.isNotEmpty) {
+        try {
+          _logger.i('Attempting to parse response as JSON');
+          final Map<String, dynamic> parsedJson = jsonDecode(rawData);
+          return parsedJson;
+        } catch (e) {
+          _logger.w('JSON parse error: $e');
+          // If not valid JSON, but status is success, return success object
+          if (response.statusCode != null && response.statusCode! < 400) {
+            return {'success': true, 'statusCode': response.statusCode, 'data': rawData};
+          }
+          // For error statuses, return the error
+          return {'error': 'Invalid JSON response: $rawData'};
+        }
+      }
+      
+      // Handle successful status code but non-JSON response
+      if (response.statusCode != null && response.statusCode! < 400) {
+        return {'success': true, 'statusCode': response.statusCode};
+      }
+      
+      // Default error handling
+      if (response.statusCode != null && response.statusCode! >= 400) {
+        String errorMsg = '';
+        
+        // Handle different error formats
+        if (response.data is Map<String, dynamic>) {
+          errorMsg = response.data['message'] ?? response.data['error'] ?? response.data.toString();
+        } else if (response.data is String) {
+          errorMsg = response.data;
+        } else {
+          errorMsg = 'Request failed with status: ${response.statusCode}';
+        }
+        
+        _logger.e('Error response: $errorMsg');
+        return {'error': errorMsg};
       }
       
       return {'data': response.data, 'statusCode': response.statusCode};
     } on DioException catch (e) {
-      _handleError(e);
-      _logger.e('DioException: ${e.message}');
+      _logger.e('DioException in post request: ${e.message}');
       _logger.e('Response data: ${e.response?.data}');
+      
+      // Special case: Empty response with successful status code
+      if (e.response != null && e.response!.statusCode != null && e.response!.statusCode! < 400) {
+        final responseData = e.response!.data;
+        if (responseData == null || (responseData is String && responseData.toString().isEmpty)) {
+          _logger.i('Empty error response with success status code, treating as success');
+          return {'success': true, 'statusCode': e.response!.statusCode};
+        }
+        
+        // Try to parse as JSON if it's a string
+        if (responseData is String && responseData.isNotEmpty) {
+          try {
+            final Map<String, dynamic> parsedJson = jsonDecode(responseData);
+            return parsedJson;
+          } catch (parseError) {
+            _logger.w('JSON parse error in error handler: $parseError');
+            // Return success on format exception for success status codes
+            return {'success': true, 'statusCode': e.response!.statusCode, 'data': responseData};
+          }
+        }
+      }
       
       // Handle validation errors specially
       if (e.response?.data is String && 
@@ -192,6 +324,10 @@ class ApiService {
       return {'error': e.message ?? 'Network error occurred'};
     } catch (e) {
       _logger.e('General error in POST request: $e');
+      if (e is FormatException) {
+        _logger.w('This is a FormatException, likely from empty response');
+        return {'success': true};
+      }
       return {'error': e.toString()};
     }
   }
@@ -206,15 +342,44 @@ class ApiService {
         ),
       );
       
+      // Handle empty responses
+      if (response.data == null || (response.data is String && response.data.toString().isEmpty)) {
+        if (response.statusCode != null && response.statusCode! < 400) {
+          // Empty response with success status code should be treated as success
+          return {'success': true, 'statusCode': response.statusCode};
+        }
+      }
+      
       if (response.statusCode != null && response.statusCode! >= 400) {
         return {'error': response.data?.toString() ?? 'Request failed with status: ${response.statusCode}'};
       }
       
-      return response.data is Map<String, dynamic> 
-          ? response.data
-          : {'data': response.data, 'statusCode': response.statusCode};
+      if (response.data == null) {
+        // Null data with success status code is considered success
+        return {'success': true, 'statusCode': response.statusCode};
+      } else if (response.data is Map<String, dynamic>) {
+        return response.data;
+      } else if (response.data is String && !response.data.toString().isEmpty) {
+        // Try to parse string as JSON
+        try {
+          final jsonData = jsonDecode(response.data);
+          if (jsonData is Map<String, dynamic>) {
+            return jsonData;
+          }
+        } catch (e) {
+          // Not JSON, just return as data
+        }
+      }
+      
+      return {'data': response.data, 'statusCode': response.statusCode};
     } on DioException catch (e) {
-      _handleError(e);
+      // Special case: Empty response with successful status code
+      if (e.response != null && e.response!.statusCode != null && e.response!.statusCode! < 400) {
+        if (e.response!.data == null || (e.response!.data is String && e.response!.data.toString().isEmpty)) {
+          return {'success': true, 'statusCode': e.response!.statusCode};
+        }
+      }
+      
       if (e.response?.data is Map<String, dynamic>) {
         return {'error': e.response?.data['message'] ?? e.message};
       }
@@ -233,15 +398,44 @@ class ApiService {
         ),
       );
       
+      // Handle empty responses
+      if (response.data == null || (response.data is String && response.data.toString().isEmpty)) {
+        if (response.statusCode != null && response.statusCode! < 400) {
+          // Empty response with success status code should be treated as success
+          return {'success': true, 'statusCode': response.statusCode};
+        }
+      }
+      
       if (response.statusCode != null && response.statusCode! >= 400) {
         return {'error': response.data?.toString() ?? 'Request failed with status: ${response.statusCode}'};
       }
       
-      return response.data is Map<String, dynamic> 
-          ? response.data
-          : {'data': response.data, 'statusCode': response.statusCode};
+      if (response.data == null) {
+        // Null data with success status code is considered success
+        return {'success': true, 'statusCode': response.statusCode};
+      } else if (response.data is Map<String, dynamic>) {
+        return response.data;
+      } else if (response.data is String && !response.data.toString().isEmpty) {
+        // Try to parse string as JSON
+        try {
+          final jsonData = jsonDecode(response.data);
+          if (jsonData is Map<String, dynamic>) {
+            return jsonData;
+          }
+        } catch (e) {
+          // Not JSON, just return as data
+        }
+      }
+      
+      return {'data': response.data, 'statusCode': response.statusCode};
     } on DioException catch (e) {
-      _handleError(e);
+      // Special case: Empty response with successful status code
+      if (e.response != null && e.response!.statusCode != null && e.response!.statusCode! < 400) {
+        if (e.response!.data == null || (e.response!.data is String && e.response!.data.toString().isEmpty)) {
+          return {'success': true, 'statusCode': e.response!.statusCode};
+        }
+      }
+      
       if (e.response?.data is Map<String, dynamic>) {
         return {'error': e.response?.data['message'] ?? e.message};
       }
@@ -251,31 +445,6 @@ class ApiService {
     }
   }
 
-  void _handleError(DioException e) {
-    switch (e.type) {
-      case DioExceptionType.connectionTimeout:
-      case DioExceptionType.sendTimeout:
-      case DioExceptionType.receiveTimeout:
-        throw TimeoutException();
-      case DioExceptionType.badResponse:
-        switch (e.response?.statusCode) {
-          case 401:
-            throw UnauthorizedException();
-          case 403:
-            throw ForbiddenException();
-          case 404:
-            throw NotFoundException();
-          case 500:
-            throw ServerException();
-          default:
-            throw OtherException(e.message);
-        }
-      case DioExceptionType.cancel:
-        throw RequestCancelledException();
-      default:
-        throw OtherException(e.message);
-    }
-  }
 }
 
 class TimeoutException implements Exception {}

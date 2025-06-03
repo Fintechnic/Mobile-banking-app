@@ -3,46 +3,28 @@ import 'api_service.dart';
 
 class WalletService {
   final ApiService _apiService = ApiService();
-
-  /// Tìm kiếm ví theo tên người dùng (dành cho admin)
-  Future<Map<String, dynamic>?> searchWallet(String username) async {
+  /// Top up user wallet by admin
+  Future<Map<String, dynamic>> adminTopUp(String phoneNumber, double amount, {String? description}) async {
     final token = await _apiService.getToken();
-    if (token == null) return null;
+    if (token == null) return {"error": "Not authenticated"};
     
-    final response = await _apiService.post(
-      "/api/admin/transaction/search-wallet",
-      {
-        "username": username
-      },
-      token: token
-    );
-
-    debugPrint("Search Wallet Response: $response");
+    final Map<String, dynamic> requestBody = {
+      "phoneNumber": phoneNumber,
+      "amount": amount,
+    };
     
-    if (response.containsKey("error")) {
-      return null;
+    if (description != null && description.isNotEmpty) {
+      requestBody["description"] = description;
     }
-    
-    return response;
-  }
-
-  /// Nạp tiền vào ví đại lý (dành cho admin)
-  Future<bool> topUpAgentWallet(String phoneNumber, double amount, String description) async {
-    final token = await _apiService.getToken();
-    if (token == null) return false;
 
     final response = await _apiService.post(
       "/api/admin/transaction/top-up",
-      {
-        "phoneNumber": phoneNumber,
-        "amount": amount,
-        "description": description
-      },
+      requestBody,
       token: token
     );
 
-    debugPrint("Top Up Agent Wallet Response: $response");
-    return !response.containsKey("error");
+    debugPrint("Admin Top-up Response: $response");
+    return response;
   }
 
   /// Lấy tổng quan về ví (dành cho admin)

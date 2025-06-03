@@ -725,15 +725,20 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> with Sing
                   Navigator.of(context).pop();
                   // Call the logout API through AuthProvider
                   final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                  // Cache what we need from the context before the async gap
+                  final scaffoldMessenger = ScaffoldMessenger.of(context);
+                  final navigator = Navigator.of(context);
+                  
                   authProvider.logout().then((_) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Logged out successfully'),
-                        duration: Duration(seconds: 2),
-                      ),
-                    );
-                    // Navigate to login screen after logout
-                    Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+                    if (mounted) {
+                      scaffoldMessenger.showSnackBar(
+                        const SnackBar(
+                          content: Text('Logged out successfully'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                      navigator.pushNamedAndRemoveUntil('/login', (route) => false);
+                    }
                   });
                 },
                 child: const Text('Logout'),

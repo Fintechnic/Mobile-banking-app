@@ -28,14 +28,14 @@ class WalletProvider extends ChangeNotifier {
     }
   }
   
-  /// Tìm kiếm ví (Admin)
-  Future<Map<String, dynamic>?> searchWallet(String username) async {
+  /// Admin top-up user wallet
+  Future<Map<String, dynamic>> adminTopUp(String phoneNumber, double amount, {String? description}) async {
     try {
       isLoading = true;
       error = null;
       notifyListeners();
       
-      final result = await _walletService.searchWallet(username);
+      final result = await _walletService.adminTopUp(phoneNumber, amount, description: description);
       
       isLoading = false;
       notifyListeners();
@@ -44,27 +44,7 @@ class WalletProvider extends ChangeNotifier {
       isLoading = false;
       error = e.toString();
       notifyListeners();
-      return null;
-    }
-  }
-  
-  /// Nạp tiền vào ví đại lý (Admin)
-  Future<bool> topUpAgentWallet(String phoneNumber, double amount, String description) async {
-    try {
-      isLoading = true;
-      error = null;
-      notifyListeners();
-      
-      final success = await _walletService.topUpAgentWallet(phoneNumber, amount, description);
-      
-      isLoading = false;
-      notifyListeners();
-      return success;
-    } catch (e) {
-      isLoading = false;
-      error = e.toString();
-      notifyListeners();
-      return false;
+      return {"error": e.toString()};
     }
   }
   

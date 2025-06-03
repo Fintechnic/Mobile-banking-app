@@ -17,6 +17,9 @@ class AuthProvider extends ChangeNotifier {
   bool isLoading = false;
   String? error;
 
+  /// Get the user's role for authorization checks
+  String? get userRole => role;
+
   AuthProvider() {
     checkAuthStatus();
   }
