@@ -10,6 +10,7 @@
         "cached_network_image",
         "camera",
         "connectivity_plus",
+        "crypto",
         "cupertino_icons",
         "dio",
         "fl_chart",
@@ -18,7 +19,6 @@
         "flutter_localizations",
         "flutter_secure_storage",
         "google_mlkit_barcode_scanning",
-        "http",
         "image_picker",
         "intl",
         "json_annotation",
@@ -136,7 +136,7 @@
     },
     {
       "name": "flutter_lints",
-      "version": "3.0.2",
+      "version": "6.0.0",
       "dependencies": [
         "lints"
       ]
@@ -170,22 +170,21 @@
       ]
     },
     {
-      "name": "http",
-      "version": "1.4.0",
+      "name": "crypto",
+      "version": "3.0.6",
       "dependencies": [
-        "async",
-        "http_parser",
-        "meta",
-        "web"
+        "typed_data"
       ]
     },
     {
       "name": "mobile_scanner",
-      "version": "3.5.7",
+      "version": "7.0.0",
       "dependencies": [
+        "collection",
         "flutter",
         "flutter_web_plugins",
-        "js"
+        "plugin_platform_interface",
+        "web"
       ]
     },
     {
@@ -708,6 +707,16 @@
       ]
     },
     {
+      "name": "http",
+      "version": "1.4.0",
+      "dependencies": [
+        "async",
+        "http_parser",
+        "meta",
+        "web"
+      ]
+    },
+    {
       "name": "graphs",
       "version": "2.3.2",
       "dependencies": [
@@ -731,13 +740,6 @@
       "dependencies": [
         "async",
         "path"
-      ]
-    },
-    {
-      "name": "crypto",
-      "version": "3.0.6",
-      "dependencies": [
-        "typed_data"
       ]
     },
     {
@@ -823,7 +825,7 @@
     },
     {
       "name": "lints",
-      "version": "3.0.0",
+      "version": "6.0.0",
       "dependencies": []
     },
     {
@@ -929,13 +931,17 @@
       ]
     },
     {
-      "name": "http_parser",
-      "version": "4.1.2",
+      "name": "typed_data",
+      "version": "1.4.0",
       "dependencies": [
-        "collection",
-        "source_span",
-        "string_scanner",
-        "typed_data"
+        "collection"
+      ]
+    },
+    {
+      "name": "plugin_platform_interface",
+      "version": "2.1.8",
+      "dependencies": [
+        "meta"
       ]
     },
     {
@@ -1191,7 +1197,7 @@
     },
     {
       "name": "camera_avfoundation",
-      "version": "0.9.19",
+      "version": "0.9.19+1",
       "dependencies": [
         "camera_platform_interface",
         "flutter",
@@ -1366,6 +1372,16 @@
       ]
     },
     {
+      "name": "http_parser",
+      "version": "4.1.2",
+      "dependencies": [
+        "collection",
+        "source_span",
+        "string_scanner",
+        "typed_data"
+      ]
+    },
+    {
       "name": "qr",
       "version": "3.0.2",
       "dependencies": [
@@ -1387,7 +1403,7 @@
     },
     {
       "name": "built_value",
-      "version": "8.9.5",
+      "version": "8.10.1",
       "dependencies": [
         "built_collection",
         "collection",
@@ -1431,13 +1447,6 @@
       "dependencies": [
         "meta",
         "path"
-      ]
-    },
-    {
-      "name": "typed_data",
-      "version": "1.4.0",
-      "dependencies": [
-        "collection"
       ]
     },
     {
@@ -1495,13 +1504,6 @@
       ]
     },
     {
-      "name": "plugin_platform_interface",
-      "version": "2.1.8",
-      "dependencies": [
-        "meta"
-      ]
-    },
-    {
       "name": "file_selector_windows",
       "version": "0.9.3+4",
       "dependencies": [
@@ -1530,7 +1532,7 @@
     },
     {
       "name": "file_selector_macos",
-      "version": "0.9.4+2",
+      "version": "0.9.4+3",
       "dependencies": [
         "cross_file",
         "file_selector_platform_interface",

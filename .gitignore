@@ -7,3 +7,4 @@ android/local.properties
 .dart_tool/
 build/
 .cursor/
+.flutter-plugins-dependencies
