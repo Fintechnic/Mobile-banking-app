@@ -5,45 +5,10 @@ import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 import '../providers/auth_provider.dart';
 import '../providers/banking_data_provider.dart';
+import '../utils/responsive_utils.dart';
+import '../utils/responsive_wrapper.dart';
 import '../screens/transfer.dart';
 import '../screens/withdraw.dart';
-
-void main() {
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => BankingDataProvider()),
-      ],
-      child: const MyApp(),
-    ),
-  );
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Banking App',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        fontFamily: 'Roboto',
-        pageTransitionsTheme: const PageTransitionsTheme(
-          builders: {
-            TargetPlatform.android: ZoomPageTransitionsBuilder(),
-            TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-          },
-        ),
-      ),
-      home: const HomeScreen(),
-    );
-  }
-}
-
-// Provider definition moved to lib/providers/banking_data_provider.dart
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -183,7 +148,7 @@ class _HomeScreenState extends State<HomeScreen>
               bankingDataProvider.fetchData();
             },
             icon: const Icon(Icons.refresh),
-            label: const Text('Thử lại'),
+            label: const Text('Retry'),
           ),
         ],
       ),
@@ -198,23 +163,143 @@ class _HomeScreenState extends State<HomeScreen>
         : authProvider.userData?['username'] ?? 'User';
 
     return Container(
-      padding: const EdgeInsets.only(top: 40, left: 20, right: 20, bottom: 20),
+      padding: EdgeInsets.only(
+        top: ResponsiveUtils.getHeightPercentage(context, 4),
+        bottom: 20,
+        left: ResponsiveUtils.getWidthPercentage(context, 5),
+        right: ResponsiveUtils.getWidthPercentage(context, 5),
+      ),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          stops: [0.0, 0.4, 0.7],
-          colors: [
-            Color(0xFFB0D1F5), // Light blue at top
-            Color(0xFF8BB8EE), // Medium blue in middle
-            Color(0xFF1A5FA3), // Dark blue at bottom
-          ],
+          colors: [Color(0xFF1A3A6B), Color(0xFF5A8ED0)],
+        ),
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(30),
+          bottomRight: Radius.circular(30),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withAlpha(26),
+            color: Color.fromRGBO(33, 150, 243, 0.3),
             blurRadius: 10,
-            offset: const Offset(0, 3),
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: ResponsiveBuilder(
+        builder: (context, deviceType, isLandscape) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        backgroundColor: Colors.white,
+                        radius: isLandscape ? 20 : 24,
+                        child: Icon(
+                          Icons.person,
+                          color: const Color(0xFF1A3A6B),
+                          size: isLandscape ? 24 : 30,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Hello,',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: ResponsiveUtils.getResponsiveFontSize(context, 14),
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            username,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: ResponsiveUtils.getResponsiveFontSize(context, 18),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: Stack(
+                          children: [
+                            const Icon(Icons.notifications_outlined, color: Colors.white),
+                            Positioned(
+                              right: 0,
+                              top: 0,
+                              child: Container(
+                                padding: const EdgeInsets.all(1),
+                                decoration: BoxDecoration(
+                                  color: Colors.red,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                constraints: const BoxConstraints(
+                                  minWidth: 12,
+                                  minHeight: 12,
+                                ),
+                                child: const Text(
+                                  '2',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 8,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/notifications');
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.person_outline, color: Colors.white),
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/profile');
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              _buildBalanceCard(bankingDataProvider, isLandscape),
+            ],
+          );
+        }
+      ),
+    );
+  }
+
+  Widget _buildBalanceCard(BankingDataProvider bankingDataProvider, bool isLandscape) {
+    final balance = bankingDataProvider.balance;
+
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: isLandscape ? 16 : 20,
+        vertical: isLandscape ? 16 : 24,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Color.fromRGBO(33, 150, 243, 0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
@@ -224,159 +309,146 @@ class _HomeScreenState extends State<HomeScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withAlpha(26),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: const Center(
-                      child: Icon(Icons.person, color: Colors.grey),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Hello,',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                        ),
-                      ),
-                      Text(
-                        username,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+              Text(
+                'Available balance',
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: ResponsiveUtils.getResponsiveFontSize(context, 14),
+                ),
               ),
-              GestureDetector(
-                onTap: () {
-                  // Handle notification icon tap with animation
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Không có thông báo mới')),
-                  );
-                },
-                child: TweenAnimationBuilder<double>(
-                  tween: Tween<double>(begin: 0.0, end: 1.0),
-                  duration: const Duration(milliseconds: 500),
-                  builder: (context, value, child) {
-                    return Transform.scale(
-                      scale: value,
-                      child: child,
-                    );
-                  },
-                  child: Stack(
-                    children: [
-                      const Icon(
-                        Icons.notifications_none,
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1A3A6B),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.visibility_outlined,
+                      color: Colors.white,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Details',
+                      style: TextStyle(
                         color: Colors.white,
-                        size: 28,
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(context, 12),
                       ),
-                      Positioned(
-                        right: 0,
-                        top: 0,
-                        child: Container(
-                          padding: const EdgeInsets.all(2),
-                          decoration: BoxDecoration(
-                            color: Colors.red,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          constraints: const BoxConstraints(
-                            minWidth: 12,
-                            minHeight: 12,
-                          ),
-                          child: const Text(
-                            '2',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 8,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
+          const SizedBox(height: 12),
+          bankingDataProvider.isLoading
+              ? Shimmer.fromColors(
+                  baseColor: Colors.grey[300]!,
+                  highlightColor: Colors.grey[100]!,
+                  child: Container(
+                    height: 32,
+                    width: 200,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                )
+              : Text(
+                  '$balance VND',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(context, isLandscape ? 22 : 28),
+                    color: const Color(0xFF1A3A6B),
+                  ),
+                ),
           const SizedBox(height: 20),
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 500),
-            child: bankingDataProvider.isLoading
-                ? _buildBalanceShimmer()
-                : _buildBalanceCard(bankingDataProvider),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildActionButton(
+                icon: Icons.arrow_upward,
+                label: 'Transfer',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const TransferScreen(),
+                    ),
+                  );
+                },
+                isLandscape: isLandscape,
+              ),
+              _buildActionButton(
+                icon: Icons.arrow_downward,
+                label: 'Withdraw',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const WithdrawScreen(),
+                    ),
+                  );
+                },
+                isLandscape: isLandscape,
+              ),
+              _buildActionButton(
+                icon: Icons.qr_code,
+                label: 'QR Scan',
+                onTap: () {
+                  Navigator.pushNamed(context, '/qr-scan');
+                },
+                isLandscape: isLandscape,
+              ),
+              _buildActionButton(
+                icon: Icons.more_horiz,
+                label: 'More',
+                onTap: () {
+                  Navigator.pushNamed(context, '/more-options');
+                },
+                isLandscape: isLandscape,
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildBalanceShimmer() {
-    return Shimmer.fromColors(
-      baseColor: Colors.grey[300]!,
-      highlightColor: Colors.grey[100]!,
-      child: Container(
-        height: 80,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(15),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBalanceCard(BankingDataProvider bankingDataProvider) {
-    return Container(
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(26),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+  Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    required bool isLandscape,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'MY BALANCE',
-            style: TextStyle(
-              color: Colors.grey,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
+          Container(
+            width: isLandscape ? 40 : 50,
+            height: isLandscape ? 40 : 50,
+            decoration: BoxDecoration(
+              color: const Color(0xFFE8F1FB),
+              borderRadius: BorderRadius.circular(isLandscape ? 12 : 15),
+            ),
+            child: Icon(
+              icon,
+              color: const Color(0xFF1A3A6B),
+              size: isLandscape ? 22 : 24,
             ),
           ),
-          const SizedBox(height: 5),
+          const SizedBox(height: 8),
           Text(
-            bankingDataProvider.balance,
-            style: const TextStyle(
-              color: Colors.black,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+            label,
+            style: TextStyle(
+              fontSize: ResponsiveUtils.getResponsiveFontSize(context, isLandscape ? 10 : 12),
+              color: const Color(0xFF1A3A6B),
             ),
           ),
         ],
@@ -408,7 +480,7 @@ class _HomeScreenState extends State<HomeScreen>
                 onTap: () {
                   // Handle "see more" button tap with animation
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Đang tải thêm dịch vụ...')),
+                    const SnackBar(content: Text('Loading more services...')),
                   );
                 },
                 borderRadius: BorderRadius.circular(20),
@@ -417,7 +489,7 @@ class _HomeScreenState extends State<HomeScreen>
                   child: Row(
                     children: [
                       Text(
-                        'Xem thêm',
+                        'See more',
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.blue.shade700,
@@ -623,7 +695,7 @@ class _HomeScreenState extends State<HomeScreen>
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.blue.withAlpha(26),
+                      color: Color.fromRGBO(33, 150, 243, 0.3),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
@@ -664,7 +736,7 @@ class _HomeScreenState extends State<HomeScreen>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Infor and promo',
+                'Information and promo',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -675,7 +747,7 @@ class _HomeScreenState extends State<HomeScreen>
                 onTap: () {
                   // Handle "see more" button tap
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Xem tất cả khuyến mãi')),
+                    const SnackBar(content: Text('See all promotions')),
                   );
                 },
                 borderRadius: BorderRadius.circular(20),
@@ -684,7 +756,7 @@ class _HomeScreenState extends State<HomeScreen>
                   child: Row(
                     children: [
                       Text(
-                        'Xem tất cả',
+                        'See all',
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.blue.shade700,
@@ -747,7 +819,7 @@ class _HomeScreenState extends State<HomeScreen>
           color: Colors.blue.shade50,
           borderRadius: BorderRadius.circular(10),
         ),
-        child: const Text('Không có khuyến mãi hiện tại'),
+        child: const Text('No promotions available'),
       );
     }
 
@@ -781,7 +853,7 @@ class _HomeScreenState extends State<HomeScreen>
           borderRadius: BorderRadius.circular(10),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withAlpha(13),
+              color: Color.fromRGBO(33, 150, 243, 0.3),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -802,7 +874,7 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Hết hạn: ${promo.expiry}',
+                    'Expiry: ${promo.expiry}',
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.grey.shade700,
@@ -861,7 +933,7 @@ class _HomeScreenState extends State<HomeScreen>
               const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
               const SizedBox(width: 5),
               Text(
-                'Hết hạn: ${promo.expiry}',
+                'Expiry: ${promo.expiry}',
                 style: const TextStyle(
                   fontSize: 14,
                   color: Colors.grey,
@@ -877,7 +949,7 @@ class _HomeScreenState extends State<HomeScreen>
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                      content: Text('Đã áp dụng khuyến mãi: ${promo.title}')),
+                      content: Text('Applied promotion: ${promo.title}')),
                 );
               },
               style: ElevatedButton.styleFrom(
@@ -886,7 +958,7 @@ class _HomeScreenState extends State<HomeScreen>
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              child: const Text('Áp dụng ngay'),
+              child: const Text('Apply now'),
             ),
           ),
         ],
@@ -905,7 +977,7 @@ class _HomeScreenState extends State<HomeScreen>
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Color.fromRGBO(33, 150, 243, 0.3),
             blurRadius: 10,
             offset: const Offset(0, -3),
           ),
@@ -938,7 +1010,7 @@ class _HomeScreenState extends State<HomeScreen>
           } else if (!isActive) {
             // Fallback for other menu items
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Chuyển đến màn hình: $label')),
+              SnackBar(content: Text('Moving to screen: $label')),
             );
           }
         },
@@ -949,7 +1021,7 @@ class _HomeScreenState extends State<HomeScreen>
               duration: const Duration(milliseconds: 200),
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: isActive ? activeColor.withOpacity(0.15) : Colors.transparent,
+                color: isActive ? Color.fromRGBO(33, 150, 243, 0.15) : Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
@@ -1003,7 +1075,7 @@ class _HomeScreenState extends State<HomeScreen>
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.blue.shade300.withOpacity(0.5),
+                  color: Color.fromRGBO(33, 150, 243, 0.3),
                   blurRadius: 10,
                   spreadRadius: 2,
                   offset: const Offset(0, 2),

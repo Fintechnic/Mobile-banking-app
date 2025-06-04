@@ -4,6 +4,8 @@ import 'package:fintechnic/screens/app_information.dart';
 import 'package:fintechnic/screens/change_password.dart';
 import 'package:fintechnic/screens/homepage_screen.dart';
 import 'package:fintechnic/screens/login_screen.dart';
+import 'package:fintechnic/screens/notification_list.dart';
+import 'package:fintechnic/screens/profile_screen.dart';
 import 'package:fintechnic/screens/qr_scan_screen.dart';
 import 'package:fintechnic/screens/qr_screen.dart';
 import 'package:fintechnic/screens/transaction_management.dart';
@@ -14,9 +16,11 @@ import 'package:fintechnic/screens/admin_user_list.dart';
 import 'package:fintechnic/screens/admin_user_details.dart';
 import 'package:fintechnic/screens/admin_transaction_screen.dart';
 import 'package:fintechnic/utils/role_constants.dart';
+import 'package:fintechnic/utils/responsive_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 // Import providers
 import 'package:fintechnic/providers/auth_provider.dart';
@@ -35,6 +39,7 @@ import 'package:fintechnic/utils/api_constants.dart';
 import 'package:fintechnic/utils/app_logger.dart';
 import 'package:fintechnic/utils/env_config.dart';
 import 'package:fintechnic/utils/network_utils.dart';
+import 'package:fintechnic/utils/app_theme.dart';
 
 // Other screen imports
 import 'screens/bank_slip.dart';
@@ -43,6 +48,7 @@ import 'screens/history.dart';
 import 'screens/notification.dart';
 import 'screens/paybill.dart';
 import 'screens/transfer.dart';
+import 'screens/splash_screen.dart';
 
 final appLogger = AppLogger();
 
@@ -151,24 +157,24 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Fintechnic',
-      theme: ThemeData(
-        primaryColor: const Color(0xFF1A3A6B),
-        fontFamily: 'SF Pro Display',
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF1A3A6B),
-          foregroundColor: Colors.white,
-          elevation: 0,
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF1A3A6B),
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
+      theme: AppTheme.getTheme(),
+      builder: (context, child) {
+        final mediaQuery = MediaQuery.of(context);
+        
+        double textScaleFactor = 1.0;
+        if (ResponsiveUtils.getDeviceType(context) == DeviceType.tablet) {
+          textScaleFactor = 1.1;
+        } else if (ResponsiveUtils.getDeviceType(context) == DeviceType.desktop) {
+          textScaleFactor = 1.2;
+        }
+        
+        return MediaQuery(
+          data: mediaQuery.copyWith(
+            textScaleFactor: textScaleFactor,
           ),
-        ),
-      ),
+          child: child!,
+        );
+      },
       home: const AuthWrapper(),
     );
   }
@@ -254,17 +260,20 @@ class AuthWrapper extends StatelessWidget {
               case '/transaction-history':
                 page = const TransactionHistoryScreen();
                 break;
+              case '/notifications':
+                page = const NotificationListScreen();
+                break;
               case '/notification-settings':
                 page = const NotificationSettingsScreen();
+                break;
+              case '/profile':
+                page = const ProfileScreen();
                 break;
               case '/bill-payment':
                 page = const BillPaymentScreen();
                 break;
               case '/transfer':
                 page = const TransferScreen();
-                break;
-              case '/history':
-                page = const TransactionHistoryScreen();
                 break;
               case '/login':
                 page = const LoginScreen();
@@ -286,7 +295,7 @@ class SplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1A3A6B),
+      backgroundColor: AppTheme.primaryColor,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

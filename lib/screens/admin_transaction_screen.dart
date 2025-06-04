@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../providers/admin_transaction_provider.dart';
 import '../models/admin_transaction.dart';
+import '../utils/responsive_utils.dart';
 
 class AdminTransactionScreen extends StatefulWidget {
   const AdminTransactionScreen({super.key});
@@ -11,7 +12,7 @@ class AdminTransactionScreen extends StatefulWidget {
   State<AdminTransactionScreen> createState() => _AdminTransactionScreenState();
 }
 
-class _AdminTransactionScreenState extends State<AdminTransactionScreen> {
+class _AdminTransactionScreenState extends State<AdminTransactionScreen> with SingleTickerProviderStateMixin {
   final _searchController = TextEditingController();
   final _minAmountController = TextEditingController();
   final _maxAmountController = TextEditingController();
@@ -24,6 +25,8 @@ class _AdminTransactionScreenState extends State<AdminTransactionScreen> {
   
   bool _isFilterExpanded = false;
   final _scrollController = ScrollController();
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
   
   // List of transaction types and statuses
   final List<String> _transactionTypes = ['TRANSFER', 'WITHDRAW', 'DEPOSIT', 'BILL_PAYMENT'];
@@ -32,6 +35,22 @@ class _AdminTransactionScreenState extends State<AdminTransactionScreen> {
   @override
   void initState() {
     super.initState();
+    
+    // Setup animations
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeIn,
+      ),
+    );
+
+    _animationController.forward();
+    
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadTransactions();
     });
@@ -44,12 +63,13 @@ class _AdminTransactionScreenState extends State<AdminTransactionScreen> {
     _maxAmountController.dispose();
     _transactionCodeController.dispose();
     _scrollController.dispose();
+    _animationController.dispose();
     super.dispose();
   }
   
-  void _loadTransactions() {
+  Future<void> _loadTransactions() async {
     final provider = Provider.of<AdminTransactionProvider>(context, listen: false);
-    provider.fetchTransactions();
+    await provider.fetchTransactions();
   }
   
   void _applyFilters() {
@@ -65,7 +85,7 @@ class _AdminTransactionScreenState extends State<AdminTransactionScreen> {
       transactionStatus: _selectedStatus,
       minAmount: _minAmountController.text.isNotEmpty ? double.tryParse(_minAmountController.text) : null,
       maxAmount: _maxAmountController.text.isNotEmpty ? double.tryParse(_maxAmountController.text) : null,
-      fromDate: _fromDate != null ? _fromDate!.toIso8601String() : null,
+      fromDate: _fromDate?.toIso8601String(),
       transactionCode: _transactionCodeController.text.isNotEmpty ? _transactionCodeController.text : null,
     );
     
@@ -96,6 +116,17 @@ class _AdminTransactionScreenState extends State<AdminTransactionScreen> {
       initialDate: _fromDate ?? DateTime.now(),
       firstDate: DateTime(2020),
       lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFF1A3A6B),
+              onPrimary: Colors.white,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
     
     if (picked != null && picked != _fromDate) {
@@ -111,90 +142,182 @@ class _AdminTransactionScreenState extends State<AdminTransactionScreen> {
       // Close keyboard when tapping outside input fields
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Transaction Management'),
-          backgroundColor: Colors.blue[800],
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.refresh),
-              onPressed: _loadTransactions,
-              tooltip: 'Refresh Transactions',
-            ),
-          ],
-        ),
         body: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              // Use constraints to make UI responsive
-              return Column(
-                children: [
-                  // Filter Panel
-                  _buildFilterPanel(constraints),
-                  
-                  // Transactions List
-                  Expanded(
-                    child: Consumer<AdminTransactionProvider>(
-                      builder: (context, provider, child) {
-                        if (provider.isLoading) {
-                          return const Center(child: CircularProgressIndicator());
-                        }
-                        
-                        if (provider.error != null) {
-                          return Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    'Error: ${provider.error}',
-                                    style: TextStyle(color: Colors.red[700]),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  const SizedBox(height: 12),
-                                  ElevatedButton(
-                                    onPressed: _loadTransactions,
-                                    child: const Text('Retry'),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        }
-                        
-                        final transactions = provider.transactions;
-                        if (transactions.isEmpty) {
-                          return const Center(
-                            child: Text('No transactions found'),
-                          );
-                        }
-                        
-                        // Scrollable transaction list with pagination
-                        return Column(
-                          children: [
-                            Expanded(
-                              child: ListView.builder(
-                                controller: _scrollController,
-                                padding: const EdgeInsets.symmetric(vertical: 4),
-                                itemCount: transactions.length,
-                                itemBuilder: (context, index) {
-                                  return _buildTransactionItem(transactions[index]);
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: Column(
+              children: [
+                _buildHeader(),
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      // Use constraints to make UI responsive
+                      return Column(
+                        children: [
+                          // Filter Panel
+                          _buildFilterPanel(constraints),
+                          
+                          // Transactions List
+                          Expanded(
+                            child: RefreshIndicator(
+                              onRefresh: _loadTransactions,
+                              color: const Color(0xFF1A3A6B),
+                              child: Consumer<AdminTransactionProvider>(
+                                builder: (context, provider, child) {
+                                  if (provider.isLoading) {
+                                    return const Center(child: CircularProgressIndicator(
+                                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1A3A6B)),
+                                    ));
+                                  }
+                                  
+                                  if (provider.error != null) {
+                                    return Center(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(16.0),
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              'Error: ${provider.error}',
+                                              style: TextStyle(color: Colors.red[700]),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                            const SizedBox(height: 12),
+                                            ElevatedButton(
+                                              onPressed: _loadTransactions,
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: const Color(0xFF1A3A6B),
+                                                foregroundColor: Colors.white,
+                                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius: BorderRadius.circular(20),
+                                                ),
+                                              ),
+                                              child: const Text('Retry'),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                  
+                                  final transactions = provider.transactions;
+                                  if (transactions.isEmpty) {
+                                    return ListView(
+                                      // Always allow scrolling for empty state to enable pull-to-refresh
+                                      physics: const AlwaysScrollableScrollPhysics(),
+                                      children: const [
+                                        SizedBox(height: 100),
+                                        Center(
+                                          child: Text('No transactions found'),
+                                        ),
+                                      ],
+                                    );
+                                  }
+                                  
+                                  // Scrollable transaction list with pagination
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                                    child: Column(
+                                      children: [
+                                        Expanded(
+                                          child: ListView.builder(
+                                            controller: _scrollController,
+                                            physics: const AlwaysScrollableScrollPhysics(),
+                                            padding: const EdgeInsets.symmetric(vertical: 4),
+                                            itemCount: transactions.length,
+                                            itemBuilder: (context, index) {
+                                              return _buildTransactionItem(transactions[index]);
+                                            },
+                                          ),
+                                        ),
+                                        if (provider.pagination != null)
+                                          _buildPagination(provider),
+                                      ],
+                                    ),
+                                  );
                                 },
                               ),
                             ),
-                            if (provider.pagination != null)
-                              _buildPagination(provider),
-                          ],
-                        );
-                      },
-                    ),
+                          ),
+                        ],
+                      );
+                    }
                   ),
-                ],
-              );
-            }
+                ),
+              ],
+            ),
           ),
         ),
         resizeToAvoidBottomInset: true,
+      ),
+    );
+  }
+  
+  Widget _buildHeader() {
+    return Container(
+      padding: EdgeInsets.only(
+        top: ResponsiveUtils.getHeightPercentage(context, 2),
+        bottom: 20,
+        left: ResponsiveUtils.getWidthPercentage(context, 5),
+        right: ResponsiveUtils.getWidthPercentage(context, 5),
+      ),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFF1A3A6B), Color(0xFF5A8ED0)],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Color.fromRGBO(33, 150, 243, 0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: const CircleAvatar(
+                  backgroundColor: Colors.white30,
+                  radius: 18,
+                  child: Icon(
+                    Icons.arrow_back,
+                    color: Colors.white,
+                    size: 22,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Transaction Management',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: ResponsiveUtils.getResponsiveFontSize(context, 18),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Manage and monitor transactions',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: ResponsiveUtils.getResponsiveFontSize(context, 14),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

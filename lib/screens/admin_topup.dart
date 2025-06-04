@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fintechnic/services/wallet_service.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import '../utils/responsive_utils.dart';
 
 class AdminTopupScreen extends StatefulWidget {
   const AdminTopupScreen({super.key});
@@ -10,7 +11,7 @@ class AdminTopupScreen extends StatefulWidget {
   State<AdminTopupScreen> createState() => _AdminTopupScreenState();
 }
 
-class _AdminTopupScreenState extends State<AdminTopupScreen> {
+class _AdminTopupScreenState extends State<AdminTopupScreen> with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final WalletService _walletService = WalletService();
   final _currencyFormatter = NumberFormat("#,##0.00", "en_US");
@@ -23,12 +24,35 @@ class _AdminTopupScreenState extends State<AdminTopupScreen> {
   String? _errorMessage;
   String? _successMessage;
   Map<String, dynamic>? _lastTopupResult;
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  
+  @override
+  void initState() {
+    super.initState();
+    
+    // Setup animations
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeIn,
+      ),
+    );
+
+    _animationController.forward();
+  }
   
   @override
   void dispose() {
     _phoneNumberController.dispose();
     _amountController.dispose();
     _noteController.dispose();
+    _animationController.dispose();
     super.dispose();
   }
   
@@ -96,137 +120,55 @@ class _AdminTopupScreenState extends State<AdminTopupScreen> {
     }
   }
   
+  Future<void> _resetForm() async {
+    setState(() {
+      _phoneNumberController.clear();
+      _amountController.clear();
+      _noteController.clear();
+      _errorMessage = null;
+      _successMessage = null;
+      _lastTopupResult = null;
+    });
+    return Future.delayed(const Duration(milliseconds: 300)); // Small delay for better UX
+  }
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Top-up Management'),
-        backgroundColor: Colors.amber[800],
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
+      body: SafeArea(
+        child: FadeTransition(
+          opacity: _fadeAnimation,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildHeader(),
-              const SizedBox(height: 24),
-              _buildTopupForm(),
-              if (_lastTopupResult != null) ...[
-                const SizedBox(height: 24),
-                _buildTopupResult(),
-              ],
-              if (_errorMessage != null) ...[
-                const SizedBox(height: 16),
-                _buildErrorMessage(),
-              ],
-              if (_successMessage != null) ...[
-                const SizedBox(height: 16),
-                _buildSuccessMessage(),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-  
-  Widget _buildHeader() {
-    return const Text(
-      'Add Money to User Account',
-      style: TextStyle(
-        fontSize: 24,
-        fontWeight: FontWeight.bold,
-      ),
-    );
-  }
-  
-  Widget _buildTopupForm() {
-    return Form(
-      key: _formKey,
-      child: Card(
-        elevation: 2,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Top-up Details',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _phoneNumberController,
-                decoration: const InputDecoration(
-                  labelText: 'Phone Number',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.phone),
-                ),
-                keyboardType: TextInputType.phone,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a phone number';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _amountController,
-                decoration: const InputDecoration(
-                  labelText: 'Amount (\$)',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.attach_money),
-                ),
-                keyboardType: TextInputType.numberWithOptions(decimal: true),
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
-                ],
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter an amount';
-                  }
-                  final amount = double.tryParse(value);
-                  if (amount == null || amount <= 0) {
-                    return 'Please enter a valid amount';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _noteController,
-                decoration: const InputDecoration(
-                  labelText: 'Description (Optional)',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.note),
-                ),
-                maxLines: 2,
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: _isLoading ? null : _processTopup,
-                  icon: _isLoading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Icon(Icons.account_balance_wallet),
-                  label: const Text('Process Top-up'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green[700],
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 16,
+              Expanded(
+                child: RefreshIndicator(
+                  onRefresh: _resetForm,
+                  color: const Color(0xFF1A3A6B),
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildTopupForm(),
+                        if (_lastTopupResult != null) ...[
+                          const SizedBox(height: 24),
+                          _buildTopupResult(),
+                        ],
+                        if (_errorMessage != null) ...[
+                          const SizedBox(height: 16),
+                          _buildErrorMessage(),
+                        ],
+                        if (_successMessage != null) ...[
+                          const SizedBox(height: 16),
+                          _buildSuccessMessage(),
+                        ],
+                        const SizedBox(height: 24),
+                        // Add extra space for pull-to-refresh on small content
+                        const SizedBox(height: 100),
+                      ],
                     ),
                   ),
                 ),
@@ -238,78 +180,280 @@ class _AdminTopupScreenState extends State<AdminTopupScreen> {
     );
   }
   
-  Widget _buildTopupResult() {
-    final result = _lastTopupResult!;
-    
-    return Card(
-      elevation: 2,
-      color: Colors.blue[50],
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
+  Widget _buildHeader() {
+    return Container(
+      padding: EdgeInsets.only(
+        top: ResponsiveUtils.getHeightPercentage(context, 2),
+        bottom: 20,
+        left: ResponsiveUtils.getWidthPercentage(context, 5),
+        right: ResponsiveUtils.getWidthPercentage(context, 5),
+      ),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFF1A3A6B), Color(0xFF5A8ED0)],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Color.fromRGBO(33, 150, 243, 0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: const CircleAvatar(
+                      backgroundColor: Colors.white30,
+                      radius: 18,
+                      child: Icon(
+                        Icons.arrow_back,
+                        color: Colors.white,
+                        size: 22,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Top-up Management',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: ResponsiveUtils.getResponsiveFontSize(context, 18),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Add funds to user accounts',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: ResponsiveUtils.getResponsiveFontSize(context, 14),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildTopupForm() {
+    return Form(
+      key: _formKey,
+      child: Container(
+        margin: const EdgeInsets.only(top: 16),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Color.fromRGBO(0, 0, 0, 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Transaction Details',
+            Text(
+              'Add Money to User Account',
               style: TextStyle(
-                fontSize: 18,
+                fontSize: ResponsiveUtils.getResponsiveFontSize(context, 18),
                 fontWeight: FontWeight.bold,
+                color: const Color(0xFF1A3A6B),
               ),
             ),
-            const SizedBox(height: 16),
-            _buildUserInfoRow('Username', result['username'] ?? 'N/A'),
-            _buildUserInfoRow('New Balance', '\$${_currencyFormatter.format(result['newBalance'] ?? 0.0)}'),
-            _buildUserInfoRow('Transaction Code', result['transactionCode'] ?? 'N/A'),
-            _buildUserInfoRow('Amount', '\$${_currencyFormatter.format(result['amount'] ?? 0.0)}'),
-            if (result['description'] != null) 
-              _buildUserInfoRow('Description', result['description']),
-            _buildUserInfoRow(
-              'Status',
-              result['status'] ?? 'N/A',
-              isHighlighted: true,
-              color: (result['status'] == 'SUCCESS') ? Colors.green[800] : Colors.red[800],
+            const SizedBox(height: 20),
+            TextFormField(
+              controller: _phoneNumberController,
+              decoration: InputDecoration(
+                labelText: 'Phone Number',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFF1A3A6B), width: 2),
+                ),
+                prefixIcon: const Icon(Icons.phone, color: Color(0xFF1A3A6B)),
+              ),
+              keyboardType: TextInputType.phone,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter a phone number';
+                }
+                return null;
+              },
             ),
-            _buildUserInfoRow('Created At', _formatDateTime(result['createdAt'] ?? '')),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _amountController,
+              decoration: InputDecoration(
+                labelText: 'Amount (\$)',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFF1A3A6B), width: 2),
+                ),
+                prefixIcon: const Icon(Icons.attach_money, color: Color(0xFF1A3A6B)),
+              ),
+              keyboardType: TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+              ],
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter an amount';
+                }
+                final amount = double.tryParse(value);
+                if (amount == null || amount <= 0) {
+                  return 'Please enter a valid amount';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _noteController,
+              decoration: InputDecoration(
+                labelText: 'Description (Optional)',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFF1A3A6B), width: 2),
+                ),
+                prefixIcon: const Icon(Icons.note, color: Color(0xFF1A3A6B)),
+              ),
+              maxLines: 2,
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : _processTopup,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1A3A6B),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 3,
+                ),
+                child: _isLoading
+                    ? Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Text('Processing...'),
+                        ],
+                      )
+                    : Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.account_balance_wallet),
+                          const SizedBox(width: 12),
+                          Text('Process Top-up'),
+                        ],
+                      ),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
   
-  String _formatDateTime(String dateTimeStr) {
-    if (dateTimeStr.isEmpty) return 'N/A';
+  Widget _buildTopupResult() {
+    final result = _lastTopupResult!;
     
-    try {
-      final dateTime = DateTime.parse(dateTimeStr);
-      return DateFormat('dd/MM/yyyy HH:mm:ss').format(dateTime);
-    } catch (e) {
-      return dateTimeStr;
-    }
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A3A6B).withOpacity(0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: const Color(0xFF1A3A6B).withOpacity(0.2),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Top-up Result',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: const Color(0xFF1A3A6B),
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildResultRow('Username', result['username'] ?? 'Unknown'),
+          _buildResultRow('Phone', result['phone'] ?? 'Unknown'),
+          _buildResultRow('Amount', '\$${_currencyFormatter.format(result['amount'] ?? 0)}'),
+          _buildResultRow('Transaction ID', result['transactionId'] ?? 'Unknown'),
+          _buildResultRow('Time', result['timestamp'] != null 
+            ? DateFormat('MMM dd, yyyy HH:mm').format(DateTime.parse(result['timestamp'])) 
+            : 'Unknown'
+          ),
+          _buildResultRow('Status', 'Success'),
+        ],
+      ),
+    );
   }
   
-  Widget _buildUserInfoRow(String label, String value, {bool isHighlighted = false, Color? color}) {
+  Widget _buildResultRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            flex: 2,
+          SizedBox(
+            width: 100,
             child: Text(
               '$label:',
-              style: TextStyle(
-                fontWeight: FontWeight.w500,
-                color: isHighlighted ? (color ?? Colors.green[800]) : Colors.black87,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF5A8ED0),
               ),
             ),
           ),
           Expanded(
-            flex: 3,
             child: Text(
               value,
-              style: TextStyle(
-                fontWeight: isHighlighted ? FontWeight.bold : FontWeight.normal,
-                color: isHighlighted ? (color ?? Colors.green[800]) : Colors.black,
+              style: const TextStyle(
+                color: Color(0xFF1A3A6B),
               ),
             ),
           ),
@@ -321,20 +465,27 @@ class _AdminTopupScreenState extends State<AdminTopupScreen> {
   Widget _buildErrorMessage() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.red[50],
-        border: Border.all(color: Colors.red),
-        borderRadius: BorderRadius.circular(8),
+        color: Colors.red.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.red.shade200),
       ),
       child: Row(
         children: [
-          Icon(Icons.error_outline, color: Colors.red[700]),
-          const SizedBox(width: 12),
+          Icon(
+            Icons.error_outline,
+            color: Colors.red.shade700,
+            size: 24,
+          ),
+          const SizedBox(width: 16),
           Expanded(
             child: Text(
               _errorMessage!,
-              style: TextStyle(color: Colors.red[700]),
+              style: TextStyle(
+                color: Colors.red.shade700,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],
@@ -345,20 +496,27 @@ class _AdminTopupScreenState extends State<AdminTopupScreen> {
   Widget _buildSuccessMessage() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.green[50],
-        border: Border.all(color: Colors.green),
-        borderRadius: BorderRadius.circular(8),
+        color: Colors.green.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.green.shade200),
       ),
       child: Row(
         children: [
-          Icon(Icons.check_circle, color: Colors.green[700]),
-          const SizedBox(width: 12),
+          Icon(
+            Icons.check_circle_outline,
+            color: Colors.green.shade700,
+            size: 24,
+          ),
+          const SizedBox(width: 16),
           Expanded(
             child: Text(
               _successMessage!,
-              style: TextStyle(color: Colors.green[700]),
+              style: TextStyle(
+                color: Colors.green.shade700,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],

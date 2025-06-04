@@ -105,15 +105,15 @@ class BankingDataProvider extends ChangeNotifier {
   void _initializePromos() {
     _promos = [
       PromoItem(
-        title: 'Giảm 50% phí chuyển tiền',
+        title: '50% off transfer fees',
         description:
-            'Áp dụng cho tất cả các giao dịch chuyển tiền đến hết 30/04/2025',
+            'Applicable for all money transfers until 30/04/2025',
         expiry: '30/04/2025',
         backgroundColor: Colors.blue.shade50,
       ),
       PromoItem(
-        title: 'Hoàn tiền 10%',
-        description: 'Cho các giao dịch thanh toán hóa đơn lần đầu',
+        title: '10% cashback',
+        description: 'For first-time bill payments',
         expiry: '15/05/2025',
         backgroundColor: Colors.green.shade50,
       ),

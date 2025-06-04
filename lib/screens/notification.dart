@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../utils/responsive_utils.dart';
+import '../utils/responsive_wrapper.dart';
+import '../utils/icon_utils.dart';
 
 void main() {
   runApp(const MyApp());
@@ -71,7 +74,7 @@ class NotificationSetting {
       id: json['id'],
       title: json['title'],
       description: json['description'],
-      icon: _getIconFromString(json['icon']),
+      icon: IconUtils.getIconFromString(json['icon']),
       isEnabled: json['isEnabled'],
     );
   }
@@ -81,56 +84,9 @@ class NotificationSetting {
       'id': id,
       'title': title,
       'description': description,
-      'icon': _getStringFromIcon(icon),
+      'icon': IconUtils.getStringFromIcon(icon),
       'isEnabled': isEnabled,
     };
-  }
-
-  static IconData _getIconFromString(String iconName) {
-    switch (iconName) {
-      case 'account_balance_wallet':
-        return Icons.account_balance_wallet;
-      case 'notifications_active':
-        return Icons.notifications_active;
-      case 'warning_amber_rounded':
-        return Icons.warning_amber_rounded;
-      case 'support_agent':
-        return Icons.support_agent;
-      case 'local_offer':
-        return Icons.local_offer;
-      case 'card_giftcard':
-        return Icons.card_giftcard;
-      case 'videogame_asset':
-        return Icons.videogame_asset;
-      case 'campaign':
-        return Icons.campaign;
-      case 'people':
-        return Icons.people;
-      case 'storefront':
-        return Icons.storefront;
-      case 'groups':
-        return Icons.groups;
-      case 'rate_review':
-        return Icons.rate_review;
-      default:
-        return Icons.notifications;
-    }
-  }
-
-  static String _getStringFromIcon(IconData icon) {
-    if (icon == Icons.account_balance_wallet) return 'account_balance_wallet';
-    if (icon == Icons.notifications_active) return 'notifications_active';
-    if (icon == Icons.warning_amber_rounded) return 'warning_amber_rounded';
-    if (icon == Icons.support_agent) return 'support_agent';
-    if (icon == Icons.local_offer) return 'local_offer';
-    if (icon == Icons.card_giftcard) return 'card_giftcard';
-    if (icon == Icons.videogame_asset) return 'videogame_asset';
-    if (icon == Icons.campaign) return 'campaign';
-    if (icon == Icons.people) return 'people';
-    if (icon == Icons.storefront) return 'storefront';
-    if (icon == Icons.groups) return 'groups';
-    if (icon == Icons.rate_review) return 'rate_review';
-    return 'notifications';
   }
 }
 
@@ -391,115 +347,120 @@ class _NotificationSettingsScreenState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
-      body: Column(
-        children: [
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xFF1A3A6B), Color(0xFF2C5299)],
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Color(0x29000000),
-                  offset: Offset(0, 3),
-                  blurRadius: 6,
-                ),
-              ],
-            ),
-            child: SafeArea(
-              bottom: false,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16.0,
-                  vertical: 12.0,
-                ),
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.white),
-                      onPressed: () {
-                        if (_hasChanges) {
-                          _showUnsavedChangesDialog();
-                        } else {}
-                      },
-                    ),
-                    const Expanded(
-                      child: Text(
-                        'Notification Settings',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.help_outline, color: Colors.white),
-                      onPressed: () {
-                        _showHelpDialog();
-                      },
+    return ResponsiveBuilder(
+      builder: (context, deviceType, isLandscape) {
+        return Scaffold(
+          backgroundColor: const Color(0xFFF5F7FA),
+          body: Column(
+            children: [
+              Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Color(0xFF1A3A6B), Color(0xFF2C5299)],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color(0x29000000),
+                      offset: Offset(0, 3),
+                      blurRadius: 6,
                     ),
                   ],
                 ),
-              ),
-            ),
-          ),
-          Expanded(
-            child: _isLoading
-                ? _buildLoadingState()
-                : _hasError
-                    ? _buildErrorState()
-                    : _buildContent(),
-          ),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16.0),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Color(0x29000000),
-                  offset: Offset(0, -3),
-                  blurRadius: 6,
-                ),
-              ],
-            ),
-            child: ElevatedButton(
-              onPressed:
-                  _isSaving || !_hasChanges ? null : _saveNotificationSettings,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1A3A6B),
-                foregroundColor: Colors.white,
-                disabledBackgroundColor: Colors.grey.shade300,
-                padding: const EdgeInsets.symmetric(vertical: 16.0),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                elevation: 0,
-              ),
-              child: _isSaving
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Text(
-                      'Save Settings',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                child: SafeArea(
+                  bottom: false,
+                  child: Padding(
+                    padding: ResponsiveUtils.getResponsivePadding(context),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back, color: Colors.white),
+                          onPressed: () {
+                            if (_hasChanges) {
+                              _showUnsavedChangesDialog();
+                            } else {
+                              Navigator.of(context).pop();
+                            }
+                          },
+                        ),
+                        Expanded(
+                          child: Text(
+                            'Notification Settings',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: ResponsiveUtils.getResponsiveFontSize(context, 18),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.help_outline, color: Colors.white),
+                          onPressed: () {
+                            _showHelpDialog();
+                          },
+                        ),
+                      ],
                     ),
-            ),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: _isLoading
+                    ? _buildLoadingState()
+                    : _hasError
+                        ? _buildErrorState()
+                        : _buildContent(deviceType, isLandscape),
+              ),
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.all(isLandscape ? 12.0 : 16.0),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color(0x29000000),
+                      offset: Offset(0, -3),
+                      blurRadius: 6,
+                    ),
+                  ],
+                ),
+                child: ElevatedButton(
+                  onPressed:
+                      _isSaving || !_hasChanges ? null : _saveNotificationSettings,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1A3A6B),
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor: Colors.grey.shade300,
+                    padding: EdgeInsets.symmetric(vertical: isLandscape ? 12.0 : 16.0),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: _isSaving
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Text(
+                          'Save Settings',
+                          style: TextStyle(
+                            fontSize: ResponsiveUtils.getResponsiveFontSize(context, 16),
+                            fontWeight: FontWeight.bold
+                          ),
+                        ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      }
     );
   }
 
@@ -567,19 +528,19 @@ class _NotificationSettingsScreenState
     );
   }
 
-  Widget _buildContent() {
+  Widget _buildContent(DeviceType deviceType, bool isLandscape) {
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: ResponsiveUtils.getResponsivePadding(context),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             for (var category in _categories) ...[
               _buildSectionTitle(category.title),
               const SizedBox(height: 12),
-              _buildNotificationSection(category),
-              const SizedBox(height: 24),
+              _buildNotificationSection(category, deviceType, isLandscape),
+              SizedBox(height: isLandscape ? 16 : 24),
             ],
             Center(
               child: TextButton(
@@ -587,11 +548,11 @@ class _NotificationSettingsScreenState
                 style: TextButton.styleFrom(
                   foregroundColor: const Color(0xFF1A3A6B),
                 ),
-                child: const Text(
+                child: Text(
                   'Turn off all notifications',
                   style: TextStyle(
                     fontWeight: FontWeight.w500,
-                    fontSize: 14,
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(context, 14),
                   ),
                 ),
               ),
@@ -619,10 +580,10 @@ class _NotificationSettingsScreenState
           const SizedBox(width: 8),
           Text(
             title,
-            style: const TextStyle(
-              fontSize: 18,
+            style: TextStyle(
+              fontSize: ResponsiveUtils.getResponsiveFontSize(context, 18),
               fontWeight: FontWeight.bold,
-              color: Color(0xFF1A3A6B),
+              color: const Color(0xFF1A3A6B),
             ),
           ),
         ],
@@ -630,14 +591,14 @@ class _NotificationSettingsScreenState
     );
   }
 
-  Widget _buildNotificationSection(NotificationCategory category) {
+  Widget _buildNotificationSection(NotificationCategory category, DeviceType deviceType, bool isLandscape) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12.0),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             offset: const Offset(0, 2),
             blurRadius: 6.0,
           ),
@@ -654,13 +615,17 @@ class _NotificationSettingsScreenState
                 category.id,
                 setting,
                 (value) => _toggleNotification(category.id, setting.id, value),
+                deviceType,
+                isLandscape,
               ),
               if (index < category.settings.length - 1)
                 Padding(
-                  padding: const EdgeInsets.only(left: 64.0),
+                  padding: EdgeInsets.only(
+                    left: isLandscape ? 48.0 : 64.0,
+                  ),
                   child: Divider(
                     height: 1,
-                    color: Colors.grey.withValues(alpha: 0.2),
+                    color: Colors.grey.withOpacity(0.2),
                   ),
                 ),
             ],
@@ -674,51 +639,71 @@ class _NotificationSettingsScreenState
     String categoryId,
     NotificationSetting setting,
     Function(bool) onChanged,
+    DeviceType deviceType,
+    bool isLandscape,
   ) {
+    final iconSize = isLandscape ? 36.0 : 40.0;
+    
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+      padding: EdgeInsets.symmetric(
+        horizontal: isLandscape ? 12.0 : 16.0,
+        vertical: isLandscape ? 10.0 : 14.0,
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
-            width: 40,
-            height: 40,
+            width: iconSize,
+            height: iconSize,
             decoration: BoxDecoration(
-              color: const Color(0xFF1A3A6B).withValues(alpha: 0.1),
+              color: const Color(0xFF1A3A6B).withOpacity(0.1),
               borderRadius: BorderRadius.circular(8.0),
             ),
-            child: Icon(setting.icon, size: 20, color: const Color(0xFF1A3A6B)),
+            child: Icon(
+              setting.icon,
+              size: isLandscape ? 16 : 20,
+              color: const Color(0xFF1A3A6B)
+            ),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: isLandscape ? 12 : 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   setting.title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: Color(0xFF333333),
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(
+                      context,
+                      isLandscape ? 14 : 16
+                    ),
+                    color: const Color(0xFF333333),
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   setting.description,
-                  style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(
+                      context,
+                      isLandscape ? 12 : 14
+                    ),
+                  ),
                 ),
               ],
             ),
           ),
           Transform.scale(
-            scale: 0.8,
+            scale: deviceType == DeviceType.mobile ? 0.8 : 1.0,
             child: Switch(
               value: setting.isEnabled,
               onChanged: onChanged,
               activeColor: Colors.white,
               activeTrackColor: const Color(0xFF1A3A6B),
               inactiveThumbColor: Colors.white,
-              inactiveTrackColor: Colors.grey.withValues(alpha: 0.5),
+              inactiveTrackColor: Colors.grey.withOpacity(0.5),
             ),
           ),
         ],
@@ -738,13 +723,16 @@ class _NotificationSettingsScreenState
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
+              Navigator.of(context).pop();
             },
             child: const Text('Discard'),
           ),
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
-              _saveNotificationSettings().then((_) {});
+              _saveNotificationSettings().then((_) {
+                Navigator.of(context).pop();
+              });
             },
             child: const Text('Save'),
           ),

@@ -1,189 +1,6 @@
 import 'package:flutter/material.dart';
-
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        fontFamily: 'SF Pro Display',
-      ),
-      home: const BillPaymentScreen(),
-    );
-  }
-}
-
-// Data models
-class ServiceCategory {
-  final String id;
-  final String name;
-  final IconData icon;
-  final Color color;
-
-  ServiceCategory({
-    required this.id,
-    required this.name,
-    required this.icon,
-    required this.color,
-  });
-}
-
-class Bill {
-  final String id;
-  final String serviceId;
-  final String serviceName;
-  final IconData serviceIcon;
-  final String accountNumber;
-  final double amount;
-  final DateTime dueDate;
-  final bool isPaid;
-
-  Bill({
-    required this.id,
-    required this.serviceId,
-    required this.serviceName,
-    required this.serviceIcon,
-    required this.accountNumber,
-    required this.amount,
-    required this.dueDate,
-    this.isPaid = false,
-  });
-
-  factory Bill.fromJson(Map<String, dynamic> json) {
-    return Bill(
-      id: json['id'],
-      serviceId: json['serviceId'],
-      serviceName: json['serviceName'],
-      serviceIcon: _getIconFromString(json['serviceIcon']),
-      accountNumber: json['accountNumber'],
-      amount: json['amount'].toDouble(),
-      dueDate: DateTime.parse(json['dueDate']),
-      isPaid: json['isPaid'] ?? false,
-    );
-  }
-
-  static IconData _getIconFromString(String iconName) {
-    switch (iconName) {
-      case 'bolt':
-        return Icons.bolt;
-      case 'water_drop_outlined':
-        return Icons.water_drop_outlined;
-      case 'tv':
-        return Icons.tv;
-      case 'smartphone':
-        return Icons.smartphone;
-      case 'school':
-        return Icons.school;
-      case 'wifi':
-        return Icons.wifi;
-      default:
-        return Icons.receipt_long;
-    }
-  }
-}
-
-
-class BillService {
-  static const String baseUrl = 'https://api.example.com'; // Replace with your API URL
-  
-  
-  static Future<List<ServiceCategory>> getServiceCategories() async {
-    try {
-      
-      await Future.delayed(const Duration(milliseconds: 800));
-    
-      return [
-        ServiceCategory(
-          id: 'electricity',
-          name: 'Electricity',
-          icon: Icons.bolt,
-          color: const Color(0xFF1A3A6B),
-        ),
-        ServiceCategory(
-          id: 'water',
-          name: 'Water',
-          icon: Icons.water_drop_outlined,
-          color: const Color(0xFF1A3A6B),
-        ),
-        ServiceCategory(
-          id: 'cable',
-          name: 'Cable TV',
-          icon: Icons.tv,
-          color: const Color(0xFF1A3A6B),
-        ),
-        ServiceCategory(
-          id: 'mobile',
-          name: 'Mobile phone',
-          icon: Icons.smartphone,
-          color: const Color(0xFF1A3A6B),
-        ),
-        ServiceCategory(
-          id: 'tuition',
-          name: 'Tuition',
-          icon: Icons.school,
-          color: const Color(0xFF1A3A6B),
-        ),
-        ServiceCategory(
-          id: 'internet',
-          name: 'Internet',
-          icon: Icons.wifi,
-          color: const Color(0xFF1A3A6B),
-        ),
-      ];
-    } catch (e) {
-      throw Exception('Failed to load service categories: $e');
-    }
-  }
-  
-  
-  static Future<List<Bill>> getUserBills() async {
-    try {
-      
-      await Future.delayed(const Duration(seconds: 1));
-      
-      return [
-        Bill(
-          id: 'bill1',
-          serviceId: 'electricity',
-          serviceName: 'Electricity',
-          serviceIcon: Icons.bolt,
-          accountNumber: 'EL-123456789',
-          amount: 78.50,
-          dueDate: DateTime.now().add(const Duration(days: 5)),
-        ),
-        Bill(
-          id: 'bill2',
-          serviceId: 'internet',
-          serviceName: 'Internet',
-          serviceIcon: Icons.wifi,
-          accountNumber: 'IN-987654321',
-          amount: 45.00,
-          dueDate: DateTime.now().add(const Duration(days: 10)),
-        ),
-      ];
-    } catch (e) {
-      throw Exception('Failed to load user bills: $e');
-    }
-  }
-  
-  
-  static Future<bool> addNewBill(String serviceId) async {
-    try {
-     
-      await Future.delayed(const Duration(seconds: 1));
-      return true;
-    } catch (e) {
-      throw Exception('Failed to add new bill: $e');
-    }
-  }
-}
+import '../services/bill_service.dart';
+import '../models/bill.dart';
 
 class BillPaymentScreen extends StatefulWidget {
   const BillPaymentScreen({super.key});
@@ -193,6 +10,7 @@ class BillPaymentScreen extends StatefulWidget {
 }
 
 class _BillPaymentScreenState extends State<BillPaymentScreen> {
+  final BillService _billService = BillService();
   bool _isLoadingServices = true;
   bool _isLoadingBills = true;
   bool _hasServicesError = false;
@@ -219,7 +37,7 @@ class _BillPaymentScreenState extends State<BillPaymentScreen> {
     });
 
     try {
-      final services = await BillService.getServiceCategories();
+      final services = await _billService.getServiceCategories();
       setState(() {
         _services = services;
         _isLoadingServices = false;
@@ -239,7 +57,7 @@ class _BillPaymentScreenState extends State<BillPaymentScreen> {
     });
 
     try {
-      final bills = await BillService.getUserBills();
+      final bills = await _billService.getUserBills();
       setState(() {
         _bills = bills;
         _isLoadingBills = false;
@@ -256,7 +74,7 @@ class _BillPaymentScreenState extends State<BillPaymentScreen> {
     try {
       _showLoadingDialog();
       
-      final success = await BillService.addNewBill(serviceId);
+      final success = await _billService.addNewBill(serviceId);
       
       if (!mounted) return; // Check if widget is still mounted
       
@@ -268,10 +86,9 @@ class _BillPaymentScreenState extends State<BillPaymentScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Bill added successfully'),
-            backgroundColor: Color(0xFF1A3A6B),
+            backgroundColor: Colors.green,
           ),
         );
-        
         _loadBills();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -282,11 +99,9 @@ class _BillPaymentScreenState extends State<BillPaymentScreen> {
         );
       }
     } catch (e) {
-      if (!mounted) return; // Check if widget is still mounted
+      if (!mounted) return;
       
       Navigator.of(context).pop();
-      
-      if (!mounted) return; // Check if widget is still mounted
       
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -336,7 +151,7 @@ class _BillPaymentScreenState extends State<BillPaymentScreen> {
                   children: [
                     GestureDetector(
                       onTap: () {
-                        
+                        Navigator.of(context).pop();
                       },
                       child: const Icon(Icons.arrow_back, color: Colors.white),
                     ),
@@ -685,7 +500,7 @@ class _BillPaymentScreenState extends State<BillPaymentScreen> {
         borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Color.fromRGBO(0, 0, 0, 0.05),
             blurRadius: 5,
             offset: const Offset(0, 2),
           ),
@@ -697,7 +512,7 @@ class _BillPaymentScreenState extends State<BillPaymentScreen> {
             width: 60,
             height: double.infinity,
             decoration: BoxDecoration(
-              color: const Color(0xFF1A3A6B).withValues(alpha: 0.1),
+              color: const Color.fromRGBO(26, 58, 107, 0.1),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(10),
                 bottomLeft: Radius.circular(10),
@@ -773,7 +588,7 @@ class _BillPaymentScreenState extends State<BillPaymentScreen> {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
+                  color: Color.fromRGBO(0, 0, 0, 0.05),
                   blurRadius: 5,
                   offset: const Offset(0, 2),
                 ),
