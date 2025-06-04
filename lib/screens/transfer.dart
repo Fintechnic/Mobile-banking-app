@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../services/transaction_service.dart';
+import '../providers/auth_provider.dart';
+import 'package:provider/provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -153,17 +156,6 @@ class TransferService {
     try {
       // Simulate API delay
       await Future.delayed(const Duration(milliseconds: 800));
-
-      // In a real app, you would make an actual API call:
-      // final response = await http.get(Uri.parse('$baseUrl/accounts'));
-      // if (response.statusCode == 200) {
-      //   final List<dynamic> data = json.decode(response.body);
-      //   return data.map((json) => Account.fromJson(json)).toList();
-      // } else {
-      //   throw Exception('Failed to load accounts');
-      // }
-
-      // Mock data for demonstration
       return [
         Account(
           id: 'acc1',
@@ -194,16 +186,6 @@ class TransferService {
     try {
       // Simulate API delay
       await Future.delayed(const Duration(milliseconds: 1000));
-
-      // In a real app, you would make an actual API call:
-      // final response = await http.get(Uri.parse('$baseUrl/recipients'));
-      // if (response.statusCode == 200) {
-      //   final List<dynamic> data = json.decode(response.body);
-      //   return data.map((json) => Recipient.fromJson(json)).toList();
-      // } else {
-      //   throw Exception('Failed to load recipients');
-      // }
-
       // Mock data for demonstration
       return [
         Recipient(
@@ -241,16 +223,6 @@ class TransferService {
     try {
       // Simulate API delay
       await Future.delayed(const Duration(milliseconds: 1200));
-
-      // In a real app, you would make an actual API call:
-      // final response = await http.get(Uri.parse('$baseUrl/transactions/recent'));
-      // if (response.statusCode == 200) {
-      //   final List<dynamic> data = json.decode(response.body);
-      //   return data.map((json) => Transaction.fromJson(json)).toList();
-      // } else {
-      //   throw Exception('Failed to load transactions');
-      // }
-
       // Mock data for demonstration
       return [
         Transaction(
@@ -297,34 +269,17 @@ class TransferService {
     String? note,
   }) async {
     try {
-      // Simulate API delay
-      await Future.delayed(const Duration(seconds: 2));
-
-      // In a real app, you would make an actual API call:
-      // final response = await http.post(
-      //   Uri.parse('$baseUrl/transfer'),
-      //   headers: {'Content-Type': 'application/json'},
-      //   body: json.encode({
-      //     'fromAccountId': fromAccountId,
-      //     'toRecipientId': toRecipientId,
-      //     'amount': amount,
-      //     'note': note,
-      //   }),
-      // );
-      // return response.statusCode == 200;
-
-      // For demonstration, validate amount and return success
-      if (amount <= 0) {
-        throw Exception('Amount must be greater than 0');
-      }
-
-      // Simulate a 90% success rate
-      final random = DateTime.now().millisecondsSinceEpoch % 10;
-      if (random < 9) {
-        return true;
-      } else {
-        throw Exception('Transfer failed. Please try again later.');
-      }
+      // Get the transaction provider instance
+      final transactionService = TransactionService();
+      
+      // Call the real API service
+      final success = await transactionService.transferMoney(
+        toRecipientId,  // Using recipient ID as phone number
+        amount,
+        description: note,
+      );
+      
+      return success;
     } catch (e) {
       throw Exception('Failed to submit transfer: $e');
     }
@@ -332,112 +287,43 @@ class TransferService {
 }
 
 class TransferScreen extends StatefulWidget {
-  const TransferScreen({super.key});
+  final String? receiverId;
+  final String? receiverPhone;
+  final bool fromQRScan;
+  
+  const TransferScreen({
+    super.key, 
+    this.receiverId,
+    this.receiverPhone,
+    this.fromQRScan = false,
+  });
 
   @override
-  _TransferScreenState createState() => _TransferScreenState();
+  State<TransferScreen> createState() => _TransferScreenState();
 }
 
 class _TransferScreenState extends State<TransferScreen> {
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _noteController = TextEditingController();
+  final TextEditingController _phoneNumberController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
 
-  bool _isLoadingAccounts = true;
-  bool _isLoadingRecipients = true;
-  bool _isLoadingTransactions = true;
   bool _isSubmitting = false;
-
-  bool _hasAccountsError = false;
-  bool _hasRecipientsError = false;
-  bool _hasTransactionsError = false;
-
-  String _accountsErrorMessage = '';
-  String _recipientsErrorMessage = '';
-  String _transactionsErrorMessage = '';
-
-  List<Account> _accounts = [];
-  List<Recipient> _recipients = [];
-  List<Transaction> _transactions = [];
-
-  Account? _selectedAccount;
-  Recipient? _selectedRecipient;
-
   String? _amountError;
+  String? _phoneNumberError;
 
   @override
   void initState() {
     super.initState();
-    _loadData();
-  }
-
-  Future<void> _loadData() async {
-    _loadAccounts();
-    _loadRecipients();
-    _loadTransactions();
-  }
-
-  Future<void> _loadAccounts() async {
-    setState(() {
-      _isLoadingAccounts = true;
-      _hasAccountsError = false;
-    });
-
-    try {
-      final accounts = await TransferService.getUserAccounts();
-      setState(() {
-        _accounts = accounts;
-        _selectedAccount = accounts.isNotEmpty ? accounts[0] : null;
-        _isLoadingAccounts = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoadingAccounts = false;
-        _hasAccountsError = true;
-        _accountsErrorMessage = e.toString();
-      });
-    }
-  }
-
-  Future<void> _loadRecipients() async {
-    setState(() {
-      _isLoadingRecipients = true;
-      _hasRecipientsError = false;
-    });
-
-    try {
-      final recipients = await TransferService.getRecipients();
-      setState(() {
-        _recipients = recipients;
-        _selectedRecipient = recipients.isNotEmpty ? recipients[0] : null;
-        _isLoadingRecipients = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoadingRecipients = false;
-        _hasRecipientsError = true;
-        _recipientsErrorMessage = e.toString();
-      });
-    }
-  }
-
-  Future<void> _loadTransactions() async {
-    setState(() {
-      _isLoadingTransactions = true;
-      _hasTransactionsError = false;
-    });
-
-    try {
-      final transactions = await TransferService.getRecentTransactions();
-      setState(() {
-        _transactions = transactions;
-        _isLoadingTransactions = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoadingTransactions = false;
-        _hasTransactionsError = true;
-        _transactionsErrorMessage = e.toString();
-      });
+    
+    // Get current user's name
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    _usernameController.text = auth.username ?? 'My Account';
+    
+    // Fill in receiver phone number from QR scan if available
+    if (widget.fromQRScan && widget.receiverPhone != null) {
+      _phoneNumberController.text = widget.receiverPhone!;
+      debugPrint("Auto-filled phone number from QR scan: ${widget.receiverPhone}");
     }
   }
 
@@ -464,44 +350,47 @@ class _TransferScreenState extends State<TransferScreen> {
       });
       return;
     }
-
-    if (_selectedAccount == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a source account')),
-      );
-      return;
-    }
-
-    if (_selectedRecipient == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a recipient')),
-      );
-      return;
-    }
-
-    if (amount > _selectedAccount!.balance) {
+    
+    // Validate phone number
+    if (_phoneNumberController.text.isEmpty) {
       setState(() {
-        _amountError = 'Insufficient funds';
+        _phoneNumberError = 'Please enter a phone number';
+      });
+      return;
+    }
+    
+    // Basic phone number validation
+    if (_phoneNumberController.text.length < 10) {
+      setState(() {
+        _phoneNumberError = 'Please enter a valid phone number';
       });
       return;
     }
 
     setState(() {
       _amountError = null;
+      _phoneNumberError = null;
       _isSubmitting = true;
     });
 
     try {
-      final success = await TransferService.submitTransfer(
-        fromAccountId: _selectedAccount!.id,
-        toRecipientId: _selectedRecipient!.id,
-        amount: amount,
-        note: _noteController.text,
+      // Get recipient phone number
+      final String phoneNumber = _phoneNumberController.text;
+      
+      // Create transaction service instance directly
+      final transactionService = TransactionService();
+      
+      final success = await transactionService.transferMoney(
+        phoneNumber,
+        amount,
+        description: _noteController.text.isNotEmpty ? _noteController.text : null,
       );
 
       setState(() {
         _isSubmitting = false;
       });
+
+      if (!mounted) return;
 
       if (success) {
         _showSuccessDialog(amount);
@@ -518,6 +407,8 @@ class _TransferScreenState extends State<TransferScreen> {
         _isSubmitting = false;
       });
 
+      if (!mounted) return;
+      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error: ${e.toString()}'),
@@ -546,7 +437,7 @@ class _TransferScreenState extends State<TransferScreen> {
               'You have successfully transferred ${amount.toStringAsFixed(0).replaceAllMapped(
                     RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
                     (Match m) => '${m[1]},',
-                  )} VND to ${_selectedRecipient!.name}',
+                  )} VND to ${_phoneNumberController.text}',
               textAlign: TextAlign.center,
             ),
           ],
@@ -558,8 +449,7 @@ class _TransferScreenState extends State<TransferScreen> {
               // Reset form
               _amountController.clear();
               _noteController.clear();
-              // Reload data
-              _loadData();
+              _phoneNumberController.clear();
             },
             child: const Text('OK'),
           ),
@@ -572,11 +462,19 @@ class _TransferScreenState extends State<TransferScreen> {
   void dispose() {
     _amountController.dispose();
     _noteController.dispose();
+    _phoneNumberController.dispose();
+    _usernameController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    // Get the auth provider
+    final authProvider = Provider.of<AuthProvider>(context);
+    
+    // Set username from auth provider
+    _usernameController.text = authProvider.username ?? 'Current User';
+    
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -597,7 +495,7 @@ class _TransferScreenState extends State<TransferScreen> {
                   children: [
                     GestureDetector(
                       onTap: () {
-                        // Handle back button
+                        Navigator.pop(context);
                       },
                       child: const Icon(Icons.arrow_back, color: Colors.white),
                     ),
@@ -623,634 +521,220 @@ class _TransferScreenState extends State<TransferScreen> {
                       topRight: Radius.circular(30),
                     ),
                   ),
-                  child: RefreshIndicator(
-                    onRefresh: _loadData,
-                    child: ListView(
-                      padding: const EdgeInsets.all(20.0),
-                      children: [
-                        const SizedBox(height: 20),
-                        // From account
-                        const Text(
-                          'From',
-                          style: TextStyle(
-                            color: Color(0xFF1A3A6B),
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
+                  child: ListView(
+                    padding: const EdgeInsets.all(20.0),
+                    children: [
+                      const SizedBox(height: 20),
+                      // From account - now a locked text field with username
+                      const Text(
+                        'From',
+                        style: TextStyle(
+                          color: Color(0xFF1A3A6B),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: _usernameController,
+                        readOnly: true,
+                        enabled: false,
+                        decoration: InputDecoration(
+                          prefixIcon: const Icon(
+                            Icons.account_circle,
+                            color: Color(0xFF5A8ED0),
+                          ),
+                          filled: true,
+                          fillColor: Colors.grey.shade100,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 16,
+                            horizontal: 20,
                           ),
                         ),
-                        const SizedBox(height: 10),
-                        _isLoadingAccounts
-                            ? _buildLoadingDropdown()
-                            : _hasAccountsError
-                                ? _buildErrorDropdown(
-                                    _accountsErrorMessage, _loadAccounts)
-                                : _buildAccountDropdown(),
-                        const SizedBox(height: 30),
-                        // To recipient
-                        const Text(
-                          'To',
-                          style: TextStyle(
-                            color: Color(0xFF1A3A6B),
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
+                      ),
+                      const SizedBox(height: 30),
+                      // To recipient - now just a phone number input
+                      const Text(
+                        'To',
+                        style: TextStyle(
+                          color: Color(0xFF1A3A6B),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
                         ),
-                        const SizedBox(height: 10),
-                        _isLoadingRecipients
-                            ? _buildLoadingDropdown()
-                            : _hasRecipientsError
-                                ? _buildErrorDropdown(
-                                    _recipientsErrorMessage, _loadRecipients)
-                                : _buildRecipientDropdown(),
-                        const SizedBox(height: 30),
-                        // Amount
-                        const Text(
-                          'Amount',
-                          style: TextStyle(
-                            color: Color(0xFF1A3A6B),
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: _phoneNumberController,
+                        keyboardType: TextInputType.phone,
+                        decoration: InputDecoration(
+                          hintText: 'Enter recipient phone number',
+                          hintStyle: TextStyle(
+                            color: Colors.grey.shade400,
                             fontSize: 16,
-                            fontWeight: FontWeight.w600,
                           ),
+                          fillColor: Colors.white,
+                          filled: true,
+                          errorText: _phoneNumberError,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 18),
+                          prefixIcon: const Icon(Icons.phone, color: Color(0xFF1A3A6B)),
                         ),
-                        const SizedBox(height: 10),
-                        TextField(
-                          controller: _amountController,
-                          keyboardType: TextInputType.number,
-                          onChanged: (value) {
-                            // Clear error when user types
-                            if (_amountError != null) {
-                              setState(() {
-                                _amountError = null;
-                              });
-                            }
-                          },
-                          decoration: InputDecoration(
-                            hintText: '0 VND',
-                            hintStyle: TextStyle(
-                              color: Colors.grey.shade400,
-                              fontSize: 16,
+                        onChanged: (value) {
+                          if (_phoneNumberError != null) {
+                            setState(() {
+                              _phoneNumberError = null;
+                            });
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 30),
+                      // Amount
+                      const Text(
+                        'Amount',
+                        style: TextStyle(
+                          color: Color(0xFF1A3A6B),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: _amountController,
+                        keyboardType: TextInputType.number,
+                        onChanged: (value) {
+                          if (_amountError != null) {
+                            setState(() {
+                              _amountError = null;
+                            });
+                          }
+                        },
+                        decoration: InputDecoration(
+                          hintText: 'Nhập số tiền',
+                          hintStyle: TextStyle(
+                            color: Colors.grey.shade400,
+                            fontSize: 16,
+                          ),
+                          prefixIcon: const Icon(
+                            Icons.monetization_on_outlined,
+                            color: Color(0xFF5A8ED0),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15),
+                            borderSide: BorderSide(
+                              color: _amountError != null
+                                  ? Colors.red
+                                  : Colors.grey.shade300,
                             ),
-                            prefixIcon: const Icon(
-                              Icons.monetization_on_outlined,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15),
+                            borderSide: BorderSide(
+                              color: _amountError != null
+                                  ? Colors.red
+                                  : const Color(0xFF5A8ED0),
+                            ),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 16,
+                            horizontal: 20,
+                          ),
+                          errorText: _amountError,
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+                      // Note
+                      const Text(
+                        'Note',
+                        style: TextStyle(
+                          color: Color(0xFF1A3A6B),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: _noteController,
+                        maxLines: 3,
+                        decoration: InputDecoration(
+                          hintText: 'Add a note (optional)',
+                          hintStyle: TextStyle(
+                            color: Colors.grey.shade400,
+                            fontSize: 16,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15),
+                            borderSide:
+                                BorderSide(color: Colors.grey.shade300),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15),
+                            borderSide: const BorderSide(
                               color: Color(0xFF5A8ED0),
                             ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(15),
-                              borderSide: BorderSide(
-                                color: _amountError != null
-                                    ? Colors.red
-                                    : Colors.grey.shade300,
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(15),
-                              borderSide: BorderSide(
-                                color: _amountError != null
-                                    ? Colors.red
-                                    : const Color(0xFF5A8ED0),
-                              ),
-                            ),
-                            filled: true,
-                            fillColor: Colors.white,
-                            contentPadding: const EdgeInsets.symmetric(
-                              vertical: 16,
-                              horizontal: 20,
-                            ),
-                            errorText: _amountError,
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 16,
+                            horizontal: 20,
                           ),
                         ),
-                        const SizedBox(height: 30),
-                        // Note
-                        const Text(
-                          'Note',
-                          style: TextStyle(
-                            color: Color(0xFF1A3A6B),
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
+                      ),
+                      const SizedBox(height: 40),
+                      // Continue button
+                      SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: ElevatedButton(
+                          onPressed: _isSubmitting ? null : _submitTransfer,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF1A3A6B),
+                            disabledBackgroundColor: Colors.grey.shade300,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            elevation: 2,
                           ),
-                        ),
-                        const SizedBox(height: 10),
-                        TextField(
-                          controller: _noteController,
-                          maxLines: 3,
-                          decoration: InputDecoration(
-                            hintText: 'Add a note (optional)',
-                            hintStyle: TextStyle(
-                              color: Colors.grey.shade400,
-                              fontSize: 16,
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(15),
-                              borderSide:
-                                  BorderSide(color: Colors.grey.shade300),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(15),
-                              borderSide: const BorderSide(
-                                color: Color(0xFF5A8ED0),
-                              ),
-                            ),
-                            filled: true,
-                            fillColor: Colors.white,
-                            contentPadding: const EdgeInsets.symmetric(
-                              vertical: 16,
-                              horizontal: 20,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 30),
-                        // Recent transactions
-                        const Text(
-                          'Recent Transactions',
-                          style: TextStyle(
-                            color: Color(0xFF1A3A6B),
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 15),
-                        // Transaction list
-                        _isLoadingTransactions
-                            ? _buildLoadingTransactions()
-                            : _hasTransactionsError
-                                ? _buildTransactionsError()
-                                : _buildTransactionsList(),
-                        const SizedBox(height: 40),
-                        // Continue button
-                        SizedBox(
-                          width: double.infinity,
-                          height: 56,
-                          child: ElevatedButton(
-                            onPressed: _isSubmitting ||
-                                    _isLoadingAccounts ||
-                                    _isLoadingRecipients ||
-                                    _hasAccountsError ||
-                                    _hasRecipientsError ||
-                                    _selectedAccount == null ||
-                                    _selectedRecipient == null
-                                ? null
-                                : _submitTransfer,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF1A3A6B),
-                              disabledBackgroundColor: Colors.grey.shade300,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                              elevation: 2,
-                            ),
-                            child: _isSubmitting
-                                ? const SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                : const Text(
-                                    'CONTINUE',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      letterSpacing: 1,
-                                    ),
+                          child: _isSubmitting
+                              ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
                                   ),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLoadingDropdown() {
-    return Container(
-      height: 60,
-      padding: const EdgeInsets.symmetric(horizontal: 15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: const Center(
-        child: SizedBox(
-          width: 24,
-          height: 24,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildErrorDropdown(String errorMessage, VoidCallback onRetry) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.red.shade50,
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.red.shade300),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.error_outline, color: Colors.red),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'Error: $errorMessage',
-              style: const TextStyle(color: Colors.red),
-            ),
-          ),
-          TextButton(
-            onPressed: onRetry,
-            child: const Text('Retry'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAccountDropdown() {
-    if (_accounts.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-        decoration: BoxDecoration(
-          color: Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: Colors.grey.shade300),
-        ),
-        child: const Text('No accounts available'),
-      );
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<Account>(
-          isExpanded: true,
-          value: _selectedAccount,
-          icon: const Icon(Icons.keyboard_arrow_down),
-          iconSize: 24,
-          elevation: 16,
-          style: const TextStyle(
-            color: Colors.black,
-            fontSize: 16,
-          ),
-          onChanged: (Account? newValue) {
-            setState(() {
-              _selectedAccount = newValue;
-            });
-          },
-          items: _accounts.map<DropdownMenuItem<Account>>((Account account) {
-            return DropdownMenuItem<Account>(
-              value: account,
-              child: Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF93B5E1).withOpacity(0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.account_balance_wallet,
-                      color: Color(0xFF1A3A6B),
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: 15),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        account.name,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 16,
+                                )
+                              : const Text(
+                                  'CONTINUE',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 1,
+                                  ),
+                                ),
                         ),
                       ),
-                      Text(
-                        account.formattedBalance,
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontSize: 14,
-                        ),
-                      ),
+                      const SizedBox(height: 20),
                     ],
                   ),
-                ],
-              ),
-            );
-          }).toList(),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRecipientDropdown() {
-    if (_recipients.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-        decoration: BoxDecoration(
-          color: Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: Colors.grey.shade300),
-        ),
-        child: const Text('No recipients available'),
-      );
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<Recipient>(
-          isExpanded: true,
-          value: _selectedRecipient,
-          icon: const Icon(Icons.keyboard_arrow_down),
-          iconSize: 24,
-          elevation: 16,
-          style: const TextStyle(
-            color: Colors.black,
-            fontSize: 16,
-          ),
-          onChanged: (Recipient? newValue) {
-            setState(() {
-              _selectedRecipient = newValue;
-            });
-          },
-          items: _recipients
-              .map<DropdownMenuItem<Recipient>>((Recipient recipient) {
-            return DropdownMenuItem<Recipient>(
-              value: recipient,
-              child: Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF93B5E1).withOpacity(0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.person,
-                      color: Color(0xFF1A3A6B),
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: 15),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        recipient.name,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 16,
-                        ),
-                      ),
-                      Text(
-                        recipient.formattedAccount,
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            );
-          }).toList(),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLoadingTransactions() {
-    return Column(
-      children: [
-        _buildShimmerTransaction(),
-        const SizedBox(height: 10),
-        _buildShimmerTransaction(),
-        const SizedBox(height: 10),
-        _buildShimmerTransaction(),
-      ],
-    );
-  }
-
-  Widget _buildShimmerTransaction() {
-    return Container(
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade300,
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 15),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 120,
-                  height: 16,
-                  color: Colors.grey.shade300,
                 ),
-                const SizedBox(height: 8),
-                Container(
-                  width: 180,
-                  height: 12,
-                  color: Colors.grey.shade300,
-                ),
-              ],
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Container(
-                width: 80,
-                height: 16,
-                color: Colors.grey.shade300,
-              ),
-              const SizedBox(height: 8),
-              Container(
-                width: 60,
-                height: 12,
-                color: Colors.grey.shade300,
               ),
             ],
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTransactionsError() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.red.shade50,
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.red.shade200),
-      ),
-      child: Column(
-        children: [
-          const Icon(Icons.error_outline, color: Colors.red, size: 40),
-          const SizedBox(height: 10),
-          Text(
-            'Failed to load transactions: $_transactionsErrorMessage',
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.red),
-          ),
-          const SizedBox(height: 10),
-          ElevatedButton(
-            onPressed: _loadTransactions,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF1A3A6B),
-            ),
-            child: const Text('Retry'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTransactionsList() {
-    if (_transactions.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(15),
         ),
-        child: Column(
-          children: [
-            Icon(Icons.history, color: Colors.grey.shade400, size: 40),
-            const SizedBox(height: 10),
-            Text(
-              'No recent transactions',
-              style: TextStyle(color: Colors.grey.shade600),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return Column(
-      children: _transactions.map((transaction) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: _buildTransactionItem(
-            name: transaction.recipientName,
-            accountNumber: transaction.formattedAccount,
-            date: transaction.formattedDate,
-            amount: transaction.formattedAmount,
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildTransactionItem({
-    required String name,
-    required String accountNumber,
-    required String date,
-    required String amount,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: const Color(0xFF93B5E1).withOpacity(0.2),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.person, color: Color(0xFF1A3A6B), size: 20),
-          ),
-          const SizedBox(width: 15),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w500,
-                    fontSize: 16,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  accountNumber,
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
-                ),
-              ],
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                amount,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: Color(0xFF1A3A6B),
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                date,
-                style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }

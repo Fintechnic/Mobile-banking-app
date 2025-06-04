@@ -157,12 +157,12 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen>
                           width: 60,
                           height: 60,
                           decoration: BoxDecoration(
-                            color: color.withOpacity(0.2),
+                            color: color.withValues(alpha: 0.2),
                             shape: BoxShape.circle,
                             boxShadow: _tappedButtonIndex == index
                                 ? [
                                     BoxShadow(
-                                      color: color.withOpacity(0.3),
+                                      color: color.withValues(alpha: 0.3),
                                       blurRadius: 10,
                                       spreadRadius: 1,
                                     ),
@@ -230,7 +230,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen>
                   offset: Offset(0, 50 * (1 - _successIconAnimation.value)),
                   child: Card(
                     elevation: 2,
-                    shadowColor: Colors.black.withOpacity(0.1),
+                    shadowColor: Colors.black.withValues(alpha: 0.1),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
@@ -252,7 +252,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen>
                                   boxShadow: [
                                     BoxShadow(
                                       color: const Color(0xFF6AC259)
-                                          .withOpacity(0.3),
+                                          .withValues(alpha: 0.3),
                                       blurRadius: 15,
                                       spreadRadius:
                                           5 * _successIconAnimation.value,
@@ -496,8 +496,9 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen>
                                                               BoxShadow(
                                                                 color: Colors
                                                                     .black
-                                                                    .withOpacity(
-                                                                        0.05),
+                                                                    .withValues(
+                                                                        alpha:
+                                                                            0.05),
                                                                 blurRadius: 5,
                                                                 offset:
                                                                     const Offset(
@@ -635,11 +636,11 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen>
                                     ),
                                     elevation: 4,
                                     shadowColor: const Color(0xFF1A3A6B)
-                                        .withOpacity(0.3),
+                                        .withValues(alpha: 0.3),
                                   ),
-                                  child: Row(
+                                  child: const Row(
                                     mainAxisSize: MainAxisSize.min,
-                                    children: const [
+                                    children: [
                                       Icon(Icons.share),
                                       SizedBox(width: 8),
                                       Text(

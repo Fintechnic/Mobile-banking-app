@@ -35,8 +35,8 @@ class AccountCardsScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: const [
+                  const Row(
+                    children: [
                       Icon(Icons.arrow_back_ios, size: 20),
                       SizedBox(width: 8),
                       Text(

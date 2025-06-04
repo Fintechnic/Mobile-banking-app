@@ -247,7 +247,7 @@ class _InformationScreenState extends State<InformationScreen> with SingleTicker
                                         ),
                                         boxShadow: [
                                           BoxShadow(
-                                            color: const Color(0xFF3B8AE5).withOpacity(0.3),
+                                            color: const Color(0xFF3B8AE5).withValues(alpha: 0.3),
                                             blurRadius: 10 * value,
                                             spreadRadius: 2 * value,
                                             offset: const Offset(0, 3),
@@ -469,7 +469,7 @@ class _InformationScreenState extends State<InformationScreen> with SingleTicker
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF3B8AE5).withOpacity(0.3),
+                color: const Color(0xFF3B8AE5).withValues(alpha: 0.3),
                 blurRadius: 6,
                 offset: const Offset(0, 2),
               ),

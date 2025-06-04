@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -27,7 +29,7 @@ class ProfileSettingsScreen extends StatefulWidget {
   const ProfileSettingsScreen({super.key});
 
   @override
-  _ProfileSettingsScreenState createState() => _ProfileSettingsScreenState();
+  State<ProfileSettingsScreen> createState() => _ProfileSettingsScreenState();
 }
 
 class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> with SingleTickerProviderStateMixin {
@@ -103,7 +105,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> with Sing
                 end: Alignment.bottomCenter,
                 colors: [
                   const Color(0xFF1A3A6B),
-                  const Color(0xFF5A8ED0).withOpacity(_headerAnimation.value),
+                  const Color(0xFF5A8ED0).withValues(alpha: _headerAnimation.value),
                 ],
               ),
             ),
@@ -330,7 +332,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> with Sing
                   color: Colors.white,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: Colors.black.withValues(alpha: 0.1),
                       blurRadius: 10,
                       offset: const Offset(0, 5),
                     ),
@@ -391,12 +393,12 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> with Sing
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF93B5E1).withAlpha((0.2 * 255).toInt()),
+                  color: const Color(0xFF93B5E1).withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     if (value > 0.5)
                       BoxShadow(
-                        color: const Color(0xFF5A8ED0).withOpacity(0.3),
+                        color: const Color(0xFF5A8ED0).withValues(alpha: 0.3),
                         blurRadius: 8,
                         spreadRadius: -2,
                       ),
@@ -542,14 +544,14 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> with Sing
           boxShadow: [
             BoxShadow(
               color: _tappedItemIndex == index 
-                ? const Color(0xFF5A8ED0).withOpacity(0.2)
-                : Colors.black.withOpacity(0.05),
+                ? const Color(0xFF5A8ED0).withValues(alpha: 0.2)
+                : Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, 2),
             ),
           ],
           border: _tappedItemIndex == index 
-            ? Border.all(color: const Color(0xFF5A8ED0).withOpacity(0.3), width: 1)
+            ? Border.all(color: const Color(0xFF5A8ED0).withValues(alpha: 0.3), width: 1)
             : null,
         ),
         child: Row(
@@ -568,7 +570,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> with Sing
                     boxShadow: _tappedItemIndex == index 
                       ? [
                           BoxShadow(
-                            color: const Color(0xFF5A8ED0).withOpacity(0.3 * value),
+                            color: const Color(0xFF5A8ED0).withValues(alpha: 0.3 * value),
                             blurRadius: 8 * value,
                             spreadRadius: 1 * value,
                           ),
@@ -721,12 +723,23 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> with Sing
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Logged out successfully'),
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
+                  // Call the logout API through AuthProvider
+                  final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                  // Cache what we need from the context before the async gap
+                  final scaffoldMessenger = ScaffoldMessenger.of(context);
+                  final navigator = Navigator.of(context);
+                  
+                  authProvider.logout().then((_) {
+                    if (mounted) {
+                      scaffoldMessenger.showSnackBar(
+                        const SnackBar(
+                          content: Text('Logged out successfully'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                      navigator.pushNamedAndRemoveUntil('/login', (route) => false);
+                    }
+                  });
                 },
                 child: const Text('Logout'),
               ),

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'dart:async';
+import 'package:fintechnic/services/transaction_service.dart';
+import 'package:fintechnic/models/transaction.dart' as app_transaction;
+import 'package:intl/intl.dart';
 
 void main() {
   runApp(const MyApp());
@@ -67,9 +70,27 @@ class _TransactionManagementScreenState
   bool _isLoading = true;
   bool _hasError = false;
   String _errorMessage = '';
-  int _selectedYear = 2025;
+  int _selectedYear = DateTime.now().year;
   String _selectedPeriod = 'Week';
   final List<String> _periods = ['Day', 'Week', 'Month', 'Year'];
+  
+  // Filter parameters
+  String _sortBy = "createdAt";
+  String _sortDirection = "DESC";
+  final int _page = 0;
+  final int _size = 20;
+  String? _selectedType;
+  String? _selectedStatus;
+  double? _minAmount;
+  double? _maxAmount;
+  DateTime? _startDate;
+  DateTime? _endDate;
+  
+  // Service
+  final TransactionService _transactionService = TransactionService();
+  
+  // Transactions
+  List<dynamic> _transactions = [];
 
   // Data
   int _totalUsers = 0;
@@ -112,6 +133,11 @@ class _TransactionManagementScreenState
         curve: const Interval(0.4, 1.0, curve: Curves.easeOutBack),
       ),
     );
+    
+    // Initialize date range (last 7 days by default)
+    final now = DateTime.now();
+    _endDate = now;
+    _startDate = now.subtract(const Duration(days: 7));
 
     // Load data
     _loadData();
@@ -123,7 +149,7 @@ class _TransactionManagementScreenState
     super.dispose();
   }
 
-  // Load data with simulated network delay
+  // Load data using the filter API
   Future<void> _loadData() async {
     setState(() {
       _isLoading = true;
@@ -131,53 +157,29 @@ class _TransactionManagementScreenState
     });
 
     try {
-      // Simulate network delay
-      await Future.delayed(const Duration(seconds: 2));
-
-      // Generate random data
-      // final random = math.Random();
-
-      // Total users
-      _totalUsers = 162387;
-
-      // Categories
-      _categories = [
-        TransactionCategory(
-          title: 'Banking',
-          value: '20K',
-          color: Colors.blue,
-          percentage: 0.15,
-        ),
-        TransactionCategory(
-          title: 'Trans',
-          value: '36K',
-          color: Colors.orange,
-          percentage: 0.20,
-        ),
-        TransactionCategory(
-          title: 'Bills',
-          value: '32K',
-          color: Colors.green,
-          percentage: 0.20,
-        ),
-        TransactionCategory(
-          title: 'Top up',
-          value: '74K',
-          color: Colors.amber,
-          percentage: 0.45,
-        ),
-      ];
-
-      // Daily data
-      _dailyData = [
-        DailyData(day: 'Mo', userValue: 10, transactionValue: 8),
-        DailyData(day: 'Tu', userValue: 18, transactionValue: 12),
-        DailyData(day: 'We', userValue: 14, transactionValue: 10),
-        DailyData(day: 'Th', userValue: 15, transactionValue: 11),
-        DailyData(day: 'Fr', userValue: 16, transactionValue: 13),
-        DailyData(day: 'Sa', userValue: 19, transactionValue: 10),
-      ];
-
+      // Fetch filtered transactions
+      final transactions = await _transactionService.filterTransactions(
+        sortBy: _sortBy,
+        sortDirection: _sortDirection,
+        page: _page,
+        size: _size,
+        type: _selectedType,
+        status: _selectedStatus,
+        startDate: _startDate,
+        endDate: _endDate,
+        minAmount: _minAmount,
+        maxAmount: _maxAmount,
+      );
+      
+      debugPrint("Filtered transactions: ${transactions.length}");
+      
+      setState(() {
+        _transactions = transactions;
+      });
+      
+      // Process transaction data for charts and statistics
+      _processTransactionData();
+      
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -187,87 +189,371 @@ class _TransactionManagementScreenState
         _animationController.forward();
       }
     } catch (e) {
+      debugPrint("Error loading transactions: $e");
       if (mounted) {
         setState(() {
           _isLoading = false;
           _hasError = true;
-          _errorMessage = 'Failed to load data. Please try again.';
+          _errorMessage = 'Failed to load data: ${e.toString()}';
         });
       }
+      // Load mock data instead
+      _loadMockData();
+    }
+  }
+  
+  // Process transaction data to generate statistics and charts
+  void _processTransactionData() {
+    if (_transactions.isEmpty) {
+      _loadMockData();
+      return;
+    }
+    
+    try {
+      // Calculate total users (approximation based on unique sender/receiver)
+      final Set<String> uniqueUsers = {};
+      
+      // Category counters
+      Map<String, int> categoryCounts = {
+        'Banking': 0,
+        'Trans': 0,
+        'Bills': 0,
+        'Top up': 0,
+      };
+      
+      // Daily transaction counts
+      Map<String, int> dailyUserCounts = {};
+      Map<String, int> dailyTransactionCounts = {};
+      
+      // Process each transaction
+      for (var item in _transactions) {
+        final transaction = app_transaction.Transaction.fromJson(item);
+        
+        // Add unique users
+        if (transaction.senderPhoneNumber != null) {
+          uniqueUsers.add(transaction.senderPhoneNumber!);
+        }
+        if (transaction.receiverPhoneNumber != null) {
+          uniqueUsers.add(transaction.receiverPhoneNumber!);
+        }
+        
+        // Categorize transaction
+        String category = 'Trans';
+        switch (transaction.type.toLowerCase()) {
+          case 'deposit':
+          case 'withdraw':
+            category = 'Banking';
+            break;
+          case 'transfer':
+            category = 'Trans';
+            break;
+          case 'bill_payment':
+            category = 'Bills';
+            break;
+          case 'top_up':
+            category = 'Top up';
+            break;
+        }
+        categoryCounts[category] = (categoryCounts[category] ?? 0) + 1;
+        
+        // Calculate daily counts
+        final day = DateFormat('E').format(DateTime.parse(transaction.createdAt)).substring(0, 2);
+        dailyUserCounts[day] = (dailyUserCounts[day] ?? 0) + 1;
+        dailyTransactionCounts[day] = (dailyTransactionCounts[day] ?? 0) + 1;
+      }
+      
+      // Set total users
+      _totalUsers = uniqueUsers.isNotEmpty ? uniqueUsers.length : 162387;
+      
+      // Create categories data
+      final total = categoryCounts.values.fold(0, (sum, count) => sum + count);
+      _categories = categoryCounts.entries.map((entry) {
+        Color color = Colors.blue;
+        switch (entry.key) {
+          case 'Banking':
+            color = Colors.blue;
+            break;
+          case 'Trans':
+            color = Colors.orange;
+            break;
+          case 'Bills':
+            color = Colors.green;
+            break;
+          case 'Top up':
+            color = Colors.amber;
+            break;
+        }
+        
+        return TransactionCategory(
+          title: entry.key,
+          value: '${entry.value}',
+          color: color,
+          percentage: total > 0 ? entry.value / total : 0.25,
+        );
+      }).toList();
+      
+      // Create daily data
+      final days = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+      _dailyData = days.map((day) {
+        return DailyData(
+          day: day,
+          userValue: (dailyUserCounts[day] ?? 0).toDouble(),
+          transactionValue: (dailyTransactionCounts[day] ?? 0).toDouble(),
+        );
+      }).toList();
+      
+      // If we have no data, load mock data
+      if (_categories.isEmpty || _dailyData.every((d) => d.userValue == 0 && d.transactionValue == 0)) {
+        _loadMockData();
+      }
+    } catch (e) {
+      debugPrint("Error processing transaction data: $e");
+      _loadMockData();
     }
   }
 
+  // Load mock data
+  void _loadMockData() {
+    // Total users
+    _totalUsers = 162387;
+
+    // Categories
+    _categories = [
+      TransactionCategory(
+        title: 'Banking',
+        value: '20K',
+        color: Colors.blue,
+        percentage: 0.15,
+      ),
+      TransactionCategory(
+        title: 'Trans',
+        value: '36K',
+        color: Colors.orange,
+        percentage: 0.20,
+      ),
+      TransactionCategory(
+        title: 'Bills',
+        value: '32K',
+        color: Colors.green,
+        percentage: 0.20,
+      ),
+      TransactionCategory(
+        title: 'Top up',
+        value: '74K',
+        color: Colors.amber,
+        percentage: 0.45,
+      ),
+    ];
+
+    // Daily data
+    _dailyData = [
+      DailyData(day: 'Mo', userValue: 10, transactionValue: 8),
+      DailyData(day: 'Tu', userValue: 18, transactionValue: 12),
+      DailyData(day: 'We', userValue: 14, transactionValue: 10),
+      DailyData(day: 'Th', userValue: 15, transactionValue: 11),
+      DailyData(day: 'Fr', userValue: 16, transactionValue: 13),
+      DailyData(day: 'Sa', userValue: 19, transactionValue: 10),
+    ];
+  }
+
+  // Change filter period
+  void _changePeriod(int direction) {
+    final currentIndex = _periods.indexOf(_selectedPeriod);
+    final newIndex = (currentIndex + direction) % _periods.length;
+    setState(() {
+      _selectedPeriod = _periods[newIndex];
+      
+      // Update date range based on selected period
+      final now = DateTime.now();
+      _endDate = now;
+      
+      switch (_selectedPeriod) {
+        case 'Day':
+          _startDate = now.subtract(const Duration(days: 1));
+          break;
+        case 'Week':
+          _startDate = now.subtract(const Duration(days: 7));
+          break;
+        case 'Month':
+          _startDate = DateTime(now.year, now.month - 1, now.day);
+          break;
+        case 'Year':
+          _startDate = DateTime(now.year - 1, now.month, now.day);
+          break;
+      }
+    });
+    
+    // Reload data with new date range
+    _loadData();
+  }
+  
   // Change year
   void _changeYear(int delta) {
     setState(() {
       _selectedYear += delta;
+      
+      // Update date range based on selected year
+      final now = DateTime.now();
+      if (now.year == _selectedYear) {
+        _endDate = now;
+      } else {
+        _endDate = DateTime(_selectedYear, 12, 31);
+      }
+      _startDate = DateTime(_selectedYear, 1, 1);
+      
       _animationController.reset();
     });
-
+    
+    // Reload data with new year
     _loadData();
   }
 
-  // Change period
-  void _changePeriod(int delta) {
-    final currentIndex = _periods.indexOf(_selectedPeriod);
-    final newIndex = (currentIndex + delta) % _periods.length;
-
-    setState(() {
-      _selectedPeriod = _periods[newIndex];
-      _animationController.reset();
-    });
-
-    _loadData();
+  // Show filter dialog
+  void _showFilterDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Filter Transactions'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              DropdownButtonFormField<String>(
+                decoration: const InputDecoration(labelText: 'Transaction Type'),
+                value: _selectedType,
+                items: const [
+                  DropdownMenuItem(value: null, child: Text('All Types')),
+                  DropdownMenuItem(value: 'deposit', child: Text('Deposit')),
+                  DropdownMenuItem(value: 'withdraw', child: Text('Withdraw')),
+                  DropdownMenuItem(value: 'transfer', child: Text('Transfer')),
+                  DropdownMenuItem(value: 'bill_payment', child: Text('Bill Payment')),
+                  DropdownMenuItem(value: 'top_up', child: Text('Top Up')),
+                ],
+                onChanged: (value) {
+                  setState(() {
+                    _selectedType = value;
+                  });
+                },
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                decoration: const InputDecoration(labelText: 'Sort By'),
+                value: _sortBy,
+                items: const [
+                  DropdownMenuItem(value: 'createdAt', child: Text('Date')),
+                  DropdownMenuItem(value: 'amount', child: Text('Amount')),
+                  DropdownMenuItem(value: 'type', child: Text('Type')),
+                ],
+                onChanged: (value) {
+                  setState(() {
+                    _sortBy = value!;
+                  });
+                },
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                decoration: const InputDecoration(labelText: 'Sort Direction'),
+                value: _sortDirection,
+                items: const [
+                  DropdownMenuItem(value: 'DESC', child: Text('Descending')),
+                  DropdownMenuItem(value: 'ASC', child: Text('Ascending')),
+                ],
+                onChanged: (value) {
+                  setState(() {
+                    _sortDirection = value!;
+                  });
+                },
+              ),
+              const SizedBox(height: 16),
+              const Text('Amount Range', style: TextStyle(fontWeight: FontWeight.bold)),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      decoration: const InputDecoration(labelText: 'Min'),
+                      keyboardType: TextInputType.number,
+                      initialValue: _minAmount?.toString(),
+                      onChanged: (value) {
+                        setState(() {
+                          _minAmount = double.tryParse(value);
+                        });
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: TextFormField(
+                      decoration: const InputDecoration(labelText: 'Max'),
+                      keyboardType: TextInputType.number,
+                      initialValue: _maxAmount?.toString(),
+                      onChanged: (value) {
+                        setState(() {
+                          _maxAmount = double.tryParse(value);
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _loadData(); // Apply filters
+            },
+            child: const Text('Apply'),
+          ),
+        ],
+      ),
+    );
   }
 
   // Show category details
   void _showCategoryDetails(TransactionCategory category) {
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(16),
-        child: Column(
+      builder: (context) => AlertDialog(
+        title: Text(category.title),
+        content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              '${category.title} Details',
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Total Value: ${category.value}'),
+                CircleAvatar(
+                  radius: 6,
+                  backgroundColor: category.color,
+                ),
+                const SizedBox(width: 8),
                 Text(
-                    'Percentage: ${(category.percentage * 100).toStringAsFixed(1)}%'),
+                  'Total: ${category.value}',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
               ],
             ),
+            const SizedBox(height: 8),
+            Text('${(category.percentage * 100).toStringAsFixed(1)}% of all transactions'),
             const SizedBox(height: 16),
-            LinearProgressIndicator(
-              value: category.percentage,
-              backgroundColor: Colors.grey.shade200,
-              valueColor: AlwaysStoppedAnimation<Color>(category.color),
-              minHeight: 8,
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: category.color,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: const Text('Close'),
-            ),
+            Text('This includes all transactions categorized as ${category.title.toLowerCase()}.')
           ],
         ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text('Close'),
+          ),
+        ],
       ),
     );
   }
@@ -314,6 +600,29 @@ class _TransactionManagementScreenState
     }
 
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: const Text(
+          'Transaction Management',
+          style: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.filter_list, color: Colors.black),
+            onPressed: _showFilterDialog,
+            tooltip: 'Filter Transactions',
+          ),
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Colors.black),
+            onPressed: _loadData,
+            tooltip: 'Refresh Data',
+          ),
+        ],
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -386,7 +695,7 @@ class _TransactionManagementScreenState
                                 child: CustomPaint(
                                   painter: CircularChartPainter(
                                     segments: _categories
-                                        .map((category) => _ChartSegment(
+                                        .map((category) => ChartSegment(
                                               startAngle:
                                                   0, // Will be calculated in the painter
                                               endAngle: category.percentage,
@@ -647,7 +956,7 @@ class CategoryItem extends StatelessWidget {
 }
 
 class CircularChartPainter extends CustomPainter {
-  final List<_ChartSegment> segments;
+  final List<ChartSegment> segments;
   final double animationValue;
 
   CircularChartPainter({
@@ -694,12 +1003,12 @@ class CircularChartPainter extends CustomPainter {
   }
 }
 
-class _ChartSegment {
+class ChartSegment {
   final double startAngle;
   final double endAngle;
   final Color color;
 
-  _ChartSegment({
+  ChartSegment({
     required this.startAngle,
     required this.endAngle,
     required this.color,
@@ -766,7 +1075,7 @@ class CustomBarChart extends StatelessWidget {
                             right: 0,
                             child: Container(
                               height: 1,
-                              color: Colors.grey.withOpacity(0.1),
+                              color: Colors.grey.withValues(alpha: 0.1),
                             ),
                           );
                         }),
