@@ -96,13 +96,8 @@ class BankingDataProvider extends ChangeNotifier {
 
   void _initializeQuickAccessItems() {
     _quickAccessItems = [
-      QuickAccessItem(type: "chat", label: "Top-up", isMultiLine: false),
       QuickAccessItem(type: "transfer", label: "Transfer", isMultiLine: false),
       QuickAccessItem(type: "withdraw", label: "Withdraw", isMultiLine: false),
-      QuickAccessItem(type: "ticket", label: "Ticket", isMultiLine: false),
-      QuickAccessItem(
-          type: "piggy", label: "Saving\nWallet", isMultiLine: true),
-      QuickAccessItem(type: "data", label: "Datapack", isMultiLine: false),
       QuickAccessItem(type: "bill", label: "Bill\nPayment", isMultiLine: true),
     ];
   }

@@ -488,29 +488,12 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildQuickAccessItems(BankingDataProvider bankingDataProvider) {
-    const int firstRowCount = 4;
-
     return Column(
       children: [
-        // First row of quick access items
+        // Display all quick access items in a single row
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: bankingDataProvider.quickAccessItems
-              .sublist(0, firstRowCount)
-              .map((item) => _buildQuickAccessItem(
-                    _buildCustomIcon(item.type, Icons.help_outline),
-                    item.label,
-                    item.isMultiLine,
-                  ))
-              .toList(),
-        ),
-        const SizedBox(height: 20),
-        // Second row of quick access items
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: bankingDataProvider.quickAccessItems
-              .sublist(
-                  firstRowCount, bankingDataProvider.quickAccessItems.length)
               .map((item) => _buildQuickAccessItem(
                     _buildCustomIcon(item.type, Icons.help_outline),
                     item.label,
@@ -564,22 +547,6 @@ class _HomeScreenState extends State<HomeScreen>
           Icons.account_balance_wallet_outlined,
           color: Colors.blue.shade700,
           size: 24,
-        );
-      case "ticket":
-        return CustomPaint(
-          size: const Size(24, 24),
-          painter: TicketPainter(Colors.blue.shade700),
-        );
-      case "piggy":
-        return Icon(
-          Icons.savings_outlined,
-          color: Colors.blue.shade700,
-          size: 24,
-        );
-      case "data":
-        return CustomPaint(
-          size: const Size(24, 24),
-          painter: DatapackPainter(Colors.blue.shade700),
         );
       case "bill":
         return Icon(
@@ -929,182 +896,130 @@ class _HomeScreenState extends State<HomeScreen>
 
   Widget _buildBottomNavBar() {
     return Container(
-      height: 60,
+      height: 65,
       decoration: BoxDecoration(
         color: Colors.white,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withAlpha(26),
+            color: Colors.black.withOpacity(0.1),
             blurRadius: 10,
-            offset: const Offset(0, -1),
+            offset: const Offset(0, -3),
           ),
         ],
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _buildNavItem(Icons.home, 'Home', true),
-          _buildNavItem(Icons.history, 'History', false),
-          _buildCircleNavItem(Icons.qr_code_scanner),
-          _buildNavItem(Icons.credit_card, 'Cards', false),
-          _buildNavItem(Icons.settings, 'Setting', false),
+          _buildNavItem(Icons.history_rounded, 'History', false),
+          _buildCircleNavItem(Icons.qr_code_scanner_rounded),
+          _buildNavItem(Icons.settings_rounded, 'Setting', false),
         ],
       ),
     );
   }
 
   Widget _buildNavItem(IconData icon, String label, bool isActive) {
-    return InkWell(
-      onTap: () {
-        if (!isActive) {
+    final Color activeColor = Colors.blue.shade600;
+    final Color inactiveColor = Colors.grey.shade600;
+    
+    return Expanded(
+      child: InkWell(
+        onTap: () {
           if (label == 'History') {
             // Navigate to transaction history screen
             Navigator.of(context).pushNamed('/transaction-history');
-          } else if (label == 'Cards') {
-            // Navigate to account and cards screen
-            Navigator.of(context).pushNamed('/account-card');
-          } else if (label == 'Setting') {
+          } else if (label == 'Setting' && !isActive) {
             // Navigate to profile settings screen
             Navigator.of(context).pushNamed('/profile-settings');
-          } else {
+          } else if (!isActive) {
             // Fallback for other menu items
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('Chuyển đến màn hình: $label')),
             );
           }
-        }
-      },
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            color: isActive ? Colors.blue : Colors.grey,
-          ),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: isActive ? Colors.blue : Colors.grey,
+        },
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isActive ? activeColor.withOpacity(0.15) : Colors.transparent,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                icon,
+                color: isActive ? activeColor : inactiveColor,
+                size: 24,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                color: isActive ? activeColor : inactiveColor,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildCircleNavItem(IconData icon) {
-    return GestureDetector(
-      onTap: () {
-        // Navigate directly to QR scanner screen
-        Navigator.pushNamed(context, '/qr-scan');
-      },
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          TweenAnimationBuilder<double>(
-            tween: Tween<double>(begin: 1.0, end: 1.1),
-            duration: const Duration(milliseconds: 500),
-            curve: Curves.easeInOut,
-            builder: (context, value, child) {
-              return Transform.scale(
-                scale: value,
-                child: child,
-              );
-            },
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.blue,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.blue.withAlpha(77),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+    return Container(
+      width: 60,
+      height: 60,
+      margin: const EdgeInsets.only(bottom: 30),
+      child: GestureDetector(
+        onTap: () {
+          // Navigate directly to QR scanner screen
+          Navigator.pushNamed(context, '/qr-scan');
+        },
+        child: TweenAnimationBuilder<double>(
+          tween: Tween<double>(begin: 1.0, end: 1.05),
+          duration: const Duration(milliseconds: 800),
+          curve: Curves.easeInOut,
+          builder: (context, value, child) {
+            return Transform.scale(
+              scale: value,
+              child: child,
+            );
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.blue.shade400, Colors.blue.shade700],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-              child: const Icon(
-                Icons.qr_code_scanner,
-                color: Colors.white,
-              ),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.blue.shade300.withOpacity(0.5),
+                  blurRadius: 10,
+                  spreadRadius: 2,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.qr_code_scanner_rounded,
+              color: Colors.white,
+              size: 30,
             ),
           ),
-        ],
+        ),
       ),
     );
   }
-}
-
-class TicketPainter extends CustomPainter {
-  final Color color;
-  TicketPainter(this.color);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
-
-    final path = Path();
-    path.moveTo(2, 8);
-    path.lineTo(22, 8);
-    path.lineTo(22, 19);
-    path.lineTo(2, 19);
-    path.close();
-
-    path.moveTo(2, 13);
-    path.lineTo(22, 13);
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-class DatapackPainter extends CustomPainter {
-  final Color color;
-  DatapackPainter(this.color);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
-
-    final path = Path();
-    path.moveTo(4, 6);
-    path.lineTo(20, 6);
-    path.lineTo(20, 16);
-    path.lineTo(4, 16);
-    path.close();
-
-    path.moveTo(8, 16);
-    path.lineTo(8, 19);
-    path.lineTo(16, 19);
-    path.lineTo(16, 16);
-
-    canvas.drawPath(path, paint);
-
-    final screenPaint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
-
-    canvas.drawLine(
-      const Offset(8, 10),
-      const Offset(16, 10),
-      screenPaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class CoinStackPainter extends CustomPainter {
