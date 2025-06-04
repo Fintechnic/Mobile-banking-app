@@ -86,7 +86,14 @@ class Transaction {
     this.counterparty,
   });
 
-  bool get isExpense => amount < 0;
+  bool get isExpense {
+    // Top-up should be considered as income (not expense) regardless of amount sign
+    if (type == TransactionType.topUp) {
+      return false; 
+    }
+    // For other transaction types, use the amount sign
+    return amount < 0;
+  }
 
   factory Transaction.fromJson(Map<String, dynamic> json) {
     return Transaction(
@@ -375,7 +382,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         id: '6',
         title: 'Mobile Top Up',
         description: 'Viettel prepaid',
-        amount: -100000,
+        amount: 100000,
         date: DateTime.now().subtract(const Duration(days: 18)),
         category: 'Top Up',
         status: 'Completed',
@@ -1058,7 +1065,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                 Text(
                   transaction.isExpense
                       ? formattedAmount 
-                      : '+$formattedAmount',
+                      : (transaction.amount < 0 ? formattedAmount.replaceFirst('-', '+') : '+$formattedAmount'),
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
@@ -1192,7 +1199,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                     Text(
                       transaction.isExpense
                           ? formattedAmount 
-                          : '+$formattedAmount',
+                          : (transaction.amount < 0 ? formattedAmount.replaceFirst('-', '+') : '+$formattedAmount'),
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,

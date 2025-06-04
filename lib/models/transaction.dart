@@ -78,5 +78,12 @@ class Transaction {
   }
   
   // Check if transaction is an expense based on amount (negative = expense)
-  bool get isExpense => amount < 0;
+  bool get isExpense {
+    // Top-up should be considered as income (not expense) regardless of amount sign
+    if (type.toLowerCase() == 'top_up') {
+      return false;
+    }
+    // For other transaction types, use the amount sign
+    return amount < 0;
+  }
 }

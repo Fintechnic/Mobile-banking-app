@@ -54,31 +54,50 @@ class AuthProvider extends ChangeNotifier {
   /// Login user
   Future<bool> login(String username, String password) async {
     try {
+      // Set loading state but don't notify yet to prevent unwanted rebuilds
       isLoading = true;
       error = null;
-      notifyListeners();
-
+      
+      // First validation without notifying to prevent unnecessary rebuilds
       if (username.isEmpty || password.isEmpty) {
         error = "Username and password cannot be empty";
+        isLoading = false;
+        notifyListeners();
         return false;
       }
+
+      // Now notify for loading state
+      notifyListeners();
 
       final response = await _authService.login(username, password);
       
+      // Process response without notifying yet
+      bool success = false;
       if (response != null) {
-        _handleAuthSuccess(response);
-        return true;
+        // Check if there's an error in the response
+        if (response.containsKey("error")) {
+          error = response["error"];
+        } else {
+          _handleAuthSuccess(response);
+          success = true;
+        }
       } else {
         error = 'Login failed. Please check your username and password.';
-        return false;
       }
+      
+      // Set loading to false
+      isLoading = false;
+      
+      // Only notify once with the final state
+      notifyListeners();
+      
+      return success;
     } catch (e) {
       debugPrint("Login provider error: $e");
       error = e.toString();
-      return false;
-    } finally {
       isLoading = false;
       notifyListeners();
+      return false;
     }
   }
 
