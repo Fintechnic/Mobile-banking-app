@@ -28,11 +28,22 @@ class AuthService {
         }
         return response;
       }
-      debugPrint("Login response error: ${response["error"]}");
-      return null;
+      
+      // Handle specific error responses
+      String errorMsg = response["error"] ?? "Login failed";
+      debugPrint("Login response error: $errorMsg");
+      
+      // Return the error message for display to the user
+      return {
+        "error": errorMsg,
+        "authenticated": false
+      };
     } catch (e) {
       debugPrint("Login error: $e");
-      return null;
+      return {
+        "error": e.toString(),
+        "authenticated": false
+      };
     }
   }
 

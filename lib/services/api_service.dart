@@ -237,13 +237,25 @@ class ApiService {
       );
       
       _logger.i('Response status code: ${response.statusCode}');
-      _logger.i('Response data: ${response.data}');
+      _logger.i('Response text: ${response.data}');
       
       // Handle empty responses immediately
       final rawData = response.data;
       if (rawData == null || (rawData is String && rawData.toString().isEmpty)) {
         _logger.i('Empty response detected, returning success');
         return {'success': true, 'statusCode': response.statusCode};
+      }
+
+      // Special handling for auth endpoints with error status codes
+      if (path.contains('/api/auth/') && response.statusCode != null && response.statusCode! >= 400) {
+        String errorMsg = '';
+        if (rawData is String) {
+          errorMsg = rawData.toString();
+        } else {
+          errorMsg = 'Authentication failed with status: ${response.statusCode}';
+        }
+        _logger.e('Auth error response: $errorMsg');
+        return {'error': errorMsg};
       }
 
       // Handle non-empty string data by trying to parse as JSON
@@ -259,7 +271,7 @@ class ApiService {
             return {'success': true, 'statusCode': response.statusCode, 'data': rawData};
           }
           // For error statuses, return the error
-          return {'error': 'Invalid JSON response: $rawData'};
+          return {'error': rawData.toString()};
         }
       }
       
@@ -359,7 +371,7 @@ class ApiService {
         return {'success': true, 'statusCode': response.statusCode};
       } else if (response.data is Map<String, dynamic>) {
         return response.data;
-      } else if (response.data is String && !response.data.toString().isEmpty) {
+      } else if (response.data is String && response.data.toString().isNotEmpty) {
         // Try to parse string as JSON
         try {
           final jsonData = jsonDecode(response.data);
@@ -415,7 +427,7 @@ class ApiService {
         return {'success': true, 'statusCode': response.statusCode};
       } else if (response.data is Map<String, dynamic>) {
         return response.data;
-      } else if (response.data is String && !response.data.toString().isEmpty) {
+      } else if (response.data is String && response.data.toString().isNotEmpty) {
         // Try to parse string as JSON
         try {
           final jsonData = jsonDecode(response.data);
