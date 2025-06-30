@@ -75,3 +75,10 @@ flutter test
 ```bash
 flutter build apk --release
 ```
+
+## Credit
+- Le Minh Viet: https://github.com/Kaso45
+- Tran Nguyen Thien An: https://github.com/andythienan
+- Nguyen Vo Chi Dung: https://github.com/NZodasic
+- Do Nhu Quan: https://github.com/nhuquan223
+- Nguyen Dien Duy Anh: https://github.com/tomngyx
